@@ -33,92 +33,205 @@ import com.ritesh.cashiro.ui.theme.*
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+import androidx.compose.ui.res.painterResource
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
     val uiState by viewModel.transactionUiState.collectAsState()
     val categories by viewModel.categories.collectAsState()
+    val transactionSubcategories by viewModel.transactionSubcategories.collectAsState()
+
+    val selectedCategoryObj = remember(uiState.category, categories) {
+        categories.find { it.name == uiState.category }
+    }
+    val selectedSubcategoryObj = remember(uiState.subcategory, transactionSubcategories) {
+        transactionSubcategories.find { it.name == uiState.subcategory }
+    }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showCategoryMenu by remember { mutableStateOf(false) }
-    var showSubcategoryMenu by remember { mutableStateOf(false) }
-    val subcategories by viewModel.transactionSubcategories.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
-                modifier =
-                        Modifier.fillMaxWidth()
-                                .imePadding() // Handle keyboard properly
-                                .verticalScroll(rememberScrollState())
-                                .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding() // Handle keyboard properly
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Amount Input
             TextField(
-                    value = uiState.amount,
-                    onValueChange = viewModel::updateTransactionAmount,
-                    label = { Text("Amount", fontWeight = FontWeight.SemiBold) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape =
-                            RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 16.dp,
-                                    bottomEnd = 16.dp
-                            ),
-                    isError = uiState.amountError != null,
-                    colors =
-                            TextFieldDefaults.colors(
-                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedLabelColor =
-                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
-                            ),
-                    supportingText = uiState.amountError?.let { { Text(it) } },
-                    leadingIcon = { Icon(Icons.Default.CurrencyRupee, contentDescription = null) },
+                value = uiState.amount,
+                onValueChange = viewModel::updateTransactionAmount,
+                label = { Text("Amount", fontWeight = FontWeight.SemiBold) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape =
+                    RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = 16.dp,
+                        bottomEnd = 16.dp
+                    ),
+                isError = uiState.amountError != null,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
+                ),
+                supportingText = uiState.amountError?.let { { Text(it) } },
+                leadingIcon = { Icon(Icons.Default.CurrencyRupee, contentDescription = null) },
             )
 
             // Transaction Type Selection
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                        text = "Transaction Type *",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                    text = "Transaction Type *",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
                 FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TransactionType.values().forEach { type ->
                         FilterChip(
-                                selected = uiState.transactionType == type,
-                                onClick = { viewModel.updateTransactionType(type) },
-                                label = {
-                                    Text(
-                                            type.name.lowercase(Locale.getDefault())
-                                                    .replaceFirstChar {
-                                                        it.titlecase(Locale.getDefault())
-                                                    }
+                            selected = uiState.transactionType == type,
+                            onClick = { viewModel.updateTransactionType(type) },
+                            label = {
+                                Text(
+                                    type.name.lowercase(Locale.getDefault())
+                                        .replaceFirstChar {
+                                            it.titlecase(Locale.getDefault())
+                                        }
                                     )
                                 },
                                 leadingIcon =
-                                        if (uiState.transactionType == type) {
-                                            {
-                                                Icon(
-                                                        Icons.Default.Check,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(16.dp)
-                                                )
-                                            }
-                                        } else null
+                                    if (uiState.transactionType == type) {
+                                        {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    } else null
                         )
+                    }
+                }
+            }
+            // Date and Time Selection
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Date Button
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp)
+                        .clickable { showDatePicker = true },
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        val themeColors = MaterialTheme.colorScheme
+                        Icon(
+                            imageVector = Icons.Default.CalendarToday,
+                            contentDescription = "Date Picker",
+                            modifier = Modifier.size(16.dp),
+                            tint = themeColors.onSurface
+                        )
+                        Spacer(Modifier.size(8.dp))
+
+                        val dateLabel =
+                            uiState.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
+                        Text(
+                            text = dateLabel,
+                            textAlign = TextAlign.Center,
+                            fontSize = 16.sp,
+                            color = themeColors.onSurface,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                // Time Button
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp, vertical = 12.dp)
+                        .clickable { showTimePicker = true },
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        val hour = if (uiState.date.hour % 12 == 0) 12 else uiState.date.hour % 12
+                        val minute = uiState.date.minute
+                        val amPm = if (uiState.date.hour < 12) "AM" else "PM"
+
+                        Box(modifier = Modifier
+                            .padding(5.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(0.2f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                        ) {
+                            Text(
+                                text = String.format("%02d", hour),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
+
+                        Text(
+                            text = ":",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 16.sp,
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .padding(5.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                        ) {
+                            Text(
+                                text = String.format("%02d", minute),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(5.dp)
+                            )
+                        }
+
+                        Box(modifier = Modifier.padding(5.dp)) {
+                            Text(
+                                text = amPm,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp,
+                            )
+                        }
                     }
                 }
             }
@@ -133,32 +246,38 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
             ) {
 
                 OutlinedCard(
-                        onClick = { showAccountSheet = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape =
-                        RoundedCornerShape(
-                            topStart = 16.dp,
-                            topEnd = 16.dp,
-                            bottomStart = 4.dp,
-                            bottomEnd = 4.dp
-                        ),
-                        colors =
-                        CardDefaults.outlinedCardColors(
-                            containerColor =
-                            MaterialTheme.colorScheme.surfaceContainerLow
-                        ),
-                        border = BorderStroke(0.dp, Color.Transparent)
+                    onClick = { showAccountSheet = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = 4.dp,
+                        bottomEnd = 4.dp
+                    ),
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    border = BorderStroke(0.dp, Color.Transparent)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountBalance,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        if (uiState.selectedAccount != null && uiState.selectedAccount?.iconResId != 0) {
+                            Icon(
+                                painter = painterResource(id = uiState.selectedAccount!!.iconResId),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.AccountBalance,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
@@ -208,69 +327,98 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                             bottomStart = 16.dp,
                             bottomEnd = 16.dp
                         ),
-                    leadingIcon = { Icon(Icons.Default.Category, contentDescription = null) },
+                    leadingIcon = {
+                        if (selectedCategoryObj != null && selectedCategoryObj.iconResId != 0) {
+                            Icon(
+                                painter = painterResource(id = selectedCategoryObj.iconResId),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Icon(Icons.Default.Category, contentDescription = null)
+                        }
+                    },
                     trailingIcon = {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
                     },
                     isError = uiState.categoryError != null,
                     supportingText = uiState.categoryError?.let { { Text(it) } },
                     enabled = false, // Disable typing, handle click above
-                    colors =
-                        TextFieldDefaults.colors(
-                            focusedContainerColor =
-                                MaterialTheme.colorScheme.surfaceContainerLow,
-                            unfocusedContainerColor =
-                                MaterialTheme.colorScheme.surfaceContainerLow,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                            unfocusedLabelColor =
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                    0.7f
-                                ),
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                            disabledIndicatorColor = Color.Transparent,
-                            disabledLabelColor = MaterialTheme.colorScheme.primary,
-                            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f),
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        disabledIndicatorColor = Color.Transparent,
+                        disabledLabelColor = MaterialTheme.colorScheme.primary,
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
 
                 // Subcategory Display (Read-only, selected via sheet)
                 if (uiState.subcategory != null) {
-                     TextField(
+                    Spacer(modifier = Modifier.height(Spacing.md))
+                    TextField(
                         value = uiState.subcategory ?: "None",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Subcategory") },
                         leadingIcon = {
-                            Icon(
-                                Icons.Default.SubdirectoryArrowRight,
-                                contentDescription = null
-                            )
+                            if (selectedSubcategoryObj != null && selectedSubcategoryObj.iconResId != 0) {
+                                Icon(
+                                    painter = painterResource(id = selectedSubcategoryObj.iconResId),
+                                    contentDescription = null,
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.SubdirectoryArrowRight,
+                                    contentDescription = null
+                                )
+                            }
                         },
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.fillMaxWidth(),
                         enabled = false,
-                        colors =
+                        colors = if (selectedSubcategoryObj != null) {
+                            val color = try {
+                                Color(android.graphics.Color.parseColor(selectedSubcategoryObj.color))
+                            } catch (e: Exception) {
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            }
                             TextFieldDefaults.colors(
-                                focusedContainerColor =
-                                    MaterialTheme.colorScheme.surfaceContainerLow,
-                                unfocusedContainerColor =
-                                    MaterialTheme.colorScheme.surfaceContainerLow,
+                                focusedContainerColor = color.copy(alpha = 0.2f),
+                                unfocusedContainerColor = color.copy(alpha = 0.2f),
+                                disabledContainerColor = color.copy(alpha = 0.2f),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f),
+                                disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                disabledTextColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        } else {
+                            TextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
                                 focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                unfocusedLabelColor =
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                        0.7f
-                                    ),
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f),
                                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                                 disabledIndicatorColor = Color.Transparent,
                                 disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                 disabledTextColor = MaterialTheme.colorScheme.onSurface
                             )
+                        }
                     )
                 }
             }
@@ -283,60 +431,52 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                 ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
                         Text(
-                                text = "Select Account",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+                            text = "Select Account",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
                         )
 
                         if (accounts.isEmpty()) {
                             Box(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                                    contentAlignment = Alignment.Center
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                        text = "No accounts found",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = "No accounts found",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         } else {
                             LazyColumn(
-                                    contentPadding =
-                                            PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 item {
                                     // Option to deselect/None
                                     Surface(
-                                            onClick = {
-                                                viewModel.updateTransactionAccount(null)
-                                                showAccountSheet = false
-                                            },
-                                            shape = RoundedCornerShape(12.dp),
-                                            color =
-                                                    if (uiState.selectedAccount == null)
-                                                            MaterialTheme.colorScheme
-                                                                    .primaryContainer
-                                                    else MaterialTheme.colorScheme.surface,
-                                            border =
-                                                    if (uiState.selectedAccount == null) null
-                                                    else
-                                                            BorderStroke(
-                                                                    1.dp,
-                                                                    MaterialTheme.colorScheme
-                                                                            .outlineVariant
-                                                            ),
-                                            modifier = Modifier.fillMaxWidth()
+                                        onClick = {
+                                            viewModel.updateTransactionAccount(null)
+                                            showAccountSheet = false },
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = if (uiState.selectedAccount == null) MaterialTheme.colorScheme.primaryContainer
+                                        else MaterialTheme.colorScheme.surface,
+                                        border = if (uiState.selectedAccount == null) null
+                                        else BorderStroke(
+                                            1.dp,
+                                            MaterialTheme.colorScheme.outlineVariant
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
                                         Row(
-                                                modifier = Modifier.padding(16.dp),
-                                                verticalAlignment = Alignment.CenterVertically
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(
-                                                    text = "None (Manual Entry)",
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    color = MaterialTheme.colorScheme.onSurface
+                                                text = "None (Manual Entry)",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
                                     }
@@ -387,118 +527,7 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                 }
             }
 
-            // Date and Time Selection
-            Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Date Button
-                Box(
-                        modifier =
-                                Modifier.weight(1f).padding(8.dp).clickable {
-                                    showDatePicker = true
-                                },
-                        contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(
-                            modifier = Modifier.padding(vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                    ) {
-                        val themeColors = MaterialTheme.colorScheme
-                        Icon(
-                                imageVector = Icons.Default.CalendarToday,
-                                contentDescription = "Date Picker",
-                                modifier = Modifier.size(16.dp),
-                                tint = themeColors.onSurface
-                        )
-                        Spacer(Modifier.size(8.dp))
 
-                        val dateLabel =
-                                uiState.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
-                        Text(
-                                text = dateLabel,
-                                textAlign = TextAlign.Center,
-                                fontSize = 16.sp,
-                                color = themeColors.onSurface,
-                                style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-
-                // Time Button
-                Box(
-                        modifier =
-                                Modifier.weight(1f)
-                                        .padding(horizontal = 8.dp)
-                                        .clickable { showTimePicker = true },
-                        contentAlignment = Alignment.CenterEnd
-                ) {
-                    Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End
-                    ) {
-                        val hour = if (uiState.date.hour % 12 == 0) 12 else uiState.date.hour % 12
-                        val minute = uiState.date.minute
-                        val amPm = if (uiState.date.hour < 12) "AM" else "PM"
-
-                        Box(
-                                modifier =
-                                        Modifier.padding(5.dp)
-                                                .background(
-                                                        color =
-                                                                MaterialTheme.colorScheme.primary
-                                                                        .copy(0.2f),
-                                                        shape = RoundedCornerShape(8.dp)
-                                                )
-                        ) {
-                            Text(
-                                    text = String.format("%02d", hour),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(5.dp)
-                            )
-                        }
-
-                        Text(
-                                text = ":",
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
-                        )
-
-                        Box(
-                                modifier =
-                                        Modifier.padding(5.dp)
-                                                .background(
-                                                        color =
-                                                                MaterialTheme.colorScheme
-                                                                        .surfaceVariant,
-                                                        shape = RoundedCornerShape(8.dp)
-                                                )
-                        ) {
-                            Text(
-                                    text = String.format("%02d", minute),
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(5.dp)
-                            )
-                        }
-
-                        Box(modifier = Modifier.padding(5.dp)) {
-                            Text(
-                                    text = amPm,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp,
-                            )
-                        }
-                    }
-                }
-            }
             Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -506,67 +535,56 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
             ) {
                 // Merchant Name Input
                 TextField(
-                        value = uiState.merchant,
-                        onValueChange = viewModel::updateTransactionMerchant,
-                        label = { Text("Merchant", fontWeight = FontWeight.SemiBold) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape =
-                                RoundedCornerShape(
-                                        topStart = 16.dp,
-                                        topEnd = 16.dp,
-                                        bottomStart = 4.dp,
-                                        bottomEnd = 4.dp
-                                ),
-                        leadingIcon = { Icon(Icons.Default.Store, contentDescription = null) },
-                        isError = uiState.merchantError != null,
-                        colors =
-                                TextFieldDefaults.colors(
-                                        focusedContainerColor =
-                                                MaterialTheme.colorScheme.surfaceContainerLow,
-                                        unfocusedContainerColor =
-                                                MaterialTheme.colorScheme.surfaceContainerLow,
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent,
-                                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedLabelColor =
-                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                                        0.7f
-                                                )
-                                ),
-                        supportingText = uiState.merchantError?.let { { Text(it) } },
+                    value = uiState.merchant,
+                    onValueChange = viewModel::updateTransactionMerchant,
+                    label = { Text("Merchant", fontWeight = FontWeight.SemiBold) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(
+                            topStart = 16.dp,
+                            topEnd = 16.dp,
+                            bottomStart = 4.dp,
+                            bottomEnd = 4.dp
+                        ),
+                    leadingIcon = { Icon(Icons.Default.Store, contentDescription = null) },
+                    isError = uiState.merchantError != null,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor =
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
+                    ),
+                    supportingText = uiState.merchantError?.let { { Text(it) } },
                 )
 
                 // Notes/Description (Optional)
                 TextField(
-                        value = uiState.notes,
-                        onValueChange = viewModel::updateTransactionNotes,
-                        label = { Text("Notes (Optional)", fontWeight = FontWeight.SemiBold) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape =
-                                RoundedCornerShape(
-                                        topStart = 4.dp,
-                                        topEnd = 4.dp,
-                                        bottomStart = 16.dp,
-                                        bottomEnd = 16.dp
-                                ),
-                        leadingIcon = {
-                            Icon(Icons.Default.Description, contentDescription = null)
-                        },
-                        colors =
-                                TextFieldDefaults.colors(
-                                        focusedContainerColor =
-                                                MaterialTheme.colorScheme.surfaceContainerLow,
-                                        unfocusedContainerColor =
-                                                MaterialTheme.colorScheme.surfaceContainerLow,
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent,
-                                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedLabelColor =
-                                                MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                                        0.7f
-                                                )
-                                ),
+                    value = uiState.notes,
+                    onValueChange = viewModel::updateTransactionNotes,
+                    label = { Text("Notes (Optional)", fontWeight = FontWeight.SemiBold) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(
+                            topStart = 4.dp,
+                            topEnd = 4.dp,
+                            bottomStart = 16.dp,
+                            bottomEnd = 16.dp
+                        ),
+                    leadingIcon = {
+                        Icon(Icons.Default.Description, contentDescription = null)
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
+                    ),
                 )
             }
 
@@ -574,32 +592,28 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
             Spacer(modifier = Modifier.height(80.dp))
         }
         Box(
-                modifier =
-                        Modifier.fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .background(
-                                        brush =
-                                                Brush.verticalGradient(
-                                                        colors =
-                                                                listOf(
-                                                                        Color.Transparent,
-                                                                        MaterialTheme.colorScheme
-                                                                                .surface,
-                                                                        MaterialTheme.colorScheme
-                                                                                .surface
-                                                                )
-                                                )
-                                ),
-                contentAlignment = Alignment.BottomCenter
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.BottomCenter
         ) {
             Button(
                     onClick = { viewModel.saveTransaction(onSuccess = onSave) },
-                    modifier =
-                            Modifier.navigationBarsPadding()
-                                    .padding(horizontal = Dimensions.Padding.content)
-                                    .fillMaxWidth()
-                                    .align(Alignment.BottomCenter)
-                                    .height(56.dp),
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .padding(horizontal = Dimensions.Padding.content)
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .height(56.dp),
                     shapes = ButtonDefaults.shapes(),
                     enabled = uiState.isValid && !uiState.isLoading,
             ) {
@@ -617,59 +631,58 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
     // Date Picker Dialog
     if (showDatePicker) {
         val datePickerState =
-                rememberDatePickerState(
-                        initialSelectedDateMillis =
-                                uiState.date
-                                        .toLocalDate()
-                                        .atStartOfDay()
-                                        .toInstant(java.time.ZoneOffset.UTC)
-                                        .toEpochMilli()
-                )
+            rememberDatePickerState(
+                initialSelectedDateMillis =
+                    uiState.date
+                        .toLocalDate()
+                        .atStartOfDay()
+                        .toInstant(java.time.ZoneOffset.UTC)
+                        .toEpochMilli()
+            )
 
         DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(
-                            onClick = {
-                                datePickerState.selectedDateMillis?.let { millis ->
-                                    viewModel.updateTransactionDate(millis)
-                                }
-                                showDatePicker = false
-                            }
-                    ) { Text("OK") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
-                }
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            viewModel.updateTransactionDate(millis)
+                        }
+                        showDatePicker = false
+                    }
+                ) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+            }
         ) { DatePicker(state = datePickerState) }
     }
 
     // Time Picker Dialog
     if (showTimePicker) {
         val timePickerState =
-                rememberTimePickerState(
-                        initialHour = uiState.date.hour,
-                        initialMinute = uiState.date.minute
-                )
+            rememberTimePickerState(
+                initialHour = uiState.date.hour,
+                initialMinute = uiState.date.minute
+            )
 
         AlertDialog(
-                onDismissRequest = { showTimePicker = false },
-                title = { Text("Select Time") },
-                text = { TimePicker(state = timePickerState) },
-                confirmButton = {
-                    TextButton(
-                            onClick = {
-                                viewModel.updateTransactionTime(
-                                        timePickerState.hour,
-                                        timePickerState.minute
-                                )
-                                showTimePicker = false
-                            }
-                    ) { Text("OK") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
-                }
+            onDismissRequest = { showTimePicker = false },
+            title = { Text("Select Time") },
+            text = { TimePicker(state = timePickerState) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.updateTransactionTime(
+                            timePickerState.hour,
+                            timePickerState.minute
+                        )
+                        showTimePicker = false
+                    }
+                ) { Text("OK") } },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+            }
         )
     }
 }

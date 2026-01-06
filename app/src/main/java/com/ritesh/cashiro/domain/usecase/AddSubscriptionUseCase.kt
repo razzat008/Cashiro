@@ -19,6 +19,7 @@ constructor(private val subscriptionRepository: SubscriptionRepository) {
             billingCycle: String,
             category: String,
             subcategory: String? = null,
+            bankName: String? = null,
             autoRenewal: Boolean = true,
             paymentReminder: Boolean = true,
             notes: String? = null
@@ -33,7 +34,7 @@ constructor(private val subscriptionRepository: SubscriptionRepository) {
                         state =
                                 SubscriptionState
                                         .ACTIVE, // Always active for manually added subscriptions
-                        bankName = "Manual Entry",
+                        bankName = bankName ?: "Manual Entry",
                         category = category,
                         subcategory = subcategory,
                         smsBody = notes, // Store user notes in smsBody field

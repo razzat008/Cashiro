@@ -84,10 +84,12 @@ fun CategorySelectionSheet(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                modifier = Modifier
+                    .padding(
+                        start = Dimensions.Padding.content,
+                        end = Dimensions.Padding.content)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                 contentPadding = PaddingValues(
-                    start = Dimensions.Padding.content,
-                    end = Dimensions.Padding.content,
                     top = Spacing.sm,
                     bottom = 0.dp
                 ),

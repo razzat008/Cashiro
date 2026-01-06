@@ -286,6 +286,12 @@ constructor(
         _subscriptionUiState.update { currentState -> currentState.copy(notes = notes) }
     }
 
+    fun updateSubscriptionAccount(
+            account: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity?
+    ) {
+        _subscriptionUiState.update { currentState -> currentState.copy(selectedAccount = account) }
+    }
+
     fun saveSubscription(onSuccess: () -> Unit) {
         val state = _subscriptionUiState.value
         Log.d("AddViewModel", "saveSubscription called with state: $state")
@@ -333,6 +339,7 @@ constructor(
                                 billingCycle = state.billingCycle,
                                 category = state.category,
                                 subcategory = state.subcategory,
+                                bankName = state.selectedAccount?.bankName,
                                 autoRenewal = false, // Not implemented yet
                                 paymentReminder = false, // Not implemented yet
                                 notes = state.notes.takeIf { it.isNotBlank() }
@@ -423,6 +430,7 @@ data class SubscriptionUiState(
         val category: String = "Subscriptions",
         val subcategory: String? = null,
         val categoryError: String? = null,
+        val selectedAccount: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity? = null,
         val notes: String = "",
         val isLoading: Boolean = false,
         val error: String? = null
