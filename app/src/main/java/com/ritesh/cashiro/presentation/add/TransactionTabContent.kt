@@ -24,9 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.data.database.entity.TransactionType
-
-import androidx.compose.foundation.border
-
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
@@ -37,7 +34,6 @@ import com.ritesh.cashiro.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.ui.theme.*
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
 import androidx.compose.ui.res.painterResource
 import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
 import androidx.core.graphics.toColorInt
@@ -85,8 +81,7 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                     state = scrollState,
                     flingBehavior = rememberOverscrollFlingBehavior { scrollState }
                 )
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-                .clip(RoundedCornerShape(Dimensions.Radius.md)),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Amount Input
@@ -753,7 +748,7 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "Select Account",
                             style = MaterialTheme.typography.titleLarge,
@@ -773,7 +768,7 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                             }
                         } else {
                             LazyColumn(
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 item {
@@ -824,6 +819,9 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                                         )
                                     }
                                 }
+                                item{
+                                    Spacer(modifier = Modifier.height(64.dp))
+                                }
                             }
                         }
                     }
@@ -837,7 +835,7 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "Select Target Account",
                             style = MaterialTheme.typography.titleLarge,
@@ -857,7 +855,7 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                             }
                         } else {
                             LazyColumn(
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 // Filter out the source account from target selection
@@ -880,6 +878,9 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                                             }
                                         )
                                     }
+                                }
+                                item{
+                                    Spacer(modifier = Modifier.height(64.dp))
                                 }
                             }
                         }

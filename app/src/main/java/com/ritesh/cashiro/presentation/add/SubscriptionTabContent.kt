@@ -70,8 +70,7 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                     state = scrollState,
                     flingBehavior = rememberOverscrollFlingBehavior { scrollState }
                 )
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-                .clip(RoundedCornerShape(Dimensions.Radius.md)),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Error Card
@@ -468,7 +467,7 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                             }
                         } else {
                             LazyColumn(
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 item {
@@ -522,6 +521,10 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                                             }
                                         )
                                     }
+                                }
+
+                                item{
+                                    Spacer(modifier = Modifier.height(64.dp))
                                 }
                             }
                         }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.CardEntity
+import com.ritesh.cashiro.data.database.entity.CardType
 import com.ritesh.cashiro.presentation.categories.NavigationContent
 import com.ritesh.cashiro.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.ui.components.SectionHeader
@@ -367,7 +370,11 @@ fun ManageAccountsScreen(
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { showHiddenAccounts = !showHiddenAccounts },
+                                        .clickable(
+                                            onClick = { showHiddenAccounts = !showHiddenAccounts },
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ),
                                     colors = CardDefaults.cardColors(
                                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                                     )
@@ -719,12 +726,12 @@ private fun CreditCardItem(
     ) {
         // Credit Card specific details appended to the card
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp,vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs)
         ) {
             HorizontalDivider(
                 modifier = Modifier.padding(bottom = 8.dp),
-                color = MaterialTheme.colorScheme.outlineVariant
+                color = MaterialTheme.colorScheme.surface
             )
 
             // Available Credit
@@ -783,6 +790,7 @@ private fun CreditCardItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AccountItem(
     account: AccountBalanceEntity,
@@ -826,10 +834,7 @@ private fun AccountItem(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(
-                                        horizontal = Spacing.sm,
-                                        vertical = Spacing.xs
-                                    ),
+                                    .padding(Spacing.md),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -843,11 +848,11 @@ private fun AccountItem(
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                     Column {
-                                        Row(
+                                        Row(modifier = Modifier.padding(start = Spacing.sm),
                                             horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                                         ) {
                                             Text(
-                                                text = "••${card.cardLast4}",
+                                                text = "**** **** **** ${card.cardLast4}",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
                                             if (!card.isActive
@@ -863,6 +868,11 @@ private fun AccountItem(
                                 }
                                 IconButton(
                                     onClick = { onUnlinkCard(card.id) },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        contentColor = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    shapes = IconButtonDefaults.shapes(),
                                     modifier = Modifier.size(24.dp)
                                 ) {
                                     Icon(
@@ -881,6 +891,7 @@ private fun AccountItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun OrphanedCardItem(
     card: CardEntity,
@@ -890,11 +901,16 @@ private fun OrphanedCardItem(
 ) {
     var showLinkDialog by remember { mutableStateOf(false) }
     var expandedSource by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth().clickable { expandedSource = !expandedSource },
+        modifier = Modifier.fillMaxWidth().clickable(
+            onClick = { expandedSource = !expandedSource },
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Column {
@@ -913,66 +929,157 @@ private fun OrphanedCardItem(
                     Text("💳", style = MaterialTheme.typography.titleMedium)
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "${card.bankName} ••${card.cardLast4}",
+                            text = card.bankName,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = "${if (card.cardType == com.ritesh.cashiro.data.database.entity.CardType.CREDIT) "Credit" 
-                            else "Debit"} Card (Unlinked)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "**** **** **** ${card.cardLast4}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
                         )
-                        // Show last known balance if available
-                        if (card.lastBalance != null) {
-                            Text(
-                                text = "Last Balance: ${CurrencyFormatter.formatCurrency(card.lastBalance, card.currency)}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        // Show source SMS that triggered card detection
-                        if (card.lastBalanceSource != null) {
-                            Text(
-                                text = if (expandedSource) {
-                                        "SMS: ${card.lastBalanceSource}"
-                                    } else {
-                                        "SMS: ${card.lastBalanceSource.take(80)}... (tap to expand)"
-                                    },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = if (expandedSource) Int.MAX_VALUE else 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+
                     }
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    OutlinedButton(onClick = { showLinkDialog = true }) {
-                        Icon(
-                            Icons.Default.Link,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Link")
-                    }
-
-                    OutlinedButton(
-                        onClick = { onDeleteCard(card.id) },
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shapes = IconButtonDefaults.shapes()
                     ) {
                         Icon(
-                            Icons.Default.Delete,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            imageVector = Icons.Rounded.MoreHoriz,
+                            contentDescription = "More options",
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Delete")
                     }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        shape = MaterialTheme.shapes.large,
+                        containerColor = Color.Transparent,
+                        shadowElevation = 0.dp,
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Link to Account") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Link,
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                showMenu = false
+                                showLinkDialog = true
+                            },
+                            modifier = Modifier
+                                .shadow(
+                                    elevation = 2.dp,
+                                    shape = RoundedCornerShape(
+                                        topStart = 16.dp,
+                                        topEnd = 16.dp,
+                                        bottomStart = 4.dp,
+                                        bottomEnd = 4.dp
+                                    )
+                                )
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    shape = RoundedCornerShape(
+                                        topStart = 16.dp,
+                                        topEnd = 16.dp,
+                                        bottomStart = 4.dp,
+                                        bottomEnd = 4.dp
+                                    )
+                                )
+                        )
+
+                        Spacer(modifier = Modifier.height(1.5.dp))
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    "Delete",
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            },
+                            onClick = {
+                                showMenu = false
+                                onDeleteCard(card.id)
+                            },
+                            modifier = Modifier
+                                .shadow(
+                                    elevation = 2.dp,
+                                    shape = RoundedCornerShape(
+                                        topStart = 4.dp,
+                                        topEnd = 4.dp,
+                                        bottomStart = 16.dp,
+                                        bottomEnd = 16.dp
+                                    )
+                                )
+                                .background(
+                                    color = MaterialTheme.colorScheme.errorContainer,
+                                    shape = RoundedCornerShape(
+                                        topStart = 4.dp,
+                                        topEnd = 4.dp,
+                                        bottomStart = 16.dp,
+                                        bottomEnd = 16.dp
+                                    )
+                                )
+                        )
+                    }
+                }
+            }
+            Text(
+                text = "${if (card.cardType == CardType.CREDIT) "Credit"
+                else "Debit"} Card",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            // Show last known balance if available
+            if (card.lastBalance != null) {
+                Text(
+                    text = "Last Balance: ${CurrencyFormatter.formatCurrency(card.lastBalance, card.currency)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp)
+                )
+            }
+            // Show source SMS that triggered card detection
+            if (card.lastBalanceSource != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimensions.Padding.content)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(0.7f),
+                            shape = RoundedCornerShape(Dimensions.Radius.md)
+                        )
+                        .padding(Dimensions.Padding.content)
+                ) {
+                    Text(
+                        text = if (expandedSource) {
+                            "SMS: ${card.lastBalanceSource}"
+                        } else {
+                            "SMS: ${card.lastBalanceSource.take(80)}... (tap to expand)"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = if (expandedSource) Int.MAX_VALUE else 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }

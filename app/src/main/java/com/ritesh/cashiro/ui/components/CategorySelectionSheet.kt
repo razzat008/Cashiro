@@ -124,14 +124,11 @@ fun CategorySelectionSheet(
                 modifier = Modifier
                     .padding(
                         start = Dimensions.Padding.content,
-                        end = Dimensions.Padding.content
+                        end = Dimensions.Padding.content,
+                        top = Spacing.sm,
+                        bottom = 0.dp
                     )
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentPadding = PaddingValues(
-
-                    top = Spacing.sm,
-                    bottom = 0.dp
-                ),
+                    .clip(RoundedCornerShape(16.dp)),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 items(

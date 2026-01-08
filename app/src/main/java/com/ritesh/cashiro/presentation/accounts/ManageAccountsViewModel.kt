@@ -635,7 +635,10 @@ constructor(
                         cardType = CardType.DEBIT,
                         bankName = "HDFC Bank",
                         accountLast4 = hdfcLast4,
-                        nickname = "Salary Card"
+                        nickname = "Salary Card",
+                        lastBalance = BigDecimal(48000),
+                        lastBalanceSource = "Your HDFC Bank account ending in 1234 has been credited with INR 50,000.00. Avl bal: INR 48,000.00",
+                        lastBalanceDate = now
                     )
                 )
 
@@ -645,7 +648,10 @@ constructor(
                         cardLast4 = "8765",
                         cardType = CardType.DEBIT,
                         bankName = "Axis Bank",
-                        nickname = "Travel Card"
+                        nickname = "Travel Card",
+                        lastBalance = BigDecimal(15420),
+                        lastBalanceSource = "Bank Alert: Your Axis Bank Card XX8765 was used for a transaction of INR 500 at STARBUCKS. Avl Bal: INR 15,420.75",
+                        lastBalanceDate = now
                     )
                 )
 
