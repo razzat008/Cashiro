@@ -2,6 +2,8 @@ package com.ritesh.cashiro.ui.screens.analytics
 
 import android.graphics.Color
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -165,6 +167,9 @@ fun AnalyticsScreen(
                                     )
                                 )
                             }
+                            item{
+                                Spacer(modifier = Modifier.width(16.dp))
+                            }
                         }
 
                         // Collapsible Filter Row for Type
@@ -197,6 +202,9 @@ fun AnalyticsScreen(
                                             selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
                                         )
                                     )
+                                }
+                                item{
+                                    Spacer(modifier = Modifier.width(16.dp))
                                 }
                             }
                         }
@@ -253,7 +261,8 @@ fun AnalyticsScreen(
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
+                                        ),
+                                        modifier = Modifier.height(20.dp)
                                     ) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Icon(
@@ -275,7 +284,7 @@ fun AnalyticsScreen(
                                     start = Spacing.lg,
                                     end = Spacing.lg,
                                     top = Dimensions.Padding.content,
-                                    bottom = Spacing.sm
+                                    bottom = 0.dp
                                 )
                             )
                             // Premium Chart Type Selector
@@ -426,63 +435,77 @@ fun AnalyticsScreen(
                                 start = Spacing.lg,
                                 end = Spacing.lg,
                                 top = Dimensions.Padding.content,
-                                bottom = Spacing.sm
+                                bottom = 0.dp
                             )
                         )
                     }
 
-                    if (selectedBreakdownType == BreakdownType.PIE) {
-                        // Pie Chart
-                        item {
-                            CashiroCard(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        start = Dimensions.Padding.content,
-                                        end = Dimensions.Padding.content,
-                                    )
-                                    .animateContentSize()
+                    // Pie Chart
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .animateContentSize()
+                                .padding(
+                                    start = Dimensions.Padding.content,
+                                    end = Dimensions.Padding.content,
+                                )
+                        ) {
+                            BlurredAnimatedVisibility(
+                                visible = selectedBreakdownType == BreakdownType.PIE,
+                                enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
+                                exit = fadeOut() + slideOutVertically(targetOffsetY = { -it }),
                             ) {
-                                Column(modifier = Modifier.padding(Spacing.md)) {
-                                    CategoryPieChart(
-                                        categories = uiState.categoryBreakdown,
-                                        currency = uiState.currency
-                                    )
+                                CashiroCard(
+                                    modifier = Modifier
+                                        .animateContentSize()
+                                        .fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.padding(Spacing.md)) {
+                                        CategoryPieChart(
+                                            categories = uiState.categoryBreakdown,
+                                            currency = uiState.currency
+                                        )
+                                    }
                                 }
                             }
-                        }
-                    } else {
-                        // List
-                        items(uiState.categoryBreakdown.take(5)) { category ->
-                            CategoryProgressItem(
-                                name = category.name,
-                                amount = category.amount,
-                                percentage = category.percentage / 100f,
-                                currency = uiState.currency,
-                                onClick = {
-                                    onNavigateToTransactions(
-                                        category.name,
-                                        null,
-                                        selectedPeriod.name,
-                                        uiState.currency
-                                    )
-                                },
-                            )
-                        }
-                        if (uiState.categoryBreakdown.size > 5) {
-                            item {
-                                TextButton(
-                                    onClick = { /* TODO: Navigate to full Breakdown */ },
-                                    modifier = Modifier.fillMaxWidth().padding(
-                                        start = Dimensions.Padding.content,
-                                        end = Dimensions.Padding.content,
-                                    )
+                            uiState.categoryBreakdown.take(5).forEach { category ->
+                                BlurredAnimatedVisibility(
+                                    visible = selectedBreakdownType != BreakdownType.PIE,
+                                    enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
+                                    exit = fadeOut() + slideOutVertically(targetOffsetY = { -it }),
                                 ) {
-                                    Text("View All Categories")
+                                    CategoryProgressItem(
+                                        name = category.name,
+                                        amount = category.amount,
+                                        percentage = category.percentage / 100f,
+                                        currency = uiState.currency,
+                                        onClick = {
+                                            onNavigateToTransactions(
+                                                category.name,
+                                                null,
+                                                selectedPeriod.name,
+                                                uiState.currency
+                                            )
+                                        },
+                                    )
                                 }
                             }
                         }
                     }
+                    if (uiState.categoryBreakdown.size > 5) {
+                        item {
+                            TextButton(
+                                onClick = { /* TODO: Navigate to full Breakdown */ },
+                                modifier = Modifier.fillMaxWidth().padding(
+                                    start = Dimensions.Padding.content,
+                                    end = Dimensions.Padding.content,
+                                )
+                            ) {
+                                Text("View All Categories")
+                            }
+                        }
+                    }
+
                 }
 
                 // Top Merchants
@@ -597,9 +620,10 @@ fun CategoryProgressItem(
 
     Column(
         modifier = Modifier
+            .animateContentSize()
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = Spacing.md, vertical = Spacing.md)
+            .padding(vertical = Spacing.md)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -742,15 +766,7 @@ private fun CurrencyFilterRow(
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {
         item {
-            Text(
-                text = "Currency:",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(
-                    vertical = Spacing.sm,
-                    horizontal = Spacing.xs
-                )
-            )
+            Spacer(modifier = Modifier.width(16.dp))
         }
         items(availableCurrencies) { currency ->
             FilterChip(
@@ -762,6 +778,9 @@ private fun CurrencyFilterRow(
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        }
+        item{
+            Spacer(modifier = Modifier.width(16.dp))
         }
     }
 }

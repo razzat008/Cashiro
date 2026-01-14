@@ -103,8 +103,8 @@ constructor(
                         "${it.bankName}_${it.accountLast4}" == mainAccountKey 
                     }
                     if (mainAccount != null) {
-                        _transactionUiState.update { it.copy(selectedAccount = mainAccount) }
-                        _subscriptionUiState.update { it.copy(selectedAccount = mainAccount) }
+                        _transactionUiState.update { it.copy(selectedAccount = mainAccount, currency = mainAccount.currency) }
+                        _subscriptionUiState.update { it.copy(selectedAccount = mainAccount, currency = mainAccount.currency) }
                     }
                 }
             }
@@ -260,6 +260,7 @@ constructor(
                     isRecurring = state.isRecurring,
                     bankName = state.selectedAccount?.bankName,
                     accountLast4 = state.selectedAccount?.accountLast4,
+                    currency = state.currency,
                     sourceAccountId = state.selectedAccount?.id,
                     targetAccountBankName = state.targetAccount?.bankName,
                     targetAccountLast4 = state.targetAccount?.accountLast4
@@ -280,7 +281,12 @@ constructor(
     fun updateTransactionAccount(
         account: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity?
     ) {
-        _transactionUiState.update { currentState -> currentState.copy(selectedAccount = account) }
+        _transactionUiState.update { currentState -> 
+            currentState.copy(
+                selectedAccount = account,
+                currency = account?.currency ?: "INR"
+            ) 
+        }
     }
 
     fun updateTransactionTargetAccount(
@@ -360,7 +366,12 @@ constructor(
     fun updateSubscriptionAccount(
         account: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity?
     ) {
-        _subscriptionUiState.update { currentState -> currentState.copy(selectedAccount = account) }
+        _subscriptionUiState.update { currentState -> 
+            currentState.copy(
+                selectedAccount = account,
+                currency = account?.currency ?: "INR"
+            ) 
+        }
     }
 
     fun saveSubscription(onSuccess: () -> Unit) {
@@ -413,6 +424,7 @@ constructor(
                         bankName = state.selectedAccount?.bankName,
                         autoRenewal = false, // Not implemented yet
                         paymentReminder = false, // Not implemented yet
+                        currency = state.currency,
                         notes = state.notes.takeIf { it.isNotBlank() }
                     )
 
@@ -476,6 +488,7 @@ data class TransactionUiState(
     val isRecurring: Boolean = false,
     val selectedAccount: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity? = null,
     val targetAccount: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity? = null,
+    val currency: String = "INR",
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
@@ -503,6 +516,7 @@ data class SubscriptionUiState(
     val subcategory: String? = null,
     val categoryError: String? = null,
     val selectedAccount: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity? = null,
+    val currency: String = "INR",
     val notes: String = "",
     val isLoading: Boolean = false,
     val error: String? = null

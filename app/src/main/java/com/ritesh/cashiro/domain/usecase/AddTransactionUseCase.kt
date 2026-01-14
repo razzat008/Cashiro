@@ -29,6 +29,7 @@ constructor(
             isRecurring: Boolean = false,
             bankName: String? = null,
             accountLast4: String? = null,
+            currency: String = "INR",
             sourceAccountId: Long? = null,
             targetAccountBankName: String? = null,
             targetAccountLast4: String? = null
@@ -55,7 +56,8 @@ constructor(
                         transactionHash = transactionHash,
                         isRecurring = isRecurring,
                         createdAt = LocalDateTime.now(),
-                        updatedAt = LocalDateTime.now()
+                        updatedAt = LocalDateTime.now(),
+                        currency = currency
                 )
 
         // Insert the transaction
@@ -78,7 +80,8 @@ constructor(
                             sourceType = "MANUAL",
                             iconResId = currentBalance?.iconResId ?: 0,
                             isCreditCard = currentBalance?.isCreditCard ?: false,
-                            creditLimit = currentBalance?.creditLimit
+                            creditLimit = currentBalance?.creditLimit,
+                            currency = currency
                         )
                     )
                 }
@@ -96,7 +99,8 @@ constructor(
                             sourceType = "MANUAL",
                             iconResId = currentBalance?.iconResId ?: 0,
                             isCreditCard = currentBalance?.isCreditCard ?: false,
-                            creditLimit = currentBalance?.creditLimit
+                            creditLimit = currentBalance?.creditLimit,
+                            currency = currency
                         )
                     )
                 }
@@ -121,7 +125,8 @@ constructor(
                                 sourceType = "MANUAL",
                                 iconResId = sourceBalance?.iconResId ?: 0,
                                 isCreditCard = sourceBalance?.isCreditCard ?: false,
-                                creditLimit = sourceBalance?.creditLimit
+                                creditLimit = sourceBalance?.creditLimit,
+                                currency = currency
                             )
                         )
                         
@@ -138,7 +143,8 @@ constructor(
                                 sourceType = "MANUAL",
                                 iconResId = targetBalance?.iconResId ?: 0,
                                 isCreditCard = targetBalance?.isCreditCard ?: false,
-                                creditLimit = targetBalance?.creditLimit
+                                creditLimit = targetBalance?.creditLimit,
+                                currency = currency
                             )
                         )
                     }
@@ -157,7 +163,8 @@ constructor(
                             sourceType = "MANUAL",
                             iconResId = currentBalance?.iconResId ?: 0,
                             isCreditCard = currentBalance?.isCreditCard ?: false,
-                            creditLimit = currentBalance?.creditLimit
+                            creditLimit = currentBalance?.creditLimit,
+                            currency = currency
                         )
                     )
                 }
@@ -178,7 +185,8 @@ constructor(
                             category = category,
                             subcategory = subcategory,
                             createdAt = LocalDateTime.now(),
-                            updatedAt = LocalDateTime.now()
+                            updatedAt = LocalDateTime.now(),
+                            currency = currency
                     )
 
             subscriptionRepository.insertSubscription(subscription)
