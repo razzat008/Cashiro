@@ -297,6 +297,19 @@ fun MainScreen(
                                                     },
                                                     onNavigateToProfile = {
                                                         navController.navigate("profile")
+                                                    },
+                                                    onNavigateToSms = {
+                                                        navController.navigate("sms_settings")
+                                                    }
+                                            )
+                                        },
+                                        navPage("sms_settings") {
+                                            com.ritesh.cashiro.ui.screens.settings.SMSScreen(
+                                                    onNavigateBack = {
+                                                        navController.popBackStack()
+                                                    },
+                                                    onNavigateToUnrecognizedSms = {
+                                                        navController.navigate("unrecognized_sms")
                                                     }
                                             )
                                         },

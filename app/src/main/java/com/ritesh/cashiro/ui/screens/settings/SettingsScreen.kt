@@ -133,6 +133,7 @@ fun SettingsScreen(
     onNavigateToRules: () -> Unit = {},
     onNavigateToAppearance: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToSms: () -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel(),
     appLockViewModel: com.ritesh.cashiro.ui.viewmodel.AppLockViewModel = hiltViewModel()
 ) {
@@ -145,16 +146,11 @@ fun SettingsScreen(
             settingsViewModel.isDeveloperModeEnabled.collectAsStateWithLifecycle(
                     initialValue = false
             )
-    val smsScanMonths by
-            settingsViewModel.smsScanMonths.collectAsStateWithLifecycle(initialValue = 3)
-    val smsScanAllTime by
-            settingsViewModel.smsScanAllTime.collectAsStateWithLifecycle(initialValue = false)
+    val totalTransactionsCount by settingsViewModel.totalTransactions.collectAsStateWithLifecycle()
     val importExportMessage by settingsViewModel.importExportMessage.collectAsStateWithLifecycle()
     val exportedBackupFile by settingsViewModel.exportedBackupFile.collectAsStateWithLifecycle()
     val userPreferences by settingsViewModel.userPreferences.collectAsStateWithLifecycle(initialValue = null)
-    val totalTransactionsCount by settingsViewModel.totalTransactions.collectAsStateWithLifecycle()
 
-    var showSmsScanDialog by remember { mutableStateOf(false) }
     var showExportOptionsDialog by remember { mutableStateOf(false) }
     var showTimeoutDialog by remember { mutableStateOf(false) }
 
@@ -614,34 +610,22 @@ fun SettingsScreen(
                             )
                         },
                         onClick = { importLauncher.launch("*/*") },
-                        shape = ListItemPosition.Bottom.toShape(),
+                        shape = ListItemPosition.Middle.toShape(),
                         padding = PaddingValues(0.dp)
                     )
-                }
 
-                // SMS Section
-                SectionHeader(
-                    title = "SMS",
-                    modifier = Modifier.padding(start = Spacing.md)
-                )
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(1.5.dp)
-                ) {
-                    // SMS Scan Period
+                    // SMS
                     ListItem(
                         headline = {
                             Text(
-                                text = "SMS Scan Period",
+                                text = "SMS",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
                         },
                         supporting = {
                             Text(
-                                text =
-                                    if (smsScanAllTime) "Scan all SMS messages"
-                                    else "Scan last $smsScanMonths months of messages",
+                                text = "Manage SMS settings",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -664,97 +648,18 @@ fun SettingsScreen(
                             }
                         },
                         trailing = {
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary,
-                                        shape = MaterialTheme.shapes.large
-                                    )
-                                    .clickable(
-                                        onClick = { showSmsScanDialog = true }
-                                    )
-                                    .padding(
-                                        horizontal = Spacing.md,
-                                        vertical = Spacing.sm
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text =
-                                        if (smsScanAllTime) "All Time"
-                                        else "$smsScanMonths months",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        },
-                        onClick = { showSmsScanDialog = true },
-                        shape = ListItemPosition.Top.toShape(),
-                        padding = PaddingValues(0.dp)
-                    )
-
-                    // Unrecognized Bank Messages
-                    val unreportedCount by
-                    settingsViewModel.unreportedSmsCount.collectAsStateWithLifecycle()
-
-                    ListItem(
-                        headline = {
-                            Text(
-                                text = "Unrecognized Bank Messages",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        supporting = {
-                            Text(
-                                text =
-                                    if (unreportedCount > 0)
-                                        "$unreportedCount message${if (unreportedCount > 1) "s" else ""} from potential banks"
-                                    else "No unrecognized messages",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        leading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        color = blue_light,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.BugReport,
-                                    contentDescription = null,
-                                    tint = blue_dark
-                                )
-                            }
-                        },
-                        trailing = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                if (unreportedCount > 0) {
-                                    Badge(containerColor = MaterialTheme.colorScheme.primary) {
-                                        Text(unreportedCount.toString())
-                                    }
-                                }
-
-                                Icon(
-                                    Icons.Default.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        },
-                        onClick = { onNavigateToUnrecognizedSms() },
+                        onClick = { onNavigateToSms() },
                         shape = ListItemPosition.Bottom.toShape(),
                         padding = PaddingValues(0.dp)
                     )
                 }
+
 
                 // AI Features Section
                 SectionHeader(
@@ -1055,79 +960,6 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(110.dp))
             }
-        }
-        // SMS Scan Period Dialog
-        if (showSmsScanDialog) {
-            AlertDialog(
-                onDismissRequest = { showSmsScanDialog = false },
-                title = { Text("SMS Scan Period") },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                        Text(
-                            text =
-                                "Choose how many months of SMS history to scan for transactions",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Spacer(modifier = Modifier.height(Spacing.md))
-
-                        // All Time option first, then period options including 24 months
-                        // for 2 years coverage
-                        val options = listOf(-1) + listOf(1, 2, 3, 6, 12, 24)
-                        options.forEach { months ->
-                            Row(
-                                modifier =
-                                    Modifier.fillMaxWidth()
-                                        .clickable {
-                                            if (months == -1) {
-                                                settingsViewModel
-                                                    .updateSmsScanAllTime(true)
-                                                showSmsScanDialog = false
-                                            } else {
-                                                settingsViewModel
-                                                    .updateSmsScanMonths(months)
-                                                settingsViewModel
-                                                    .updateSmsScanAllTime(false)
-                                                showSmsScanDialog = false
-                                            }
-                                        }
-                                        .padding(vertical = Spacing.sm),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val isSelected =
-                                    if (months == -1) smsScanAllTime
-                                    else smsScanMonths == months && !smsScanAllTime
-                                RadioButton(
-                                    selected = isSelected,
-                                    onClick = {
-                                        if (months == -1) {
-                                            settingsViewModel.updateSmsScanAllTime(true)
-                                            showSmsScanDialog = false
-                                        } else {
-                                            settingsViewModel.updateSmsScanMonths(months)
-                                            settingsViewModel.updateSmsScanAllTime(false)
-                                            showSmsScanDialog = false
-                                        }
-                                    }
-                                )
-                                Spacer(modifier = Modifier.width(Spacing.md))
-                                Text(
-                                    text =
-                                        when (months) {
-                                            -1 -> "All Time"
-                                            1 -> "1 month"
-                                            24 -> "2 years"
-                                            else -> "$months months"
-                                        },
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showSmsScanDialog = false }) { Text("Cancel") }
-                }
-            )
         }
 
         // Show import/export message

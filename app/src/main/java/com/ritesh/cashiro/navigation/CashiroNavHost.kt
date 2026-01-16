@@ -110,7 +110,17 @@ fun CashiroNavHost(
                                         onNavigateToRules = { navController.navigate(Rules) },
                                         onNavigateToFaq = { navController.navigate(Faq) },
                                         onNavigateToAppearance = { navController.navigate(Appearance) },
-                                        onNavigateToProfile = { navController.navigate(Profile) }
+                                        onNavigateToProfile = { navController.navigate(Profile) },
+                                        onNavigateToSms = { navController.navigate(SmsSettings) }
+                                )
+                        }
+
+                        composable<SmsSettings> {
+                                com.ritesh.cashiro.ui.screens.settings.SMSScreen(
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onNavigateToUnrecognizedSms = {
+                                                navController.navigate(UnrecognizedSms)
+                                        }
                                 )
                         }
 
