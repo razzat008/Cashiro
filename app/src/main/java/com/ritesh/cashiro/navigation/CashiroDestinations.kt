@@ -38,3 +38,8 @@ import kotlinx.serialization.Serializable
 @Serializable object ManageAccounts
 
 @Serializable object Profile
+
+@Serializable object SmsSettings
+
+@Serializable object NotificationSettings
+
