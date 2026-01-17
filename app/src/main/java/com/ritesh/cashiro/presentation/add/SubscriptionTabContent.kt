@@ -32,7 +32,6 @@ import com.ritesh.cashiro.ui.effects.overScrollVertical
 import com.ritesh.cashiro.ui.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.ui.theme.*
 import java.time.format.DateTimeFormatter
-import com.ritesh.cashiro.presentation.accounts.NumberPad
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -45,7 +44,6 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
     var showCategoryMenu by remember { mutableStateOf(false) }
     var showBillingCycleMenu by remember { mutableStateOf(false) }
     var showAccountSheet by remember { mutableStateOf(false) }
-    var showNumberPad by remember { mutableStateOf(false) }
     val allSubcategories by viewModel.allSubcategories.collectAsState(initial = emptyMap())
 
     val selectedCategoryObj = remember(uiState.category, categories) {
@@ -130,19 +128,31 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
 
 
             // Amount Input
-            val amountInteractionSource = remember { MutableInteractionSource() }
-            // Amount Input
-            AmountInput(
-                amount = uiState.amount.ifEmpty { "0" },
-                currencySymbol = com.ritesh.cashiro.utils.CurrencyFormatter.getCurrencySymbol(
-                    uiState.selectedAccount?.currency ?: "INR"
+            TextField(
+                value = uiState.amount,
+                onValueChange = viewModel::updateSubscriptionAmount,
+                label = { Text("Amount", fontWeight = FontWeight.SemiBold) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape =
+                    RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = 16.dp,
+                        bottomEnd = 16.dp
+                    ),
+                isError = uiState.amountError != null,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
                 ),
-                onClick = {
-                    showNumberPad = true
-                },
-                modifier = Modifier.fillMaxWidth()
+                supportingText = uiState.amountError?.let { { Text(it) } },
+                leadingIcon = { Icon(Icons.Default.CurrencyRupee, contentDescription = null) },
             )
-
 
             // Billing Cycle Dropdown and Date Selection
             Row(
@@ -519,24 +529,6 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
                             }
                         }
                     }
-                }
-            }
-
-            // NumberPad for Amount Input
-            if (showNumberPad) {
-                ModalBottomSheet(
-                    onDismissRequest = { showNumberPad = false },
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    dragHandle = { BottomSheetDefaults.DragHandle() }
-                ) {
-                    NumberPad(
-                        initialValue = uiState.amount.ifEmpty { "0" },
-                        onDone = { newAmount ->
-                            viewModel.updateSubscriptionAmount(newAmount)
-                            showNumberPad = false
-                        },
-                        title = "Enter Amount"
-                    )
                 }
             }
 

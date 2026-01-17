@@ -1,4 +1,4 @@
-package com.ritesh.cashiro.presentation.accounts
+ package com.ritesh.cashiro.presentation.accounts
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
