@@ -2,6 +2,10 @@ package com.ritesh.cashiro.ui.screens.analytics
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +33,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.ui.components.BalancePoint
+import com.ritesh.cashiro.ui.components.CategoryIcon
+import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.ui.theme.Spacing
 import com.ritesh.cashiro.ui.icons.CategoryMapping
 import ir.ehsannarmani.compose_charts.ColumnChart
@@ -332,6 +338,27 @@ fun CategoryPieChart(
                 ),
                 style = Pie.Style.Stroke(width = 12.dp)
             )
+
+            // Center Icon Overlay
+            val selectedPie = chartData.find { it.selected }
+            BlurredAnimatedVisibility(
+                visible = selectedPie != null,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() +scaleOut(),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                if (selectedPie != null && selectedPie.label != null) {
+                    CategoryIcon(
+                        category = selectedPie.label!!,
+                        size = 32.dp,
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(selectedPie.color.copy(alpha = 0.2f))
+                            .padding(12.dp)
+                    )
+                }
+            }
         }
 
         LazyColumn(

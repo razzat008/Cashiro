@@ -440,7 +440,7 @@ fun AnalyticsScreen(
                         )
                     }
 
-                    // Pie Chart
+                    //Charts
                     item {
                         Column(
                             modifier = Modifier
@@ -450,6 +450,7 @@ fun AnalyticsScreen(
                                     end = Dimensions.Padding.content,
                                 )
                         ) {
+                            // Pie Chart
                             BlurredAnimatedVisibility(
                                 visible = selectedBreakdownType == BreakdownType.PIE,
                                 enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
@@ -623,7 +624,7 @@ fun CategoryProgressItem(
             .animateContentSize()
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = Spacing.md)
+            .padding(horizontal = Spacing.sm, vertical = Spacing.md)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -642,7 +643,6 @@ fun CategoryProgressItem(
                     CategoryIcon(
                         category = name,
                         size = 32.dp,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(modifier = Modifier.width(Spacing.sm))

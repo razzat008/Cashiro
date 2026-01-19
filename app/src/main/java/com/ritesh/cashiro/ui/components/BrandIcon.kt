@@ -124,7 +124,7 @@ fun CategoryIcon(
     category: String,
     modifier: Modifier = Modifier,
     size: Dp = 24.dp,
-    tint: Color? = null
+    tint: Color? = Color.Unspecified,
 ) {
     val categoryInfo = CategoryMapping.categories[category]
         ?: CategoryMapping.categories["Miscellaneous"]!!
@@ -132,7 +132,7 @@ fun CategoryIcon(
     Icon(
         painter = painterResource(id = categoryInfo.iconResId),
         contentDescription = category,
-        tint = Color.Unspecified,
+        tint = tint ?: Color.Unspecified,
         modifier = modifier.size(size)
     )
 }
