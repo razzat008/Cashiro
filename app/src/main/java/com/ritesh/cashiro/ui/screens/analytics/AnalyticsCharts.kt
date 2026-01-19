@@ -55,6 +55,7 @@ import ir.ehsannarmani.compose_charts.models.LineProperties
 import ir.ehsannarmani.compose_charts.models.Pie
 import ir.ehsannarmani.compose_charts.models.StrokeStyle
 import ir.ehsannarmani.compose_charts.models.ZeroLineProperties
+import com.ritesh.cashiro.presentation.common.TransactionTypeFilter
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
@@ -62,7 +63,8 @@ import kotlin.math.abs
 @Composable
 fun SpendingLineChart(
     data: List<BalancePoint>,
-    currency: String
+    currency: String,
+    typeFilter: TransactionTypeFilter = TransactionTypeFilter.EXPENSE
 ) {
     if (data.isEmpty()) return
     val themeColors = MaterialTheme.colorScheme
@@ -93,7 +95,14 @@ fun SpendingLineChart(
             .padding(vertical = Spacing.md),
         data = listOf(
             Line(
-                label = "Spending",
+                label = when (typeFilter) {
+                    TransactionTypeFilter.INCOME -> "Income"
+                    TransactionTypeFilter.EXPENSE -> "Spending"
+                    TransactionTypeFilter.TRANSFER -> "Transfer"
+                    TransactionTypeFilter.INVESTMENT -> "Invested"
+                    TransactionTypeFilter.CREDIT -> "Credited"
+                    else -> "Spending"
+                },
                 values = cashFlowData,
                 color = SolidColor(themeColors.primary),
                 firstGradientFillColor = themeColors.primary.copy(alpha = 0.3f),
@@ -135,7 +144,7 @@ fun SpendingLineChart(
             enabled = true,
             textStyle = TextStyle.Default.copy(
                 fontSize = 10.sp,
-                color = themeColors.onSurfaceVariant,
+                color = themeColors.onSurface,
                 textAlign = TextAlign.End
             ),
         ),
@@ -178,7 +187,8 @@ fun SpendingLineChart(
 @Composable
 fun SpendingBarChart(
     data: List<BalancePoint>,
-    currency: String
+    currency: String,
+    typeFilter: TransactionTypeFilter = TransactionTypeFilter.EXPENSE
 ) {
     if (data.isEmpty()) return
     val themeColors = MaterialTheme.colorScheme
@@ -201,7 +211,14 @@ fun SpendingBarChart(
                 label = label,
                 values = listOf(
                     Bars.Data(
-                        label = "Spending",
+                        label = when (typeFilter) {
+                            TransactionTypeFilter.INCOME -> "Income"
+                            TransactionTypeFilter.EXPENSE -> "Spending"
+                            TransactionTypeFilter.TRANSFER -> "Transfer"
+                            TransactionTypeFilter.INVESTMENT -> "Invested"
+                            TransactionTypeFilter.CREDIT -> "Credited"
+                            else -> "Spending"
+                        },
                         value = point.balance.toDouble(),
                         color = SolidColor(themeColors.primary.copy(alpha = 0.8f))
                     )

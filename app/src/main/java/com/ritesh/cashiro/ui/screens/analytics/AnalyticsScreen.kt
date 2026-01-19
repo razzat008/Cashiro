@@ -288,7 +288,7 @@ fun AnalyticsScreen(
                                     bottom = 0.dp
                                 )
                             )
-                            // Premium Chart Type Selector
+                            // Chart Type Selector
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -379,7 +379,8 @@ fun AnalyticsScreen(
                                     ) {
                                         SpendingLineChart(
                                             data = uiState.spendingTrend,
-                                            currency = uiState.currency
+                                            currency = uiState.currency,
+                                            typeFilter = transactionTypeFilter
                                         )
                                     }
                                     ChartType.BAR ->  AnimatedVisibility(
@@ -389,7 +390,8 @@ fun AnalyticsScreen(
                                     ) {
                                         SpendingBarChart(
                                             data = uiState.spendingTrend,
-                                            currency = uiState.currency
+                                            currency = uiState.currency,
+                                            typeFilter = transactionTypeFilter
                                         )
                                     }
                                     ChartType.HEATMAP ->  AnimatedVisibility(
