@@ -617,7 +617,7 @@ fun CategoryProgressItem(
     onClick: () -> Unit
 ) {
     val categoryInfo = CategoryMapping.categories[name]
-        ?: CategoryMapping.categories["Others"]!!
+        ?: CategoryMapping.categories["Miscellaneous"]!!
 
     Column(
         modifier = Modifier

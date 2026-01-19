@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 32,
-    "identityHash": "8ef3ed3adb539765f7fb6d478b8a1dda",
+    "identityHash": "0be25346520567801fecf8152d21f409",
     "entities": [
       {
         "tableName": "transactions",
@@ -149,7 +149,7 @@
       },
       {
         "tableName": "subscriptions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `merchant_name` TEXT NOT NULL, `amount` TEXT NOT NULL, `next_payment_date` TEXT, `state` TEXT NOT NULL, `bank_name` TEXT, `umn` TEXT, `category` TEXT, `subcategory` TEXT, `sms_body` TEXT, `created_at` TEXT NOT NULL, `updated_at` TEXT NOT NULL, `currency` TEXT NOT NULL DEFAULT 'INR', `is_notification_enabled` INTEGER NOT NULL DEFAULT 1)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `merchant_name` TEXT NOT NULL, `amount` TEXT NOT NULL, `next_payment_date` TEXT, `state` TEXT NOT NULL, `bank_name` TEXT, `umn` TEXT, `category` TEXT, `subcategory` TEXT, `sms_body` TEXT, `created_at` TEXT NOT NULL, `updated_at` TEXT NOT NULL, `currency` TEXT NOT NULL DEFAULT 'INR')",
         "fields": [
           {
             "fieldPath": "id",
@@ -223,13 +223,6 @@
             "affinity": "TEXT",
             "notNull": true,
             "defaultValue": "'INR'"
-          },
-          {
-            "fieldPath": "isNotificationEnabled",
-            "columnName": "is_notification_enabled",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "1"
           }
         ],
         "primaryKey": {
@@ -1142,7 +1135,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8ef3ed3adb539765f7fb6d478b8a1dda')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0be25346520567801fecf8152d21f409')"
     ]
   }
 }

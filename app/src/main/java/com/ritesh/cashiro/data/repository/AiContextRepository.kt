@@ -102,7 +102,7 @@ class AiContextRepository @Inject constructor(
                 TransactionSummary(
                     merchantName = transaction.merchantName,
                     amount = transaction.amount,
-                    category = transaction.category ?: "Others",
+                    category = transaction.category ?: "Miscellaneous",
                     daysAgo = daysAgo,
                     dateTime = transaction.dateTime,
                     transactionType = transaction.transactionType

@@ -127,7 +127,7 @@ class SmsBroadcastReceiver : BroadcastReceiver() {
                                 merchant = parsedTransaction.merchant ?: "Unknown",
                                 type = parsedTransaction.type.name,
                                 bankName = parsedTransaction.bankName ?: "Bank",
-                                category = savedTransaction?.category ?: "Others",
+                                category = savedTransaction?.category ?: "Miscellaneous",
                                 repository = repository
                             )
                         }

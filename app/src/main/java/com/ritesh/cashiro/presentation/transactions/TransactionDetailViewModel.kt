@@ -223,7 +223,7 @@ class TransactionDetailViewModel @Inject constructor(
     
     fun updateCategory(category: String) {
         _editableTransaction.update { current ->
-            current?.copy(category = category.ifEmpty { "Others" })
+            current?.copy(category = category.ifEmpty { "Miscellaneous" })
         }
     }
     

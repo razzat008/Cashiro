@@ -296,7 +296,7 @@ fun CreateRuleScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    text = "When",
+                                    text = "Conditions",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -740,7 +740,7 @@ fun CreateRuleScreen(
                                         val commonCategories = listOf(
                                             "Food & Dining", "Transportation", "Shopping",
                                             "Bills & Utilities", "Entertainment", "Healthcare",
-                                            "Investments", "Others"
+                                            "Investments", "Miscellaneous"
                                         )
 
                                         FlowRow(

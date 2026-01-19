@@ -1085,11 +1085,6 @@ object CategoryMapping {
             displayName = "Return",
             iconResId = R.drawable.type_finance_currency_exchange,
             color = Color(0xFF33B5E5),
-        ),
-        "Others" to CategoryInfo(
-            displayName = "Others",
-            iconResId = R.drawable.type_food_dining,
-            color = Color(0xFF757575),
         )
     )
 

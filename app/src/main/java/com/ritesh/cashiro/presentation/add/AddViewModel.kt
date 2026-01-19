@@ -91,7 +91,7 @@ constructor(
 
     init {
         // Load default subcategories for both tabs
-        updateTransactionSubcategories("Others")
+        updateTransactionSubcategories("Miscellaneous")
         updateSubscriptionSubcategories("Subscription")
 
         // Pre-select main account
@@ -125,7 +125,7 @@ constructor(
     fun updateTransactionType(type: TransactionType) {
         val newCategory = when (type) {
             TransactionType.INCOME -> "Income"
-            TransactionType.EXPENSE -> "Others"
+            TransactionType.EXPENSE -> "Miscellaneous"
             TransactionType.INVESTMENT -> "Investment"
             TransactionType.CREDIT -> "Shopping"
             TransactionType.TRANSFER -> "Self Transfer"
@@ -480,7 +480,7 @@ data class TransactionUiState(
     val transactionType: TransactionType = TransactionType.EXPENSE,
     val merchant: String = "",
     val merchantError: String? = null,
-    val category: String = "Others",
+    val category: String = "Miscellaneous",
     val subcategory: String? = null,
     val categoryError: String? = null,
     val date: LocalDateTime = LocalDateTime.now(),

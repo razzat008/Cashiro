@@ -59,14 +59,15 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
                         RuleApplicationEntity::class,
                         ExchangeRateEntity::class,
                         SubcategoryEntity::class],
-        version = 31,
+        version = 32,
         exportSchema = true,
         autoMigrations =
                 [
                         AutoMigration(from = 27, to = 28),
                         AutoMigration(from = 28, to = 29),
                         AutoMigration(from = 29, to = 30, spec = Migration29To30::class),
-                        AutoMigration(from = 30, to = 31)]
+                        AutoMigration(from = 30, to = 31),
+                        AutoMigration(from = 31, to = 32, spec = Migration31To32::class)]
 )
 @TypeConverters(Converters::class)
 abstract class CashiroDatabase : RoomDatabase() {
@@ -558,5 +559,24 @@ class Migration29To30 : AutoMigrationSpec {
         super.onPostMigrate(db)
         // Post-migration updates if needed
         // Default values are already set in the entity definitions
+    }
+}
+
+/** Migration from version 31 to 32. Migrates 'Others' category to 'Miscellaneous'. */
+class Migration31To32 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        super.onPostMigrate(db)
+        
+        // Update transactions categorized as 'Others' to 'Miscellaneous'
+        db.execSQL("UPDATE transactions SET category = 'Miscellaneous' WHERE category = 'Others'")
+        
+        // Update subscriptions categorized as 'Others' to 'Miscellaneous'
+        db.execSQL("UPDATE subscriptions SET category = 'Miscellaneous' WHERE category = 'Others'")
+        
+        // Update merchant mappings from 'Others' to 'Miscellaneous'
+        db.execSQL("UPDATE merchant_mappings SET category = 'Miscellaneous' WHERE category = 'Others'")
+        
+        // Delete the 'Others' category from categories table
+        db.execSQL("DELETE FROM categories WHERE name = 'Others'")
     }
 }

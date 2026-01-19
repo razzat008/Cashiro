@@ -128,7 +128,7 @@ class AnalyticsViewModel @Inject constructor(
 
                 // Group by category
                 val categoryBreakdown = filteredTransactions
-                    .groupBy { it.category ?: "Others" }
+                    .groupBy { it.category ?: "Miscellaneous" }
                     .map { (categoryName, txns) ->
                         val categoryTotal = txns.sumOf { it.amount.toDouble() }.toBigDecimal()
                         CategoryData(

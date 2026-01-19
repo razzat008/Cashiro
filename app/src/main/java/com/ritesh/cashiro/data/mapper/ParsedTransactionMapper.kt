@@ -74,7 +74,7 @@ private fun normalizeMerchantName(name: String): String {
  * Determines the category based on merchant name and transaction type.
  */
 private fun determineCategory(merchant: String?, type: TransactionType): String {
-    val merchantName = merchant ?: return "Others"
+    val merchantName = merchant ?: return "Miscellaneous"
 
     // Special handling for income transactions
     if (type == TransactionType.INCOME) {
