@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.ui.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,12 +34,15 @@ import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.formatBalance
 import java.math.BigDecimal
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AccountCarousel(
     modifier: Modifier = Modifier,
     bankAccounts: List<AccountBalanceEntity>,
     creditCards: List<AccountBalanceEntity>,
     onAccountClick: (bankName: String, accountLast4: String) -> Unit = { _, _ -> },
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedContentScope: AnimatedVisibilityScope? = null
 ) {
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -49,7 +55,9 @@ fun AccountCarousel(
                 accountLast4 = account.accountLast4,
                 balance = account.formatBalance(),
                 subtitle = "Savings account",
-                onClick = { onAccountClick(account.bankName, account.accountLast4) }
+                onClick = { onAccountClick(account.bankName, account.accountLast4) },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope
             )
         }
         items(creditCards) { card ->
@@ -58,12 +66,15 @@ fun AccountCarousel(
                 accountLast4 = card.accountLast4,
                 balance = card.formatBalance(),
                 subtitle = "Credit Card",
-                onClick = { onAccountClick(card.bankName, card.accountLast4) }
+                onClick = { onAccountClick(card.bankName, card.accountLast4) },
+                sharedTransitionScope = sharedTransitionScope,
+                animatedContentScope = animatedContentScope
             )
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AccountCarouselCard(
     bankName: String,
@@ -71,14 +82,27 @@ fun AccountCarouselCard(
     balance: String,
     subtitle: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedContentScope: AnimatedVisibilityScope? = null
 ) {
     Surface(
         modifier = modifier
             .width(220.dp)
             .height(180.dp)
             .clip(RoundedCornerShape(28.dp))
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .then(
+                if (sharedTransitionScope != null && animatedContentScope != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedBounds(
+                            rememberSharedContentState(key = "account_${bankName}_${accountLast4}"),
+                            animatedVisibilityScope = animatedContentScope,
+                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                        )
+                    }
+                } else Modifier
+            ),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = RoundedCornerShape(28.dp),
         border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))

@@ -358,7 +358,9 @@ fun HomeScreen(
                                         accountLast4 = accountLast4
                                     )
                                 )
-                            }
+                            },
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedContentScope = animatedContentScope
                         )
                     }
                 }

@@ -1,6 +1,11 @@
  package com.ritesh.cashiro.presentation.accounts
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
@@ -9,6 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ShowChart
@@ -17,56 +23,106 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
+import com.ritesh.cashiro.presentation.categories.NavigationContent
 import com.ritesh.cashiro.ui.components.*
+import com.ritesh.cashiro.ui.effects.overScrollVertical
+import com.ritesh.cashiro.ui.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.ui.theme.*
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeSource
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun AccountDetailScreen(
     navController: NavController,
-    viewModel: AccountDetailViewModel = hiltViewModel()
+    bankName: String = "",
+    accountLast4: String = "",
+    viewModel: AccountDetailViewModel = hiltViewModel(),
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedContentScope: AnimatedVisibilityScope? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val selectedDateRange by viewModel.selectedDateRange.collectAsState()
     
-    PennyWiseScaffold(
-        title = "${uiState.bankName} ••${uiState.accountLast4}",
-        navigationIcon = {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
+    val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val scrollBehaviorLarge = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val hazeState = remember { HazeState() }
+    val lazyListState = rememberLazyListState()
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(
+                if (sharedTransitionScope != null && animatedContentScope != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedBounds(
+                            rememberSharedContentState(key = "account_${bankName}_${accountLast4}"),
+                            animatedVisibilityScope = animatedContentScope,
+                            boundsTransform = { _, _ ->
+                                spring(
+                                    stiffness = Spring.StiffnessLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                )
+                            },
+                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                        )
+                    }
+                } else Modifier
+            )
+    ) {
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehaviorLarge.nestedScrollConnection),
+        topBar = {
+            CustomTitleTopAppBar(
+                scrollBehaviorSmall = scrollBehaviorSmall,
+                scrollBehaviorLarge = scrollBehaviorLarge,
+                title = uiState.bankName.ifEmpty { "Account Details" },
+                onBackClick = { navController.navigateUp() },
+                hasBackButton = true,
+                hazeState = hazeState,
+                navigationContent = { NavigationContent({navController.navigateUp()}) },
+            )
         }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(Dimensions.Padding.content),
+                .overScrollVertical()
+                .hazeSource(state = hazeState),
+            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
+            contentPadding = PaddingValues(
+                top =Dimensions.Padding.content + paddingValues.calculateTopPadding(),
+                bottom = 0.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // Current Balance Card
+            // Account Card
             item {
-                CurrentBalanceCard(
-                    balance = uiState.currentBalance?.balance ?: BigDecimal.ZERO,
-                    creditLimit = uiState.currentBalance?.creditLimit,
-                    bankName = uiState.bankName,
-                    accountLast4 = uiState.accountLast4,
-                    primaryCurrency = uiState.primaryCurrency
-                )
+                uiState.currentBalance?.let { balance ->
+                    AccountCard(
+                        account = balance,
+                        showMoreOptions = false, // Keep it simple in detail view
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                    )
+                }
             }
 
             // Date Range Filter
@@ -83,7 +139,8 @@ fun AccountDetailScreen(
                     ExpandableBalanceChart(
                         primaryCurrency = uiState.primaryCurrency,
                         balanceHistory = uiState.balanceChartData,
-                        selectedTimeframe = selectedDateRange.label
+                        selectedTimeframe = selectedDateRange.label,
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                     )
                 }
             }
@@ -96,21 +153,25 @@ fun AccountDetailScreen(
                     netBalance = uiState.netBalance,
                     period = selectedDateRange.label,
                     primaryCurrency = uiState.primaryCurrency,
-                    hasMultipleCurrencies = uiState.hasMultipleCurrencies
+                    hasMultipleCurrencies = uiState.hasMultipleCurrencies,
+                    modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                 )
             }
             
             // Transactions Header
             item {
                 SectionHeader(
-                    title = "Transactions (${uiState.transactions.size})"
+                    title = "Transactions (${uiState.transactions.size})",
+                    modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                 )
             }
             
             // Transaction List
             if (uiState.transactions.isEmpty() && !uiState.isLoading) {
                 item {
-                    EmptyTransactionsState()
+                    EmptyTransactionsState(
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                    )
                 }
             } else {
                 items(
@@ -124,7 +185,8 @@ fun AccountDetailScreen(
                             navController.navigate(
                                 com.ritesh.cashiro.navigation.TransactionDetail(transaction.id)
                             )
-                        }
+                        },
+                        modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                     )
                 }
             }
@@ -145,9 +207,11 @@ fun AccountDetailScreen(
         }
     }
 }
+}
 
 @Composable
 private fun ExpandableBalanceChart(
+    modifier: Modifier = Modifier,
     primaryCurrency: String,
     balanceHistory: List<BalancePoint>,
     selectedTimeframe: String
@@ -155,7 +219,7 @@ private fun ExpandableBalanceChart(
     var isExpanded by remember { mutableStateOf(false) }
     
     CashiroCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { isExpanded = !isExpanded }
     ) {
@@ -222,87 +286,11 @@ private fun ExpandableBalanceChart(
     }
 }
 
-@Composable
-private fun CurrentBalanceCard(
-    balance: BigDecimal,
-    creditLimit: BigDecimal? = null,
-    bankName: String,
-    accountLast4: String,
-    primaryCurrency: String
-) {
-    val isCreditCard = creditLimit != null
-    
-    CashiroCard(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.Padding.content),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (isCreditCard) {
-                // Credit card layout
-                Text(
-                    text = "Available Credit",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(Spacing.xs))
-                Text(
-                    text = CurrencyFormatter.formatCurrency(creditLimit, primaryCurrency),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                // Show outstanding balance if any
-                if (balance > BigDecimal.ZERO) {
-                    Spacer(modifier = Modifier.height(Spacing.xs))
-                    Text(
-                        text = "Outstanding: ${CurrencyFormatter.formatCurrency(balance, primaryCurrency)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            } else {
-                // Regular account layout
-                Text(
-                    text = "Current Balance",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(Spacing.xs))
-                Text(
-                    text = CurrencyFormatter.formatCurrency(balance, primaryCurrency),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(Spacing.xs))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = if (isCreditCard) Icons.Default.CreditCard else Icons.Default.AccountBalance,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "$bankName ••$accountLast4",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
+
 
 @Composable
 private fun SummaryStatistics(
+    modifier: Modifier = Modifier,
     totalIncome: BigDecimal,
     totalExpenses: BigDecimal,
     netBalance: BigDecimal,
@@ -311,7 +299,7 @@ private fun SummaryStatistics(
     hasMultipleCurrencies: Boolean = false
 ) {
     CashiroCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier
@@ -414,6 +402,9 @@ private fun DateRangeFilter(
         horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
         contentPadding = PaddingValues(horizontal = 0.dp)
     ) {
+        item{
+            Spacer(modifier = Modifier.width(Spacing.md))
+        }
         items(DateRange.values().toList()) { range ->
             FilterChip(
                 selected = selectedRange == range,
@@ -425,11 +416,15 @@ private fun DateRangeFilter(
                 )
             )
         }
+        item{
+            Spacer(modifier = Modifier.width(Spacing.md))
+        }
     }
 }
 
 @Composable
 private fun TransactionItem(
+    modifier: Modifier = Modifier,
     transaction: TransactionEntity,
     primaryCurrency: String,
     onClick: () -> Unit
@@ -443,7 +438,7 @@ private fun TransactionItem(
     }
     
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
@@ -540,9 +535,11 @@ private fun TransactionItem(
 }
 
 @Composable
-private fun EmptyTransactionsState() {
+private fun EmptyTransactionsState(
+    modifier: Modifier = Modifier
+) {
     CashiroCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier

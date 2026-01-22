@@ -203,7 +203,13 @@ fun CashiroNavHost(
                 popExitTransition = { ExitTransition.None }
             ) { backStackEntry ->
                 val accountDetail = backStackEntry.toRoute<AccountDetail>()
-                AccountDetailScreen(navController = navController)
+                AccountDetailScreen(
+                    navController = navController,
+                    bankName = accountDetail.bankName,
+                    accountLast4 = accountDetail.accountLast4,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this@composable
+                )
             }
         }
     }
