@@ -39,6 +39,7 @@ import com.ritesh.cashiro.navigation.AddTransaction
 import com.ritesh.cashiro.navigation.AnimatedNavHost
 import com.ritesh.cashiro.navigation.Subscriptions
 import com.ritesh.cashiro.navigation.TransactionDetail
+import com.ritesh.cashiro.navigation.Transactions
 import com.ritesh.cashiro.navigation.navPage
 import com.ritesh.cashiro.presentation.accounts.AddAccountScreen
 import com.ritesh.cashiro.presentation.accounts.ManageAccountsScreen
@@ -106,9 +107,9 @@ fun MainScreen(
                                 navController = rootNavController ?: navController,
                                 onNavigateToSettings = { navController.navigate("settings") },
                                 onNavigateToChat = { navController.navigate("chat") },
-                                onNavigateToTransactions = { navController.navigate("transactions") },
-                                onNavigateToTransactionsWithSearch = { navController.navigate(
-                                    route = "transactions?focusSearch=true") },
+                                onNavigateToTransactions = { rootNavController?.navigate(Transactions()) },
+                                onNavigateToTransactionsWithSearch = { rootNavController?.navigate(
+                                    Transactions(focusSearch = true)) },
                                 onNavigateToSubscriptions = { rootNavController?.navigate(Subscriptions) },
                                 onNavigateToAddScreen = { rootNavController?.navigate(AddTransaction()) },
                                 onTransactionClick = { transactionId ->
@@ -120,80 +121,6 @@ fun MainScreen(
                                 sharedTransitionScope = sharedTransitionScope,
                                 animatedContentScope = animatedContentScope
                             ) },
-                        navPage(
-                            route = "transactions?category={category}&merchant={merchant}&period={period}&currency={currency}&type={type}&focusSearch={focusSearch}",
-                            arguments =
-                                listOf(
-                                    navArgument("category") {
-                                        type = NavType.StringType
-                                        nullable = true
-                                        defaultValue = null },
-
-                                    navArgument("merchant") {
-                                        type = NavType.StringType
-                                        nullable = true
-                                        defaultValue = null
-                                    },
-
-                                    navArgument("period") {
-                                        type = NavType.StringType
-                                        nullable = true
-                                        defaultValue = null
-                                    },
-                                    navArgument("currency") {
-                                        type = NavType.StringType
-                                        nullable = true
-                                        defaultValue = null
-                                    },
-                                    navArgument("type") {
-                                        type = NavType.StringType
-                                        nullable = true
-                                        defaultValue = null
-                                    },
-                                    navArgument("focusSearch") {
-                                        type = NavType.BoolType
-                                        defaultValue = false
-                                    }
-                                )
-                        ) { backStackEntry: NavBackStackEntry ->
-                            val category =
-                                backStackEntry.arguments?.getString("category")
-                            val merchant =
-                                backStackEntry.arguments?.getString("merchant")
-                            val period =
-                                backStackEntry.arguments?.getString("period")
-                            val currency =
-                                backStackEntry.arguments?.getString("currency")
-                            val type =
-                                backStackEntry.arguments?.getString("type")
-                            val focusSearch =
-                                backStackEntry.arguments?.getBoolean(
-                                    "focusSearch"
-                                )
-                                    ?: false
-                            TransactionsScreen(
-                                initialCategory = category,
-                                initialMerchant = merchant,
-                                initialPeriod = period,
-                                initialCurrency = currency,
-                                initialType = type,
-                                focusSearch = focusSearch,
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                },
-                                onTransactionClick = { transactionId ->
-                                    rootNavController?.navigate(
-                                        TransactionDetail(transactionId)
-                                    )
-                                },
-                                onAddTransactionClick = {
-                                    rootNavController?.navigate(AddTransaction())
-                                },
-                                onNavigateToSettings = {
-                                    navController.navigate("settings")
-                                }
-                            )
-                        },
                         navPage("analytics") {
                             AnalyticsScreen(
                                 onNavigateToChat = {
@@ -204,35 +131,14 @@ fun MainScreen(
                                     merchant,
                                     period,
                                     currency ->
-                                    val route = buildString {
-                                        append("transactions")
-                                        val params = mutableListOf<String>()
-                                        category?.let {
-                                            val encoded =
-                                                java.net.URLEncoder.encode(
-                                                    it,
-                                                    "UTF-8"
-                                                )
-                                            params.add("category=$encoded")
-                                        }
-                                        merchant?.let {
-                                            val encoded =
-                                                java.net.URLEncoder.encode(
-                                                    it,
-                                                    "UTF-8"
-                                                )
-                                            params.add("merchant=$encoded")
-                                        }
-                                        period?.let { params.add("period=$it") }
-                                        currency?.let {
-                                            params.add("currency=$it")
-                                        }
-                                        if (params.isNotEmpty()) {
-                                            append("?")
-                                            append(params.joinToString("&"))
-                                        }
-                                    }
-                                    navController.navigate(route)
+                                    rootNavController?.navigate(
+                                        Transactions(
+                                            category = category,
+                                            merchant = merchant,
+                                            period = period,
+                                            currency = currency
+                                        )
+                                    )
                                 },
                                 onNavigateToSettings = {
                                     navController.navigate("settings")

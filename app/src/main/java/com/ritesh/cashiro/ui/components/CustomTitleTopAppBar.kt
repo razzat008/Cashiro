@@ -114,7 +114,7 @@ private fun Modifier.animatedOffsetModifier(
     // Define the target offset based on conditions
     val targetOffsetX = when {
         hasBackButton && isProfileScreen-> 0.dp
-        isTransactionScreen -> (0).dp
+        isTransactionScreen -> (-28).dp
         isHomeScreen-> (0).dp
         hasBackButton && isCategoryScreen-> 0.dp
         hasBackButton && isRuleScreen-> 0.dp

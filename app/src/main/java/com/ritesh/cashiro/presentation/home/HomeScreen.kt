@@ -4,6 +4,8 @@ import android.view.HapticFeedbackConstants
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -383,6 +385,12 @@ fun HomeScreen(
                                     modifier = cardModifier.sharedBounds(
                                         rememberSharedContentState(key = "upcoming_subscriptions_card"),
                                         animatedVisibilityScope = animatedContentScope,
+                                        boundsTransform = { _, _ ->
+                                            spring(
+                                                stiffness = Spring.StiffnessLow,
+                                                dampingRatio = Spring.DampingRatioLowBouncy
+                                            )
+                                        },
                                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
                                     )
                                 )
@@ -411,7 +419,23 @@ fun HomeScreen(
                                 // Search button
                                 IconButton(
                                     onClick = onNavigateToTransactionsWithSearch,
-                                    modifier = Modifier.size(36.dp)
+                                    modifier = Modifier.size(36.dp).then(
+                                        if (sharedTransitionScope != null && animatedContentScope != null) {
+                                            with(sharedTransitionScope) {
+                                                Modifier.sharedBounds(
+                                                    rememberSharedContentState(key = "transactions_search"),
+                                                    animatedVisibilityScope = animatedContentScope,
+                                                    boundsTransform = { _, _ ->
+                                                        spring(
+                                                            stiffness = Spring.StiffnessLow,
+                                                            dampingRatio = Spring.DampingRatioLowBouncy
+                                                        )
+                                                    },
+                                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                                                )
+                                            }
+                                        } else Modifier
+                                    )
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Search,
@@ -422,7 +446,24 @@ fun HomeScreen(
 
                                 // View All button
                                 TextButton(
-                                    onClick = onNavigateToTransactions
+                                    onClick = onNavigateToTransactions,
+                                    modifier = Modifier.then(
+                                        if (sharedTransitionScope != null && animatedContentScope != null) {
+                                            with(sharedTransitionScope) {
+                                                Modifier.sharedBounds(
+                                                    rememberSharedContentState(key = "transactions_screen"),
+                                                    animatedVisibilityScope = animatedContentScope,
+                                                    boundsTransform = { _, _ ->
+                                                        spring(
+                                                            stiffness = Spring.StiffnessLow,
+                                                            dampingRatio = Spring.DampingRatioLowBouncy
+                                                        )
+                                                    },
+                                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                                                )
+                                            }
+                                        } else Modifier
+                                    )
                                 ) { Text("View All") }
                             }
                         },

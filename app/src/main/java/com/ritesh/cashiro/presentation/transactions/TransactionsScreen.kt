@@ -1,5 +1,11 @@
 package com.ritesh.cashiro.presentation.transactions
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -14,6 +20,8 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.LaunchedEffect
@@ -26,24 +34,32 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
+import com.ritesh.cashiro.presentation.categories.NavigationContent
 import com.ritesh.cashiro.presentation.common.TimePeriod
 import com.ritesh.cashiro.presentation.common.TransactionTypeFilter
 import com.ritesh.cashiro.ui.components.*
 import com.ritesh.cashiro.ui.components.CollapsibleFilterRow
+import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.ui.theme.*
 import com.ritesh.cashiro.ui.effects.overScrollVertical
 import com.ritesh.cashiro.ui.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.utils.DateRangeUtils
 import com.ritesh.cashiro.utils.formatAmount
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun TransactionsScreen(
     initialCategory: String? = null,
@@ -56,7 +72,9 @@ fun TransactionsScreen(
     onNavigateBack: () -> Unit = {},
     onTransactionClick: (Long) -> Unit = {},
     onAddTransactionClick: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {}
+    onNavigateToSettings: () -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedContentScope: AnimatedVisibilityScope? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -83,6 +101,29 @@ fun TransactionsScreen(
     // Focus management for search field
     val searchFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    
+    val hazeState = remember { HazeState() }
+    val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollBehaviorLarge = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    var searchTextFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = searchQuery,
+                selection = TextRange(searchQuery.length)
+            )
+        )
+    }
+
+    // Sync with external updates (like initial filters)
+    LaunchedEffect(searchQuery) {
+        if (searchQuery != searchTextFieldValue.text) {
+            searchTextFieldValue = searchTextFieldValue.copy(
+                text = searchQuery,
+                selection = TextRange(searchQuery.length)
+            )
+        }
+    }
     
     // Calculate active filter count for advanced filters
     val activeFilterCount = listOf(
@@ -161,6 +202,37 @@ fun TransactionsScreen(
     }
     
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehaviorLarge.nestedScrollConnection)
+            .then(
+                if (sharedTransitionScope != null && animatedContentScope != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedBounds(
+                            rememberSharedContentState(key = "transactions_screen"),
+                            animatedVisibilityScope = animatedContentScope,
+                            boundsTransform = { _, _ ->
+                                spring(
+                                    stiffness = Spring.StiffnessLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                )
+                            },
+                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                        )
+                    }
+                } else Modifier
+            ),
+        topBar = {
+            CustomTitleTopAppBar(
+                title = "Transactions",
+                scrollBehaviorSmall = scrollBehaviorSmall,
+                scrollBehaviorLarge = scrollBehaviorLarge,
+                hazeState = hazeState,
+                hasBackButton = true,
+                onBackClick = onNavigateBack,
+                navigationContent = {NavigationContent(onNavigateBack)}
+            )
+        },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             Column(
@@ -182,10 +254,27 @@ fun TransactionsScreen(
                 }
                 
                 // Add Transaction FAB (consistent with Home screen)
-                SmallFloatingActionButton(
+                FloatingActionButton(
                     onClick = onAddTransactionClick,
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.then(
+                        if (sharedTransitionScope != null && animatedContentScope != null) {
+                            with(sharedTransitionScope) {
+                                Modifier.sharedBounds(
+                                    rememberSharedContentState(key = "fab_to_add"),
+                                    animatedVisibilityScope = animatedContentScope,
+                                    boundsTransform = { _, _ ->
+                                        spring(
+                                            stiffness = Spring.StiffnessLow,
+                                            dampingRatio = Spring.DampingRatioLowBouncy
+                                        )
+                                    },
+                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                                )
+                            }
+                        } else Modifier
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -194,71 +283,125 @@ fun TransactionsScreen(
                 }
             }
         }
-    ) { paddingValues ->
+    )
+ { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .hazeSource(state = hazeState)
+                .padding(top = paddingValues.calculateTopPadding())
         ) {
         // Search Bar with Sort Button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = Dimensions.Padding.content)
-                .padding(top = Dimensions.Padding.content),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                .padding(top = Spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            TransactionSearchBar(
-                query = searchQuery,
-                onQueryChange = viewModel::updateSearchQuery,
-                categoryFilter = categoryFilter,
-                focusRequester = searchFocusRequester,
-                modifier = Modifier.weight(1f)
-            )
-            
-            // Sort button
-            Box {
-                IconButton(
-                    onClick = { showSortMenu = true },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                ) {
+            SearchBarBox(
+                modifier = Modifier
+                    .weight(1f)
+                    .focusRequester(searchFocusRequester)
+                    .then(
+                        if (sharedTransitionScope != null && animatedContentScope != null) {
+                            with(sharedTransitionScope) {
+                                Modifier.sharedBounds(
+                                    rememberSharedContentState(key = "transactions_search"),
+                                    animatedVisibilityScope = animatedContentScope,
+                                    boundsTransform = { _, _ ->
+                                        spring(
+                                            stiffness = Spring.StiffnessLow,
+                                            dampingRatio = Spring.DampingRatioLowBouncy
+                                        )
+                                    },
+                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                                )
+                            }
+                        } else Modifier
+                    ),
+                searchQuery = searchTextFieldValue,
+                onSearchQueryChange = {
+                    searchTextFieldValue = it
+                    viewModel.updateSearchQuery(it.text)
+                },
+                leadingIcon = {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.Sort,
-                        contentDescription = "Sort",
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                }
-                
-                DropdownMenu(
-                    expanded = showSortMenu,
-                    onDismissRequest = { showSortMenu = false }
-                ) {
-                    SortOption.values().forEach { option ->
-                        DropdownMenuItem(
-                            text = { 
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(
-                                        selected = sortOption == option,
-                                        onClick = null,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(option.label)
-                                }
-                            },
-                            onClick = {
-                                viewModel.setSortOption(option)
-                                showSortMenu = false
+                },
+                trailingIcon = {
+                    Row() {
+                        BlurredAnimatedVisibility(searchTextFieldValue.text.isNotEmpty()) {
+                            IconButton(onClick = {
+                                searchTextFieldValue = TextFieldValue("")
+                                viewModel.updateSearchQuery("")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Clear search",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                        )
+                        }
+                        // Sort button
+                        Box {
+                            IconButton(
+                                onClick = { showSortMenu = true },
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(Color.Transparent)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.FilterAlt,
+                                    contentDescription = "Sort",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showSortMenu,
+                                onDismissRequest = { showSortMenu = false }
+                            ) {
+                                SortOption.values().forEach { option ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                RadioButton(
+                                                    selected = sortOption == option,
+                                                    onClick = null,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                                Text(option.label)
+                                            }
+                                        },
+                                        onClick = {
+                                            viewModel.setSortOption(option)
+                                            showSortMenu = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
+
+                },
+                label = {
+                    Text(
+                        text = if (categoryFilter != null) "Search in $categoryFilter..."
+                        else "Search transactions...",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-            }
+            )
         }
         
         // Period Filter Chips - Always visible
@@ -560,55 +703,6 @@ fun TransactionsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TransactionSearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    categoryFilter: String? = null,
-    focusRequester: FocusRequester? = null,
-    modifier: Modifier = Modifier
-) {
-    TextField(
-        value = query,
-        onValueChange = onQueryChange,
-        placeholder = { 
-            Text(
-                text = if (categoryFilter != null) "Search in $categoryFilter..." 
-                else "Search transactions...",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            ) 
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search"
-            )
-        },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = "Clear search"
-                    )
-                }
-            }
-        },
-        singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        shape = MaterialTheme.shapes.medium,
-        modifier = modifier.then(
-            focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier
-        )
-    )
-}
 
 
 @Composable

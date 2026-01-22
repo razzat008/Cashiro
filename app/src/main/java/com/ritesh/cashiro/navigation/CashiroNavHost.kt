@@ -19,6 +19,7 @@ import com.ritesh.cashiro.presentation.add.AddScreen
 import com.ritesh.cashiro.presentation.categories.CategoriesScreen
 import com.ritesh.cashiro.presentation.profile.ProfileScreen
 import com.ritesh.cashiro.presentation.transactions.TransactionDetailScreen
+import com.ritesh.cashiro.presentation.transactions.TransactionsScreen
 import com.ritesh.cashiro.ui.MainScreen
 import com.ritesh.cashiro.ui.screens.AppLockScreen
 import com.ritesh.cashiro.ui.screens.OnBoardingScreen
@@ -225,6 +226,35 @@ fun CashiroNavHost(
                     onNavigateBack = { navController.popBackStack() },
                     onAddSubscriptionClick = {
                         navController.navigate(AddTransaction(initialTab = 1))
+                    },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedContentScope = this@composable
+                )
+            }
+
+            composable<Transactions>(
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None }
+            ) { backStackEntry ->
+                val transactions = backStackEntry.toRoute<Transactions>()
+                TransactionsScreen(
+                    initialCategory = transactions.category,
+                    initialMerchant = transactions.merchant,
+                    initialPeriod = transactions.period,
+                    initialCurrency = transactions.currency,
+                    initialType = transactions.type,
+                    focusSearch = transactions.focusSearch,
+                    onNavigateBack = { navController.popBackStack() },
+                    onTransactionClick = { transactionId ->
+                        navController.navigate(TransactionDetail(transactionId))
+                    },
+                    onAddTransactionClick = {
+                        navController.navigate(AddTransaction())
+                    },
+                    onNavigateToSettings = {
+                        navController.navigate(Settings)
                     },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedContentScope = this@composable

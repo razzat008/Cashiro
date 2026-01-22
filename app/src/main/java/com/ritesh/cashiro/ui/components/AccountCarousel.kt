@@ -3,6 +3,8 @@ package com.ritesh.cashiro.ui.components
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -98,6 +100,12 @@ fun AccountCarouselCard(
                         Modifier.sharedBounds(
                             rememberSharedContentState(key = "account_${bankName}_${accountLast4}"),
                             animatedVisibilityScope = animatedContentScope,
+                            boundsTransform = { _, _ ->
+                                spring(
+                                    stiffness = Spring.StiffnessLow,
+                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                )
+                            },
                             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
                         )
                     }
