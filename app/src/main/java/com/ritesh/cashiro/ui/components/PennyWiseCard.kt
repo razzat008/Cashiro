@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import com.ritesh.cashiro.ui.theme.Spacing
 
 @Composable
@@ -13,6 +14,7 @@ fun CashiroCard(
     shape: Shape = MaterialTheme.shapes.medium,
     colors: CardColors = CardDefaults.cardColors(),
     elevation: CardElevation = CardDefaults.cardElevation(),
+    contentPadding: Dp = Spacing.md,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -26,7 +28,7 @@ fun CashiroCard(
             elevation = elevation
         ) {
             Column(
-                modifier = Modifier.padding(Spacing.md)
+                modifier = Modifier.padding(contentPadding)
             ) {
                 content()
             }
@@ -40,7 +42,7 @@ fun CashiroCard(
             elevation = elevation
         ) {
             Column(
-                modifier = Modifier.padding(Spacing.md)
+                modifier = Modifier.padding(contentPadding)
             ) {
                 content()
             }

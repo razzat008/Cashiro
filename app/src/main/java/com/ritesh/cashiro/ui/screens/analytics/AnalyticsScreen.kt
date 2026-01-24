@@ -499,8 +499,8 @@ fun AnalyticsScreen(
                                                 uiState.currency
                                             )
                                         },
-//                                        sharedTransitionScope = sharedTransitionScope,
-//                                        animatedContentScope = animatedContentScope
+                                        sharedTransitionScope = sharedTransitionScope,
+                                        animatedContentScope = animatedContentScope
                                     )
                                 }
                             }
@@ -556,8 +556,8 @@ fun AnalyticsScreen(
                                     start = Dimensions.Padding.content,
                                     end = Dimensions.Padding.content,
                                 ),
-//                                sharedTransitionScope = sharedTransitionScope,
-//                                animatedContentScope = animatedContentScope
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedContentScope = animatedContentScope
                             )
                         }
                     }
@@ -641,6 +641,23 @@ fun CategoryProgressItem(
         modifier = Modifier
             .animateContentSize()
             .fillMaxWidth()
+            .then(
+                if (sharedTransitionScope != null && animatedContentScope != null) {
+                    with(sharedTransitionScope) {
+                        Modifier.sharedBounds(
+                            rememberSharedContentState(key = "category_$name"),
+                            animatedVisibilityScope = animatedContentScope,
+                            boundsTransform = { _, _ ->
+                                spring(
+                                    stiffness = Spring.StiffnessLow,
+                                    dampingRatio = Spring.DampingRatioNoBouncy
+                                )
+                            },
+                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
+                        )
+                    }
+                } else Modifier
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = Spacing.sm, vertical = Spacing.md)
     ) {
@@ -670,24 +687,6 @@ fun CategoryProgressItem(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier
-//                            .then(
-//                                if (sharedTransitionScope != null && animatedContentScope != null) {
-//                                    with(sharedTransitionScope) {
-//                                        Modifier.sharedBounds(
-//                                            rememberSharedContentState(key = "category_$name"),
-//                                            animatedVisibilityScope = animatedContentScope,
-//                                            boundsTransform = { _, _ ->
-//                                                spring(
-//                                                    stiffness = Spring.StiffnessLow,
-//                                                    dampingRatio = Spring.DampingRatioLowBouncy
-//                                                )
-//                                            },
-//                                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.FillWidth, Alignment.Center)
-//                                        )
-//                                    }
-//                                } else Modifier
-//                            )
                     )
                     Text(
                         text = "${(percentage * 100).toInt()}%",
@@ -747,24 +746,23 @@ fun MerchantListItem(
         subtitle = subtitle,
         amount = CurrencyFormatter.formatCurrency(merchant.amount, currency),
         onClick = onClick,
-        modifier = modifier,
-//        titleModifier = Modifier.then(
-//            if (sharedTransitionScope != null && animatedContentScope != null) {
-//                with(sharedTransitionScope) {
-//                    Modifier.sharedBounds(
-//                        rememberSharedContentState(key = "merchant_${merchant.name}"),
-//                        animatedVisibilityScope = animatedContentScope,
-//                        boundsTransform = { _, _ ->
-//                            spring(
-//                                stiffness = Spring.StiffnessLow,
-//                                dampingRatio = Spring.DampingRatioLowBouncy
-//                            )
-//                        },
-//                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.FillWidth, Alignment.Center)
-//                    )
-//                }
-//            } else Modifier
-//        )
+        modifier = modifier.then(
+            if (sharedTransitionScope != null && animatedContentScope != null) {
+                with(sharedTransitionScope) {
+                    Modifier.sharedBounds(
+                        rememberSharedContentState(key = "merchant_${merchant.name}"),
+                        animatedVisibilityScope = animatedContentScope,
+                        boundsTransform = { _, _ ->
+                            spring(
+                                stiffness = Spring.StiffnessLow,
+                                dampingRatio = Spring.DampingRatioNoBouncy
+                            )
+                        },
+                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
+                    )
+                }
+            } else Modifier
+        ),
     )
 }
 

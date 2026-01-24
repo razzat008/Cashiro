@@ -79,6 +79,7 @@ import com.ritesh.cashiro.ui.components.SectionHeader
 import com.ritesh.cashiro.ui.components.SmsParsingProgressDialog
 import com.ritesh.cashiro.ui.components.GreetingCard
 import com.ritesh.cashiro.ui.components.spotlightTarget
+import com.ritesh.cashiro.ui.components.CurrencySelectionBottomSheet
 import com.ritesh.cashiro.navigation.UnrecognizedSms
 import com.ritesh.cashiro.navigation.Profile
 import com.ritesh.cashiro.navigation.NotificationSettings
@@ -388,11 +389,11 @@ fun HomeScreen(
                                         boundsTransform = { _, _ ->
                                             spring(
                                                 stiffness = Spring.StiffnessLow,
-                                                dampingRatio = Spring.DampingRatioLowBouncy
+                                                dampingRatio = Spring.DampingRatioNoBouncy
                                             )
                                         },
                                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                            contentScale = ContentScale.None,
+                                            contentScale = ContentScale.Fit,
                                             alignment = Alignment.Center
                                         )
                                     )
@@ -1076,65 +1077,7 @@ private fun TransactionSummaryCards(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CurrencySelectionBottomSheet(
-    selectedCurrency: String,
-    availableCurrencies: List<String>,
-    onCurrencySelected: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = { BottomSheetDefaults.DragHandle() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 48.dp)
-        ) {
-            Text(
-                text = "Select Currency",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
-            )
 
-            availableCurrencies.forEachIndexed { index, currency ->
-                ListItem(
-                    headline = {
-                        Text(
-                            text = when (currency) {
-                                "INR" -> "Indian Rupee (₹)"
-                                "USD" -> "US Dollar ($)"
-                                "AED" -> "UAE Dirham (AED)"
-                                "NPR" -> "Nepalese Rupee (₨)"
-                                "ETB" -> "Ethiopian Birr (ብር)"
-                                else -> currency
-                            }
-                        )
-                    },
-                    trailing = {
-                        RadioButton(
-                            selected = currency == selectedCurrency,
-                            onClick = null
-                        )
-                    },
-                    selected = currency == selectedCurrency,
-                    onClick = {
-                        onCurrencySelected(currency)
-                        onDismiss()
-                    },
-                    shape = ListItemPosition.from(index, availableCurrencies.size).toShape()
-                )
-            }
-        }
-    }
-}
 
 
 

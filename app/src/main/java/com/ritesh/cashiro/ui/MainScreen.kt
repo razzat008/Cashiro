@@ -143,8 +143,8 @@ fun MainScreen(
                                 onNavigateToSettings = {
                                     navController.navigate("settings")
                                 },
-//                                sharedTransitionScope = sharedTransitionScope,
-//                                animatedContentScope = animatedContentScope
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedContentScope = animatedContentScope
                             )
                         },
                         navPage("chat") {

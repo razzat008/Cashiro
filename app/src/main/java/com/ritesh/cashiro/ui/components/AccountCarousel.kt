@@ -104,11 +104,11 @@ fun AccountCarouselCard(
                             boundsTransform = { _, _ ->
                                 spring(
                                     stiffness = Spring.StiffnessLow,
-                                    dampingRatio = Spring.DampingRatioLowBouncy
+                                    dampingRatio = Spring.DampingRatioNoBouncy
                                 )
                             },
                             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                contentScale = ContentScale.Inside,
+                                contentScale = ContentScale.Fit,
                                 alignment = Alignment.Center
                             )
                         )

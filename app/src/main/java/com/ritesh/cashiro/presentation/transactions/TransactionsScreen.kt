@@ -5,6 +5,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.shape.CornerBasedShape
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -13,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.outlined.Sort
@@ -36,6 +39,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -53,6 +57,9 @@ import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.ui.theme.*
 import com.ritesh.cashiro.ui.effects.overScrollVertical
 import com.ritesh.cashiro.ui.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.ui.components.CurrencySelectionBottomSheet
+import com.ritesh.cashiro.ui.components.ListItemPosition
+import com.ritesh.cashiro.ui.components.toShape
 import com.ritesh.cashiro.utils.DateRangeUtils
 import com.ritesh.cashiro.utils.formatAmount
 import dev.chrisbanes.haze.HazeState
@@ -97,6 +104,7 @@ fun TransactionsScreen(
     var showAdvancedFilters by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
     var showDateRangePicker by remember { mutableStateOf(false) }
+    var showCurrencySheet by remember { mutableStateOf(false) }
     
     // Focus management for search field
     val searchFocusRequester = remember { FocusRequester() }
@@ -212,7 +220,15 @@ fun TransactionsScreen(
                 if (sharedTransitionScope != null && animatedContentScope != null) {
                     with(sharedTransitionScope) {
                         Modifier.sharedBounds(
-                            rememberSharedContentState(key = "transactions_screen"),
+                            rememberSharedContentState(
+                                key = if (initialCategory != null) {
+                                    "category_$initialCategory"
+                                } else if (initialMerchant != null) {
+                                    "merchant_$initialMerchant"
+                                } else {
+                                    "transactions_screen"
+                                }
+                            ),
                             animatedVisibilityScope = animatedContentScope,
                             boundsTransform = { _, _ ->
                                 spring(
@@ -220,7 +236,7 @@ fun TransactionsScreen(
                                     dampingRatio = Spring.DampingRatioLowBouncy
                                 )
                             },
-                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
                         )
                     }
                 } else Modifier
@@ -273,7 +289,10 @@ fun TransactionsScreen(
                                             dampingRatio = Spring.DampingRatioLowBouncy
                                         )
                                     },
-                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
+                                        contentScale = ContentScale.Fit,
+                                        alignment = Alignment.Center
+                                    )
                                 )
                             }
                         } else Modifier
@@ -307,23 +326,7 @@ fun TransactionsScreen(
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(searchFocusRequester)
-                    .then(
-                        if (sharedTransitionScope != null && animatedContentScope != null) {
-                            with(sharedTransitionScope) {
-                                Modifier.sharedBounds(
-                                    rememberSharedContentState(key = if (initialMerchant != null) "merchant_$initialMerchant" else "transactions_search"),
-                                    animatedVisibilityScope = animatedContentScope,
-                                    boundsTransform = { _, _ ->
-                                        spring(
-                                            stiffness = Spring.StiffnessLow,
-                                            dampingRatio = Spring.DampingRatioLowBouncy
-                                        )
-                                    },
-                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
-                                )
-                            }
-                        } else Modifier
-                    ),
+                    .then(Modifier),
                 searchQuery = searchTextFieldValue,
                 onSearchQueryChange = {
                     searchTextFieldValue = it
@@ -406,7 +409,7 @@ fun TransactionsScreen(
                 }
             )
         }
-        
+
         // Period Filter Chips - Always visible
         LazyRow(
             modifier = Modifier
@@ -448,7 +451,7 @@ fun TransactionsScreen(
                 )
             }
         }
-        
+
         // Data scope info banner
         if (viewModel.isShowingLimitedData()) {
             Card(
@@ -494,7 +497,7 @@ fun TransactionsScreen(
                 }
             }
         }
-        
+
         // Collapsible Advanced Filters
         CollapsibleFilterRow(
             isExpanded = showAdvancedFilters,
@@ -553,82 +556,9 @@ fun TransactionsScreen(
                 }
             }
         }
-        
-        // Totals Card - Moved after filters
-        TransactionTotalsCard(
-            income = filteredTotals.income,
-            expenses = filteredTotals.expenses,
-            netBalance = filteredTotals.netBalance,
-            currency = selectedCurrency,
-            availableCurrencies = availableCurrencies,
-            onCurrencySelected = { viewModel.selectCurrency(it) },
-            isLoading = uiState.isLoading,
-            modifier = Modifier
-                .padding(horizontal = Dimensions.Padding.content)
-                .padding(top = Spacing.sm)
-        )
-        
-        // Category Filter Chip (if active) - Moved to its own row
-        categoryFilter?.let { category ->
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = Spacing.xs),
-                contentPadding = PaddingValues(horizontal = Dimensions.Padding.content),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-            ) {
-                item {
-                    FilterChip(
-                        selected = true,
-                        onClick = { /* No action on click, use trailing icon to clear */ },
-                        label = { Text(category) },
-                        leadingIcon = {
-                            categoriesMap[category]?.let { categoryEntity ->
-                                CategoryChip(
-                                    category = categoryEntity,
-                                    showText = false,
-                                    modifier = Modifier.padding(start = 4.dp)
-                                )
-                            }
-                        },
-                        trailingIcon = {
-                            IconButton(
-                                onClick = { viewModel.clearCategoryFilter() },
-                                modifier = Modifier.size(18.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Clear category filter",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        ),
-                        modifier = Modifier.then(
-                            if (sharedTransitionScope != null && animatedContentScope != null) {
-                                with(sharedTransitionScope) {
-                                    Modifier.sharedBounds(
-                                        rememberSharedContentState(key = "category_$category"),
-                                        animatedVisibilityScope = animatedContentScope,
-                                        boundsTransform = { _, _ ->
-                                            spring(
-                                                stiffness = Spring.StiffnessLow,
-                                                dampingRatio = Spring.DampingRatioLowBouncy
-                                            )
-                                        },
-                                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
-                                    )
-                                }
-                            } else Modifier
-                        )
-                    )
-                }
-            }
-        }
-        
+
+
+
         // Transaction List
         when {
             uiState.isLoading -> {
@@ -660,6 +590,62 @@ fun TransactionsScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
+                    item {
+                        // Totals Card - Moved after filters
+                        TransactionTotalsCard(
+                            income = filteredTotals.income,
+                            expenses = filteredTotals.expenses,
+                            netBalance = filteredTotals.netBalance,
+                            currency = selectedCurrency,
+                            availableCurrenciesCount = availableCurrencies.size,
+                            onCurrencyClick = { showCurrencySheet = true },
+                            isLoading = uiState.isLoading,
+                        )
+
+                        // Category Filter Chip (if active) - Moved to its own row
+                        categoryFilter?.let { category ->
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = Spacing.xs),
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                            ) {
+                                item {
+                                    FilterChip(
+                                        selected = true,
+                                        onClick = { /* No action on click, use trailing icon to clear */ },
+                                        label = { Text(category) },
+                                        leadingIcon = {
+                                            categoriesMap[category]?.let { categoryEntity ->
+                                                CategoryChip(
+                                                    category = categoryEntity,
+                                                    showText = false,
+                                                    modifier = Modifier.padding(start = 4.dp)
+                                                )
+                                            }
+                                        },
+                                        trailingIcon = {
+                                            IconButton(
+                                                onClick = { viewModel.clearCategoryFilter() },
+                                                modifier = Modifier.size(18.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = "Clear category filter",
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                        ),
+                                        modifier = Modifier
+                                    )
+                                }
+                            }
+                        }
+                    }
                     // Iterate through date groups in order
                     listOf(
                         DateGroup.TODAY,
@@ -672,33 +658,30 @@ fun TransactionsScreen(
                             item {
                                 SectionHeader(
                                     title = dateGroup.label,
-                                    modifier = Modifier.padding(vertical = Spacing.sm)
+                                    modifier = Modifier.padding(top = Spacing.md, bottom = Spacing.sm)
                                 )
                             }
-                            
+
                             // Transactions in this group
-                            items(
+                            itemsIndexed(
                                 items = transactions,
-                                key = { it.id }
-                            ) { transaction ->
+                                key = { _, it -> it.id }
+                            ) { index, transaction ->
+                                val position = ListItemPosition.from(index, transactions.size)
                                 TransactionItem(
                                     transaction = transaction,
                                     categoriesMap = categoriesMap,
                                     showDate = dateGroup == DateGroup.EARLIER,
+                                    shape = position.toShape(),
                                     onClick = { onTransactionClick(transaction.id) }
                                 )
-                                if (transaction != transactions.last()) {
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = Spacing.md),
-                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                                    )
-                                }
                             }
                         }
                     }
                 }
             }
         }
+
         }
     }
     
@@ -721,6 +704,18 @@ fun TransactionsScreen(
             initialEndDate = customDateRange?.second
         )
     }
+
+    if (showCurrencySheet) {
+        CurrencySelectionBottomSheet(
+            selectedCurrency = selectedCurrency,
+            availableCurrencies = availableCurrencies,
+            onCurrencySelected = {
+                viewModel.selectCurrency(it)
+                showCurrencySheet = false
+            },
+            onDismiss = { showCurrencySheet = false }
+        )
+    }
 }
 
 
@@ -730,6 +725,7 @@ private fun TransactionItem(
     transaction: TransactionEntity,
     categoriesMap: Map<String, CategoryEntity>,
     showDate: Boolean,
+    shape: CornerBasedShape,
     onClick: () -> Unit = {}
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -761,20 +757,29 @@ private fun TransactionItem(
         if (transaction.isRecurring) add("Recurring")
     }
     
-    ListItemCard(
-        title = transaction.merchantName,
-        subtitle = subtitleParts.joinToString(" • "),
-        amount = transaction.formatAmount(),
-        amountColor = amountColor,
-        onClick = onClick,
-        leadingContent = {
+    ListItem(
+        headline = {
+            Text(
+                text = transaction.merchantName,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+        },
+        supporting = {
+            Text(
+                text = subtitleParts.joinToString(" • "),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.85f)
+            )
+        },
+        leading = {
             BrandIcon(
                 merchantName = transaction.merchantName,
                 size = 40.dp,
                 showBackground = true
             )
         },
-        trailingContent = {
+        trailing = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
@@ -821,7 +826,11 @@ private fun TransactionItem(
                     color = amountColor
                 )
             }
-        }
+        },
+        onClick = onClick,
+        shape = shape,
+        listColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        padding = PaddingValues(0.dp)
     )
 }
 
