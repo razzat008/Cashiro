@@ -219,7 +219,7 @@ fun ManageAccountsScreen(
                     ) {
                         // Separate visible and hidden accounts
                         val visibleRegularAccounts = uiState.accounts.filter {
-                            !it.isCreditCard && !viewModel.isAccountHidden(
+                            !it.isCreditCard && !it.isWallet && !viewModel.isAccountHidden(
                                 it.bankName,
                                 it.accountLast4
                             )
@@ -231,7 +231,7 @@ fun ManageAccountsScreen(
                             )
                         }
                         val hiddenRegularAccounts = uiState.accounts.filter {
-                            !it.isCreditCard && viewModel.isAccountHidden(
+                            !it.isCreditCard && !it.isWallet && viewModel.isAccountHidden(
                                 it.bankName,
                                 it.accountLast4
                             )
@@ -242,7 +242,63 @@ fun ManageAccountsScreen(
                                 it.accountLast4
                             )
                         }
-                        val allRegularAccounts = uiState.accounts.filter { !it.isCreditCard }
+                        val allRegularAccounts = uiState.accounts.filter { !it.isCreditCard && !it.isWallet }
+                        val wallets = uiState.accounts.filter { it.isWallet }
+
+                        // Wallets Section
+                        if (wallets.isNotEmpty()) {
+                            item {
+                                SectionHeader(
+                                    title = "Wallets",
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                            items(wallets) { account ->
+                                AccountItem(
+                                    account = account,
+                                    linkedCards = emptyList(),
+                                    isHidden = false,
+                                    isMain = uiState.mainAccountKey == "${account.bankName}_${account.accountLast4}",
+                                    onSetAsMain = {
+                                        viewModel.setAsMainAccount(
+                                            account.bankName,
+                                            account.accountLast4
+                                        )
+                                    },
+                                    onToggleVisibility = {
+                                        viewModel.toggleAccountVisibility(
+                                            account.bankName,
+                                            account.accountLast4
+                                        )
+                                    },
+                                    onUpdateBalance = {
+                                        selectedAccount = account.bankName to account.accountLast4
+                                        selectedAccountEntity = account
+                                        showUpdateDialog = true
+                                    },
+                                    onViewHistory = {
+                                        historyAccount = account.bankName to account.accountLast4
+                                        viewModel.loadBalanceHistory(
+                                            account.bankName,
+                                            account.accountLast4
+                                        )
+                                        showHistoryDialog = true
+                                    },
+                                    onUnlinkCard = {},
+                                    onDeleteAccount = {
+                                        accountToDelete = account.bankName to account.accountLast4
+                                        showDeleteConfirmDialog = true
+                                    },
+                                    onEditAccount = {
+                                        accountToEdit = account
+                                        showEditSheet = true
+                                    }
+                                )
+                            }
+                            item {
+                                Spacer(modifier = Modifier.height(Spacing.md))
+                            }
+                        }
 
                         // Regular Bank Accounts Section (Visible Only)
                         if (visibleRegularAccounts.isNotEmpty()) {
@@ -672,7 +728,7 @@ fun ManageAccountsScreen(
                         accountToEdit = null
                         showDeleteConfirmDialog = true
                     },
-                    onSave = { bankName, balance, last4, icon, color, isCC, limit, currency ->
+                    onSave = { bankName, balance, last4, icon, color, isCC, isWallet, limit, currency ->
                         viewModel.editAccount(
                             oldBankName = accountToEdit!!.bankName,
                             accountLast4 = accountToEdit!!.accountLast4,
@@ -680,6 +736,7 @@ fun ManageAccountsScreen(
                             newBalance = balance,
                             newCreditLimit = limit,
                             isCreditCard = isCC,
+                            isWallet = isWallet,
                             newIconResId = icon,
                             newCurrency = currency
                         )
@@ -700,7 +757,7 @@ fun ManageAccountsScreen(
                 EditAccountSheet(
                     allAccounts = uiState.accounts,
                     onDismiss = { showAddSheet = false },
-                    onSave = { bankName, balance, last4, icon, color, isCC, limit, currency ->
+                    onSave = { bankName, balance, last4, icon, color, isCC, isWallet, limit, currency ->
                         viewModel.addAccount(
                             bankName = bankName,
                             balance = balance,
@@ -708,6 +765,7 @@ fun ManageAccountsScreen(
                             iconResId = icon,
                             colorHex = color,
                             isCreditCard = isCC,
+                            isWallet = isWallet,
                             creditLimit = limit,
                             currency = currency
                         )

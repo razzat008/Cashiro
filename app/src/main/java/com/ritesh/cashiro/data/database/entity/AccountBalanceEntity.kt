@@ -29,5 +29,6 @@ data class AccountBalanceEntity(
         @ColumnInfo(name = "source_type")
         val sourceType: String? = null, // TRANSACTION, SMS_BALANCE, MANUAL, CARD_LINK
         @ColumnInfo(name = "created_at") val createdAt: LocalDateTime = LocalDateTime.now(),
-        @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "INR"
+        @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "INR",
+        @ColumnInfo(name = "is_wallet", defaultValue = "0") val isWallet: Boolean = false
 )

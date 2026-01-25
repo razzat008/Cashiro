@@ -112,6 +112,7 @@ fun AddAccountScreen(
                         imageVector = when (formState.accountType) {
                             AccountType.SAVINGS, AccountType.CURRENT -> Icons.Default.AccountBalance
                             AccountType.CREDIT -> Icons.Default.CreditCard
+                            AccountType.WALLET -> Icons.Default.AccountBalanceWallet
                         },
                         contentDescription = null
                     )
@@ -138,6 +139,7 @@ fun AddAccountScreen(
                                 imageVector = when (type) {
                                     AccountType.SAVINGS, AccountType.CURRENT -> Icons.Default.AccountBalance
                                     AccountType.CREDIT -> Icons.Default.CreditCard
+                                    AccountType.WALLET -> Icons.Default.AccountBalanceWallet
                                 },
                                 contentDescription = null
                             )
@@ -167,6 +169,7 @@ fun AddAccountScreen(
                 when (formState.accountType) {
                     AccountType.SAVINGS, AccountType.CURRENT -> "e.g., HDFC Bank"
                     AccountType.CREDIT -> "e.g., HDFC Credit Card"
+                    AccountType.WALLET -> "e.g., Cash"
                 }
             )
         },

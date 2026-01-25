@@ -59,6 +59,7 @@ fun EditAccountSheet(
         iconResId: Int,
         colorHex: String,
         isCreditCard: Boolean,
+        isWallet: Boolean,
         creditLimit: BigDecimal?,
         currency: String
     ) -> Unit
@@ -67,6 +68,7 @@ fun EditAccountSheet(
     var balance by remember { mutableStateOf(account?.balance ?: BigDecimal.ZERO) }
     var creditLimit by remember { mutableStateOf(account?.creditLimit ?: BigDecimal.ZERO) }
     var isCreditCard by remember { mutableStateOf(account?.isCreditCard ?: false) }
+    var isWallet by remember { mutableStateOf(account?.isWallet ?: false) }
     var accountLast4 by remember { mutableStateOf(account?.accountLast4 ?: "") }
     var selectedCurrency by remember { mutableStateOf(account?.currency ?: "INR") }
     var iconResId by remember {
@@ -233,9 +235,12 @@ fun EditAccountSheet(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     SegmentedButton(
-                        selected = !isCreditCard,
-                        onClick = { isCreditCard = false },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                        selected = !isCreditCard && !isWallet,
+                        onClick = { 
+                            isCreditCard = false
+                            isWallet = false 
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AccountBalance, null, modifier = Modifier.size(18.dp))
@@ -245,13 +250,34 @@ fun EditAccountSheet(
                     }
                     SegmentedButton(
                         selected = isCreditCard,
-                        onClick = { isCreditCard = true },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                        onClick = { 
+                            isCreditCard = true
+                            isWallet = false 
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.CreditCard, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text("Credit Card")
+                        }
+                    }
+                    SegmentedButton(
+                        selected = isWallet,
+                        onClick = { 
+                            isWallet = true
+                            isCreditCard = false
+                            accountLast4 = "wallet"
+                            bankName = "Cash"
+                            iconResId = R.drawable.type_finance_dollar_banknote
+                            colorHex = "#8BC34A"
+                        },
+                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.AccountBalanceWallet, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Wallet")
                         }
                     }
                 }
@@ -270,6 +296,7 @@ fun EditAccountSheet(
                     colorHex = colorHex,
                     currency = selectedCurrency,
                     isCreditCard = isCreditCard,
+                    isWallet = isWallet,
                     creditLimit = creditLimit
                 )
                 Text(
@@ -467,7 +494,7 @@ fun EditAccountSheet(
                 TextField(
                     value = bankName,
                     onValueChange = { bankName = it },
-                    label = { Text("Bank Name", fontWeight = FontWeight.SemiBold) },
+                    label = { Text(if (isWallet) "Wallet Name" else "Bank Name", fontWeight = FontWeight.SemiBold) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(
@@ -490,28 +517,29 @@ fun EditAccountSheet(
                     }
                 )
 
-                // Account Number
-                TextField(
-                    value = accountLast4,
-                    onValueChange = { if (it.length <= 4 && it.all { char -> char.isDigit() })
-                        accountLast4 = it },
-                    label = { Text("Account Number (Last 4)", fontWeight = FontWeight.SemiBold) },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("e.g. 1234") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(4.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                            0.7f
-                        )
-                    ),
-                    leadingIcon = { Icon(Icons.Default.Pin, contentDescription = null) }
-                )
+                if (!isWallet) {
+                    TextField(
+                        value = accountLast4,
+                        onValueChange = { if (it.length <= 4 && it.all { char -> char.isDigit() })
+                            accountLast4 = it },
+                        label = { Text("Account Number (Last 4)", fontWeight = FontWeight.SemiBold) },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("e.g. 1234") },
+                        singleLine = true,
+                        shape = RoundedCornerShape(4.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                0.7f
+                            )
+                        ),
+                        leadingIcon = { Icon(Icons.Default.Pin, contentDescription = null) }
+                    )
+                }
 
                 // Currency Selection
                 val currencyInteractionSource = remember { MutableInteractionSource() }
@@ -614,9 +642,10 @@ fun EditAccountSheet(
                                 iconResId,
                                 colorHex,
                                 isCreditCard,
+                                isWallet,
                                 if (isCreditCard) creditLimit else null,
                                 selectedCurrency) },
-                        enabled = bankName.isNotBlank() && accountLast4.length == 4,
+                        enabled = bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
                         modifier = Modifier.height(56.dp)
                     ) {
                         Text(
@@ -764,6 +793,7 @@ private fun PreviewAccountCard(
     colorHex: String,
     currency: String,
     isCreditCard: Boolean = false,
+    isWallet: Boolean = false,
     creditLimit: BigDecimal = BigDecimal.ZERO
 ) {
     Card(
@@ -843,7 +873,7 @@ private fun PreviewAccountCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "**** **** **** $accountLast4",
+                            text = if (isWallet) "wallet" else "**** **** **** $accountLast4",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f)
                         )

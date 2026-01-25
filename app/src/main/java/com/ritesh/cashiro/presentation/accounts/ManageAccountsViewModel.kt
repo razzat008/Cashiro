@@ -47,7 +47,8 @@ data class AccountFormState(
 enum class AccountType {
     SAVINGS,
     CURRENT,
-    CREDIT
+    CREDIT,
+    WALLET
 }
 
 @HiltViewModel
@@ -73,6 +74,26 @@ constructor(
         loadHiddenAccounts()
         loadMainAccount()
         loadCards()
+        initializeDefaultWallet()
+    }
+
+    private fun initializeDefaultWallet() {
+        viewModelScope.launch {
+            val wallet = accountBalanceRepository.getLatestBalance("Cash", "wallet")
+            if (wallet == null) {
+                accountBalanceRepository.insertBalance(
+                    AccountBalanceEntity(
+                        bankName = "Cash",
+                        accountLast4 = "wallet",
+                        balance = BigDecimal.ZERO,
+                        timestamp = LocalDateTime.now(),
+                        sourceType = "MANUAL",
+                        isWallet = true,
+                        iconResId = R.drawable.type_finance_dollar_banknote
+                    )
+                )
+            }
+        }
     }
 
     private fun loadAccounts() {
@@ -186,6 +207,7 @@ constructor(
         iconResId: Int,
         colorHex: String,
         isCreditCard: Boolean = false,
+        isWallet: Boolean = false,
         creditLimit: BigDecimal? = null,
         currency: String = "INR"
     ) {
@@ -210,6 +232,7 @@ constructor(
                     creditLimit = creditLimit,
                     timestamp = LocalDateTime.now(),
                     isCreditCard = isCreditCard,
+                    isWallet = isWallet,
                     iconResId = iconResId,
                     currency = currency
                 )
@@ -237,6 +260,7 @@ constructor(
             iconResId = state.iconResId,
             colorHex = "#33B5E5", // Default or handle color
             isCreditCard = (state.accountType == AccountType.CREDIT),
+            isWallet = (state.accountType == AccountType.WALLET),
             creditLimit = creditLimit
         )
 
@@ -255,7 +279,8 @@ constructor(
                 balance = newBalance,
                 creditLimit = latestBalance?.creditLimit,
                 timestamp = LocalDateTime.now(),
-                iconResId = latestBalance?.iconResId ?: 0
+                iconResId = latestBalance?.iconResId ?: 0,
+                isWallet = latestBalance?.isWallet ?: false
             )
             )
         }
@@ -496,6 +521,7 @@ constructor(
             newBalance: BigDecimal,
             newCreditLimit: BigDecimal?,
             isCreditCard: Boolean,
+            isWallet: Boolean,
             newIconResId: Int,
             newCurrency: String = "INR"
     ) {
@@ -536,6 +562,7 @@ constructor(
                         creditLimit = newCreditLimit,
                         timestamp = LocalDateTime.now(),
                         isCreditCard = isCreditCard,
+                        isWallet = isWallet,
                         sourceType = "MANUAL",
                         iconResId = newIconResId,
                         currency = newCurrency
@@ -656,8 +683,20 @@ constructor(
                         accountLast4 = "9012",
                         balance = BigDecimal(75000),
                         timestamp = now,
-                        sourceType = "MANUAL",
                         iconResId = com.ritesh.cashiro.R.drawable.type_finance_bank
+                    )
+                )
+
+                // 3.5 Cash (Wallet)
+                accountBalanceRepository.insertBalance(
+                    AccountBalanceEntity(
+                        bankName = "Cash",
+                        accountLast4 = "wallet", // Special identifier for wallet
+                        balance = BigDecimal(2500),
+                        timestamp = now,
+                        sourceType = "MANUAL",
+                        isWallet = true,
+                        iconResId = R.drawable.type_finance_dollar_banknote
                     )
                 )
 

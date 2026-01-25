@@ -59,7 +59,7 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
                         RuleApplicationEntity::class,
                         ExchangeRateEntity::class,
                         SubcategoryEntity::class],
-        version = 34,
+        version = 35,
         exportSchema = true,
         autoMigrations =
                 [
@@ -69,7 +69,8 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
                         AutoMigration(from = 30, to = 31),
                         AutoMigration(from = 31, to = 32, spec = Migration31To32::class),
                         AutoMigration(from = 32, to = 33),
-                        AutoMigration(from = 33, to = 34)]
+                        AutoMigration(from = 33, to = 34),
+                        AutoMigration(from = 34, to = 35, spec = Migration34To35::class)]
 )
 @TypeConverters(Converters::class)
 abstract class CashiroDatabase : RoomDatabase() {
@@ -580,5 +581,12 @@ class Migration31To32 : AutoMigrationSpec {
         
         // Delete the 'Others' category from categories table
         db.execSQL("DELETE FROM categories WHERE name = 'Others'")
+    }
+}
+/** Migration from version 34 to 35. Adds is_wallet column to account_balances table. */
+class Migration34To35 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        super.onPostMigrate(db)
+        // No post-migration needed as default value is handled
     }
 }
