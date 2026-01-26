@@ -57,10 +57,11 @@ fun AccountCarousel(
                 bankName = account.bankName,
                 accountLast4 = account.accountLast4,
                 balance = account.formatBalance(),
-                subtitle = "Savings account",
+                subtitle = if (account.isWallet) "Wallet" else "Savings account",
                 onClick = { onAccountClick(account.bankName, account.accountLast4) },
                 sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope
+                animatedContentScope = animatedContentScope,
+                isWallet = account.isWallet
             )
         }
         items(creditCards) { card ->
@@ -87,7 +88,8 @@ fun AccountCarouselCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     sharedTransitionScope: SharedTransitionScope? = null,
-    animatedContentScope: AnimatedVisibilityScope? = null
+    animatedContentScope: AnimatedVisibilityScope? = null,
+    isWallet: Boolean = false
 ) {
     Surface(
         modifier = modifier
@@ -142,7 +144,7 @@ fun AccountCarouselCard(
 
             Column {
                 Text(
-                    text = "${bankName.uppercase()} ••$accountLast4",
+                    text = if (isWallet) bankName.uppercase() else "${bankName.uppercase()} ••$accountLast4",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                     fontWeight = FontWeight.Bold,

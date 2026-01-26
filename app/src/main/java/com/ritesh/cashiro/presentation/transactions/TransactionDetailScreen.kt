@@ -765,7 +765,9 @@ private fun AdditionalDetailsCard(viewModel: TransactionDetailViewModel, transac
             transaction.accountNumber?.let {
                 // Don't show generic account field when we have specific transfer accounts
                 if (transaction.fromAccount == null && transaction.toAccount == null) {
-                    val masked = if (it.length > 4) {
+                    val masked = if (it == "wallet") {
+                        "Cash"
+                    } else if (it.length > 4) {
                         "*".repeat(it.length - 4) + it.takeLast(4)
                     } else it
                     InfoRow(
@@ -778,7 +780,9 @@ private fun AdditionalDetailsCard(viewModel: TransactionDetailViewModel, transac
 
             // From Account (for transfers)
             transaction.fromAccount?.let { from ->
-                val masked = if (from.length > 4) {
+                val masked = if (from == "wallet") {
+                    "Cash"
+                } else if (from.length > 4) {
                     "*".repeat(from.length - 4) + from.takeLast(4)
                 } else from
                 InfoRow(
@@ -790,7 +794,9 @@ private fun AdditionalDetailsCard(viewModel: TransactionDetailViewModel, transac
 
             // To Account (for transfers)
             transaction.toAccount?.let { to ->
-                val masked = if (to.length > 4) {
+                val masked = if (to == "wallet") {
+                    "Cash"
+                } else if (to.length > 4) {
                     "*".repeat(to.length - 4) + to.takeLast(4)
                 } else to
                 InfoRow(
