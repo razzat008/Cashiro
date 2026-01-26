@@ -1,5 +1,7 @@
 package com.ritesh.cashiro.presentation.transactions
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.currency.CurrencyConversionService
@@ -15,7 +17,11 @@ import com.ritesh.cashiro.data.repository.SubscriptionRepository
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionState
 import com.ritesh.cashiro.core.Constants
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
+import com.ritesh.cashiro.utils.DeviceEncryption
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -33,9 +39,9 @@ class TransactionDetailViewModel @Inject constructor(
     private val accountBalanceRepository: AccountBalanceRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val currencyConversionService: CurrencyConversionService,
-    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
-    
+
     private val _transaction = MutableStateFlow<TransactionEntity?>(null)
     val transaction: StateFlow<TransactionEntity?> = _transaction.asStateFlow()
 
@@ -44,40 +50,40 @@ class TransactionDetailViewModel @Inject constructor(
 
     private val _convertedAmount = MutableStateFlow<BigDecimal?>(null)
     val convertedAmount: StateFlow<BigDecimal?> = _convertedAmount.asStateFlow()
-    
+
     private val _isEditMode = MutableStateFlow(false)
     val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
-    
+
     private val _editableTransaction = MutableStateFlow<TransactionEntity?>(null)
     val editableTransaction: StateFlow<TransactionEntity?> = _editableTransaction.asStateFlow()
-    
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
-    
+
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess.asStateFlow()
-    
+
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-    
+
     private val _applyToAllFromMerchant = MutableStateFlow(false)
     val applyToAllFromMerchant: StateFlow<Boolean> = _applyToAllFromMerchant.asStateFlow()
-    
+
     private val _updateExistingTransactions = MutableStateFlow(false)
     val updateExistingTransactions: StateFlow<Boolean> = _updateExistingTransactions.asStateFlow()
-    
+
     private val _existingTransactionCount = MutableStateFlow(0)
-    
+
     private val _showDeleteDialog = MutableStateFlow(false)
     val showDeleteDialog: StateFlow<Boolean> = _showDeleteDialog.asStateFlow()
-    
+
     private val _isDeleting = MutableStateFlow(false)
     val isDeleting: StateFlow<Boolean> = _isDeleting.asStateFlow()
-    
+
     private val _deleteSuccess = MutableStateFlow(false)
     val deleteSuccess: StateFlow<Boolean> = _deleteSuccess.asStateFlow()
     val existingTransactionCount: StateFlow<Int> = _existingTransactionCount.asStateFlow()
-    
+
     // Categories should be based on transaction type
     val categories: StateFlow<List<CategoryEntity>> = combine(
         _editableTransaction,
@@ -96,13 +102,15 @@ class TransactionDetailViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
-    
+
     // Available accounts for linking (excluding hidden accounts)
-    private val sharedPrefs = context.getSharedPreferences("account_prefs", android.content.Context.MODE_PRIVATE)
+    private val sharedPrefs =
+        context.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
 
     val availableAccounts = accountBalanceRepository.getAllLatestBalances()
         .map { balances ->
-            val hiddenAccounts = sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
+            val hiddenAccounts =
+                sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
             balances
                 .filter { balance ->
                     val key = "${balance.bankName}_${balance.accountLast4}"
@@ -132,11 +140,11 @@ class TransactionDetailViewModel @Inject constructor(
         availableAccounts
     ) { transaction, accounts ->
         if (transaction == null) return@combine null
-        accounts.find { 
-            it.bankName == transaction.bankName && it.accountLast4 == transaction.accountNumber 
+        accounts.find {
+            it.bankName == transaction.bankName && it.accountLast4 == transaction.accountNumber
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-    
+
     val targetAccount: StateFlow<AccountInfo?> = combine(
         _editableTransaction,
         availableAccounts
@@ -145,9 +153,10 @@ class TransactionDetailViewModel @Inject constructor(
         accounts.find { it.accountLast4 == transaction.toAccount }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    
-    val allSubcategories: StateFlow<Map<Long, List<com.ritesh.cashiro.data.database.entity.SubcategoryEntity>>> = subcategoryRepository.subcategoriesMap
-    
+
+    val allSubcategories: StateFlow<Map<Long, List<SubcategoryEntity>>> =
+        subcategoryRepository.subcategoriesMap
+
     data class AccountInfo(
         val id: Long,
         val bankName: String,
@@ -157,7 +166,7 @@ class TransactionDetailViewModel @Inject constructor(
         val iconResId: Int,
         val currency: String
     )
-    
+
     fun loadTransaction(transactionId: Long) {
         viewModelScope.launch {
             val transaction = transactionRepository.getTransactionById(transactionId)
@@ -181,7 +190,11 @@ class TransactionDetailViewModel @Inject constructor(
 
     private suspend fun calculateConvertedAmount(transaction: TransactionEntity) {
         val primaryCurrency = _primaryCurrency.value
-        if (transaction.currency.isNotEmpty() && !transaction.currency.equals(primaryCurrency, ignoreCase = true)) {
+        if (transaction.currency.isNotEmpty() && !transaction.currency.equals(
+                primaryCurrency,
+                ignoreCase = true
+            )
+        ) {
             // Convert the amount to the primary currency
             val converted = currencyConversionService.convertAmount(
                 amount = transaction.amount,
@@ -199,7 +212,7 @@ class TransactionDetailViewModel @Inject constructor(
         _editableTransaction.value = _transaction.value?.copy()
         _isEditMode.value = true
         _errorMessage.value = null
-        
+
         // Load count of other transactions from same merchant
         _transaction.value?.let { txn ->
             viewModelScope.launch {
@@ -211,7 +224,7 @@ class TransactionDetailViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun exitEditMode() {
         _editableTransaction.value = null
         _isEditMode.value = false
@@ -220,22 +233,22 @@ class TransactionDetailViewModel @Inject constructor(
         _updateExistingTransactions.value = false
         _existingTransactionCount.value = 0
     }
-    
+
     fun toggleApplyToAllFromMerchant() {
         _applyToAllFromMerchant.value = !_applyToAllFromMerchant.value
     }
-    
+
     fun toggleUpdateExistingTransactions() {
         _updateExistingTransactions.value = !_updateExistingTransactions.value
     }
-    
+
     fun updateMerchantName(name: String) {
         _editableTransaction.update { current ->
             current?.copy(merchantName = name)
         }
         validateMerchantName(name)
     }
-    
+
     fun updateAmount(amountStr: String) {
         val amount = amountStr.toBigDecimalOrNull()
         if (amount != null && amount > BigDecimal.ZERO) {
@@ -247,13 +260,28 @@ class TransactionDetailViewModel @Inject constructor(
             _errorMessage.value = "Amount must be a positive number"
         }
     }
-    
+
     fun updateTransactionType(type: TransactionType) {
         _editableTransaction.update { current ->
             current?.copy(transactionType = type)
         }
+
+        // Auto-select category based on type
+        val newCategory = when (type) {
+            TransactionType.INCOME -> "Salary"
+            TransactionType.EXPENSE -> "Miscellaneous"
+            TransactionType.CREDIT -> "Credit Bill"
+            TransactionType.TRANSFER -> {
+                val targetAccount = _editableTransaction.value?.toAccount
+                if (targetAccount == "wallet") "Cash Withdrawal" else "Self Transfer"
+            }
+
+            TransactionType.INVESTMENT -> "Investment"
+        }
+
+        updateCategory(newCategory)
     }
-    
+
     fun updateCategory(category: String) {
         _editableTransaction.update { current ->
             current?.copy(
@@ -268,19 +296,19 @@ class TransactionDetailViewModel @Inject constructor(
             current?.copy(subcategory = subcategory)
         }
     }
-    
+
     fun updateDateTime(dateTime: LocalDateTime) {
         _editableTransaction.update { current ->
             current?.copy(dateTime = dateTime)
         }
     }
-    
+
     fun updateDescription(description: String?) {
         _editableTransaction.update { current ->
             current?.copy(description = if (description.isNullOrEmpty()) null else description)
         }
     }
-    
+
     fun updateRecurringStatus(isRecurring: Boolean) {
         _editableTransaction.update { current ->
             current?.copy(
@@ -295,7 +323,7 @@ class TransactionDetailViewModel @Inject constructor(
             current?.copy(billingCycle = cycle)
         }
     }
-    
+
     fun updateAccountNumber(accountNumber: String?) {
         _editableTransaction.update { current ->
             current?.copy(accountNumber = if (accountNumber.isNullOrEmpty()) null else accountNumber)
@@ -318,6 +346,18 @@ class TransactionDetailViewModel @Inject constructor(
                 toAccount = account?.accountLast4
             )
         }
+
+        // Update category if type is TRANSFER
+        _editableTransaction.value?.let { txn ->
+            if (txn.transactionType == TransactionType.TRANSFER) {
+                val newCategory = if (account?.accountLast4 == "wallet") {
+                    "Cash Withdrawal"
+                } else {
+                    "Self Transfer"
+                }
+                updateCategory(newCategory)
+            }
+        }
     }
 
     fun updateCurrency(currency: String) {
@@ -334,18 +374,18 @@ class TransactionDetailViewModel @Inject constructor(
 
     fun saveChanges() {
         val toSave = _editableTransaction.value ?: return
-        
+
         // Validate before saving
         if (toSave.merchantName.isBlank()) {
             _errorMessage.value = "Merchant name is required"
             return
         }
-        
+
         if (toSave.amount <= BigDecimal.ZERO) {
             _errorMessage.value = "Amount must be positive"
             return
         }
-        
+
         viewModelScope.launch {
             _isSaving.value = true
             try {
@@ -354,12 +394,18 @@ class TransactionDetailViewModel @Inject constructor(
                     merchantName = normalizeMerchantName(toSave.merchantName),
                     updatedAt = LocalDateTime.now()
                 )
-                
+
                 transactionRepository.updateTransaction(normalizedTransaction)
-                
+
+                // Handle Balance Updates
+                val originalTransaction = _transaction.value
+                if (originalTransaction != null) {
+                    updateAccountBalances(originalTransaction, normalizedTransaction)
+                }
+
                 // Sync with subscriptions if recurring
                 syncSubscriptionForTransaction(normalizedTransaction)
-                
+
                 // Save merchant mapping if checkbox is checked
                 if (_applyToAllFromMerchant.value) {
                     merchantMappingRepository.setMapping(
@@ -367,7 +413,7 @@ class TransactionDetailViewModel @Inject constructor(
                         normalizedTransaction.category
                     )
                 }
-                
+
                 // Update existing transactions if checkbox is checked
                 if (_updateExistingTransactions.value) {
                     transactionRepository.updateCategoryForMerchant(
@@ -375,7 +421,7 @@ class TransactionDetailViewModel @Inject constructor(
                         normalizedTransaction.category
                     )
                 }
-                
+
                 _transaction.value = normalizedTransaction
                 _saveSuccess.value = true
                 _isEditMode.value = false
@@ -391,15 +437,15 @@ class TransactionDetailViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun cancelEdit() {
         exitEditMode()
     }
-    
+
     fun clearSaveSuccess() {
         _saveSuccess.value = false
     }
-    
+
     private fun validateMerchantName(name: String) {
         if (name.isBlank()) {
             _errorMessage.value = "Merchant name is required"
@@ -407,14 +453,14 @@ class TransactionDetailViewModel @Inject constructor(
             _errorMessage.value = null
         }
     }
-    
+
     /**
      * Normalizes merchant name to consistent format.
      * Converts all-caps to proper case, preserves already mixed case.
      */
     private fun normalizeMerchantName(name: String): String {
         val trimmed = name.trim()
-        
+
         // If it's all uppercase, convert to proper case
         return if (trimmed == trimmed.uppercase()) {
             trimmed.lowercase().split(" ").joinToString(" ") { word ->
@@ -425,51 +471,53 @@ class TransactionDetailViewModel @Inject constructor(
             trimmed
         }
     }
-    
+
     fun getReportUrl(): String {
         val txn = _transaction.value ?: return ""
-        
+
         // Use the original SMS body if available
         val smsBody = txn.smsBody ?: "Transaction: ${txn.merchantName} - ${txn.amount}"
-        
+
         // Use the original SMS sender if available
         val sender = txn.smsSender ?: ""
-        
-        android.util.Log.d("TransactionDetailVM", "Generating report URL for transaction")
-        
+
+        Log.d("TransactionDetailVM", "Generating report URL for transaction")
+
         // URL encode the parameters
         val encodedMessage = java.net.URLEncoder.encode(smsBody, "UTF-8")
         val encodedSender = java.net.URLEncoder.encode(sender, "UTF-8")
-        
+
         // Encrypt device data for verification
-        val encryptedDeviceData = com.ritesh.cashiro.utils.DeviceEncryption.encryptDeviceData(context)
+        val encryptedDeviceData =
+            DeviceEncryption.encryptDeviceData(context)
         val encodedDeviceData = if (encryptedDeviceData != null) {
             java.net.URLEncoder.encode(encryptedDeviceData, "UTF-8")
         } else {
             ""
         }
-        
+
         // Create the report URL using hash fragment for privacy
-        val url = "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&device=$encodedDeviceData&autoparse=true"
-        android.util.Log.d("TransactionDetailVM", "Report URL: ${url.take(200)}...")
-        
+        val url =
+            "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&device=$encodedDeviceData&autoparse=true"
+        Log.d("TransactionDetailVM", "Report URL: ${url.take(200)}...")
+
         return url
     }
-    
+
     fun showDeleteDialog() {
         _showDeleteDialog.value = true
     }
-    
+
     fun hideDeleteDialog() {
         _showDeleteDialog.value = false
     }
-    
+
     fun deleteTransaction() {
         viewModelScope.launch {
             _transaction.value?.let { txn ->
                 _isDeleting.value = true
                 _showDeleteDialog.value = false
-                
+
                 try {
                     transactionRepository.deleteTransaction(txn)
                     _deleteSuccess.value = true
@@ -484,7 +532,6 @@ class TransactionDetailViewModel @Inject constructor(
 
     private suspend fun syncSubscriptionForTransaction(transaction: TransactionEntity) {
         if (transaction.isRecurring) {
-            // Find if a subscription already exists for this merchant and amount
             val existing = subscriptionRepository.matchTransactionToSubscription(
                 transaction.merchantName,
                 transaction.amount
@@ -536,14 +583,157 @@ class TransactionDetailViewModel @Inject constructor(
         }
     }
 
-    private fun calculateNextPaymentDate(fromDate: java.time.LocalDate, billingCycle: String?): java.time.LocalDate {
+    private fun calculateNextPaymentDate(
+        fromDate: java.time.LocalDate,
+        billingCycle: String?
+    ): java.time.LocalDate {
         return when (billingCycle) {
             "Weekly" -> fromDate.plusWeeks(1)
             "Monthly" -> fromDate.plusMonths(1)
             "Quarterly" -> fromDate.plusMonths(3)
             "Semi-Annual" -> fromDate.plusMonths(6)
             "Annual" -> fromDate.plusYears(1)
-            else -> fromDate.plusMonths(1) // Default to monthly
+            else -> fromDate.plusMonths(1)
         }
+    }
+
+    private suspend fun updateAccountBalances(
+        oldTransaction: TransactionEntity,
+        newTransaction: TransactionEntity
+    ) {
+        //Revert effect of old transaction
+        revertBalanceEffect(oldTransaction)
+
+        //Apply effect of new transaction
+        applyBalanceEffect(newTransaction)
+    }
+
+    private suspend fun revertBalanceEffect(transaction: TransactionEntity) {
+        val bankName = transaction.bankName
+        val accountLast4 = transaction.accountNumber
+
+        if (bankName != null && accountLast4 != null) {
+            when (transaction.transactionType) {
+                TransactionType.INCOME -> {
+                    // Originally added, so subtract to revert
+                    updateBalance(
+                        bankName,
+                        accountLast4,
+                        transaction.amount.negate(),
+                        transaction.currency
+                    )
+                }
+
+                TransactionType.EXPENSE, TransactionType.INVESTMENT -> {
+                    // Originally subtracted, so add to revert
+                    updateBalance(bankName, accountLast4, transaction.amount, transaction.currency)
+                }
+
+                TransactionType.CREDIT -> {
+                    // No balance update to revert for now
+                }
+
+                TransactionType.TRANSFER -> {
+                    // Revert source: Originally subtracted, so add
+                    updateBalance(bankName, accountLast4, transaction.amount, transaction.currency)
+
+                    // NOTE: TransactionEntity stores toAccount as accountLast4 string, does not store target bank name explicitly
+                    // Assuming we can find target account by last4 if unique, or need to rethink schema.
+                    // However, EditAccountSheet uses "wallet" as last4 for Cash.
+                    // AddTransactionUseCase stores toAccount as string.
+                    // For now, we try to find an account with that last4.
+                    transaction.toAccount?.let { targetLast4 ->
+                        findAccountByLast4(targetLast4)?.let { targetAccount ->
+                            updateBalance(
+                                targetAccount.bankName,
+                                targetLast4,
+                                transaction.amount.negate(),
+                                transaction.currency
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun applyBalanceEffect(transaction: TransactionEntity) {
+        val bankName = transaction.bankName
+        val accountLast4 = transaction.accountNumber
+
+        if (bankName != null && accountLast4 != null) {
+            when (transaction.transactionType) {
+                TransactionType.INCOME -> {
+                    updateBalance(bankName, accountLast4, transaction.amount, transaction.currency)
+                }
+
+                TransactionType.EXPENSE, TransactionType.INVESTMENT -> {
+                    updateBalance(
+                        bankName,
+                        accountLast4,
+                        transaction.amount.negate(),
+                        transaction.currency
+                    )
+                }
+
+                TransactionType.CREDIT -> {
+                    // No balance update for now
+                }
+
+                TransactionType.TRANSFER -> {
+                    // Source: Subtract
+                    updateBalance(
+                        bankName,
+                        accountLast4,
+                        transaction.amount.negate(),
+                        transaction.currency
+                    )
+
+                    // Target: Add
+                    transaction.toAccount?.let { targetLast4 ->
+                        findAccountByLast4(targetLast4)?.let { targetAccount ->
+                            updateBalance(
+                                targetAccount.bankName,
+                                targetLast4,
+                                transaction.amount,
+                                transaction.currency
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun updateBalance(
+        bankName: String,
+        accountLast4: String,
+        amountDelta: BigDecimal,
+        currency: String,
+        transactionId: Long? = null
+    ) {
+        val currentBalance = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
+        val newBalance = (currentBalance?.balance ?: BigDecimal.ZERO) + amountDelta
+
+        accountBalanceRepository.insertBalance(
+            AccountBalanceEntity(
+                bankName = bankName,
+                accountLast4 = accountLast4,
+                balance = newBalance,
+                timestamp = LocalDateTime.now(),
+                transactionId = transactionId,
+                sourceType = "MANUAL_EDIT",
+                iconResId = currentBalance?.iconResId ?: 0,
+                isCreditCard = currentBalance?.isCreditCard ?: false,
+                isWallet = currentBalance?.isWallet ?: false,
+                creditLimit = currentBalance?.creditLimit,
+                currency = currency
+            )
+        )
+    }
+
+    private suspend fun findAccountByLast4(last4: String): AccountBalanceEntity? {
+        return accountBalanceRepository.getAllLatestBalances().first()
+            .find { it.accountLast4 == last4 }
     }
 }
