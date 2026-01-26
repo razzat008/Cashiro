@@ -48,17 +48,11 @@ fun CustomTitleTopAppBar(
     scrollBehaviorLarge: TopAppBarScrollBehavior,
     title: String,
     previousScreenTitle: String = "",
-    onBackClick : () -> Unit = {},
+    onBackClick: () -> Unit = {},
     hasBackButton: Boolean = false,
-    onEditClick: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {},
-    onSearchButtonClick: () -> Unit = {},
-    onFilterButtonClick: () -> Unit = {},
-    hasFilterButton: Boolean = false,
     actionContent: @Composable () -> Unit = {},
     navigationContent: @Composable () -> Unit = {},
     greetingCard: @Composable () -> Unit = {},
-    profilePhoto: @Composable () -> Unit = {},
     hazeState: HazeState = HazeState(),
 ) {
     val collapsedFraction = scrollBehaviorLarge.state.collapsedFraction
@@ -83,16 +77,10 @@ fun CustomTitleTopAppBar(
     RegularTopAppBar(
         scrollBehaviorSmall = scrollBehaviorSmall,
         title = title,
-        onBackClick = onBackClick,
         hasBackButton = hasBackButton,
-        onEditClick = onEditClick,
-        onSearchButtonClick = onSearchButtonClick,
-        onFilterButtonClick = onFilterButtonClick,
-        hasFilterButton = hasFilterButton,
         actionContent = actionContent,
         navigationContent = navigationContent,
         collapsedFraction = if(scrollBehaviorLarge != scrollBehaviorSmall)collapsedFraction else 1f,
-        profilePhoto = profilePhoto,
         modifier = modifier,
         hazeState = hazeState
     )
@@ -103,19 +91,19 @@ fun CustomTitleTopAppBar(
 @Composable
 private fun Modifier.animatedOffsetModifier(
     hasBackButton: Boolean,
-    hasOnlyActionButtons: Boolean = false,
     isProfileScreen: Boolean = false,
     isTransactionScreen : Boolean = false,
     isTransactionDetailScreen : Boolean = false,
+    isEditTransactionScreen: Boolean = false,
     isHomeScreen: Boolean = false,
     isCategoryScreen: Boolean = false,
     isRuleScreen: Boolean = false,
-    isCreateRuleScreen: Boolean = false,
 ): Modifier {
     // Define the target offset based on conditions
     val targetOffsetX = when {
         hasBackButton && isProfileScreen-> 0.dp
         hasBackButton && isTransactionDetailScreen -> 0.dp
+        isEditTransactionScreen -> (-28).dp
         isTransactionScreen -> (-28).dp
         isHomeScreen-> (0).dp
         hasBackButton && isCategoryScreen-> 0.dp
@@ -291,15 +279,9 @@ private fun RegularTopAppBar(
     modifier: Modifier = Modifier,
     scrollBehaviorSmall: TopAppBarScrollBehavior,
     title: String,
-    onBackClick : () -> Unit = {},
     hasBackButton: Boolean = false,
-    onEditClick: () -> Unit = {},
-    onSearchButtonClick: () -> Unit = {},
-    onFilterButtonClick: () -> Unit = {},
-    hasFilterButton: Boolean = false,
     actionContent: @Composable () -> Unit = {},
     navigationContent: @Composable () -> Unit = {},
-    profilePhoto: @Composable () -> Unit = {},
     collapsedFraction: Float,
     hazeState: HazeState,
 ){
@@ -311,8 +293,8 @@ private fun RegularTopAppBar(
         val isHomeScreen = title == "Cashiro"
         val isProfileScreen = title == "Profile"
         val isTransactionScreen = title == "Transactions"
-        val isTransactionDetailScreen = title == "Transaction Details" || title == "Edit Transaction"
-        val isSearchTransactionScreen = title == "Search Transactions"
+        val isTransactionDetailScreen = title == "Transaction Details"
+        val isEditTransactionScreen = title == "Edit Transaction"
 
         TopAppBar(
             title = {
@@ -327,11 +309,10 @@ private fun RegularTopAppBar(
                         isProfileScreen = isProfileScreen,
                         isTransactionScreen = isTransactionScreen,
                         isTransactionDetailScreen = isTransactionDetailScreen,
+                        isEditTransactionScreen = isEditTransactionScreen,
                         isHomeScreen = title == "Cashiro",
-                        hasOnlyActionButtons =  title == "Cashiro",
                         isCategoryScreen = title == "Categories",
                         isRuleScreen = title == "Smart Rules",
-                        isCreateRuleScreen = title == "Create Rule",
                     )
                 )
             },
@@ -353,7 +334,7 @@ private fun RegularTopAppBar(
             },
             scrollBehavior = scrollBehaviorSmall,
             windowInsets = WindowInsets(0.dp),
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .hazeEffect(
                     state = hazeState,

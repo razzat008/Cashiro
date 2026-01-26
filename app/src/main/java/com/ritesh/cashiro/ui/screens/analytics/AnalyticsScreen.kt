@@ -107,7 +107,6 @@ fun AnalyticsScreen(
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,
                 hasBackButton = false,
-                onNavigateToSettings = onNavigateToSettings
             )
         }
     ) { paddingValues ->

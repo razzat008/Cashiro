@@ -131,7 +131,6 @@ fun CategoriesScreen(onNavigateBack: () -> Unit, viewModel: CategoriesViewModel 
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,
                 hasBackButton = true,
-                onBackClick = onNavigateBack,
                 navigationContent = { NavigationContent(onNavigateBack) },
                 actionContent = {
                     ActionContent(

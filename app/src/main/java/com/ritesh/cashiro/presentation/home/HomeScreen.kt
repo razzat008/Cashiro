@@ -201,7 +201,6 @@ fun HomeScreen(
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,
                 hasBackButton = false,
-                onNavigateToSettings = onNavigateToSettings,
                 greetingCard = {
                     GreetingCard(
                         userName = uiState.userName,

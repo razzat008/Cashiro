@@ -3,16 +3,20 @@ package com.ritesh.cashiro.presentation.transactions
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
@@ -23,16 +27,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.painterResource
 import androidx.core.graphics.toColorInt
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,16 +47,6 @@ import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.accounts.NumberPad
 import com.ritesh.cashiro.presentation.add.AmountInput
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontStyle
 import com.ritesh.cashiro.ui.components.*
 import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.ui.effects.overScrollVertical
@@ -139,6 +136,7 @@ fun TransactionDetailScreen(
             // Show FABs only when not in edit mode and transaction exists
             if (!isEditMode && transaction != null) {
                 Column(
+                    horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Delete FAB
@@ -182,13 +180,6 @@ fun TransactionDetailScreen(
                 scrollBehaviorSmall = scrollBehaviorSmall,
                 scrollBehaviorLarge = scrollBehaviorLarge,
                 title = if (isEditMode) "Edit Transaction" else "Transaction Details",
-                onBackClick = {
-                    if (isEditMode) {
-                        viewModel.cancelEdit()
-                    } else {
-                        onNavigateBack()
-                    }
-                },
                 hasBackButton = true,
                 hazeState = hazeState,
                 navigationContent = {
@@ -204,37 +195,84 @@ fun TransactionDetailScreen(
                     )
                 },
                 actionContent = {
-                    TransactionActionContent(
-                        isEditMode = isEditMode,
-                        isSaving = isSaving,
-                        onEditClick = { viewModel.enterEditMode() },
-                        onSaveClick = { viewModel.saveChanges() }
-                    )
+                    if(!isEditMode){
+                        Box(
+                            modifier = Modifier
+                                .animateContentSize()
+                                .padding(end = 16.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick ={ viewModel.enterEditMode() },
+                                ),
+                        ) {
+                            IconButton(
+                                onClick = { viewModel.enterEditMode() },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                    contentColor = MaterialTheme.colorScheme.onBackground
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             )
         }
     )
  { paddingValues ->
-        val displayTransaction = if (isEditMode) editableTransaction else transaction
-        displayTransaction?.let { txn ->
-            TransactionDetailContent(
-                transaction = txn,
-                isEditMode = isEditMode,
-                applyToAllFromMerchant = applyToAllFromMerchant,
-                updateExistingTransactions = updateExistingTransactions,
-                existingTransactionCount = existingTransactionCount,
-                viewModel = viewModel,
-                accountPrimaryCurrency = accountPrimaryCurrency,
-                convertedAmount = convertedAmount,
-                hazeState = hazeState,
-                onAmountClick = { showNumberPad = true },
-                onCategoryClick = { showCategoryMenu = true },
-                onAccountClick = { showAccountSheet = true },
-                onTargetAccountClick = { showTargetAccountSheet = true },
-                showBillingCycleMenu = showBillingCycleMenu,
-                onBillingCycleMenuChange = { showBillingCycleMenu = it },
-                paddingValues = paddingValues
-            )
+        Box(modifier = Modifier.fillMaxWidth()) {
+            val displayTransaction = if (isEditMode) editableTransaction else transaction
+            displayTransaction?.let { txn ->
+                TransactionDetailContent(
+                    transaction = txn,
+                    isEditMode = isEditMode,
+                    applyToAllFromMerchant = applyToAllFromMerchant,
+                    updateExistingTransactions = updateExistingTransactions,
+                    existingTransactionCount = existingTransactionCount,
+                    viewModel = viewModel,
+                    accountPrimaryCurrency = accountPrimaryCurrency,
+                    convertedAmount = convertedAmount,
+                    hazeState = hazeState,
+                    onAmountClick = { showNumberPad = true },
+                    onCategoryClick = { showCategoryMenu = true },
+                    onAccountClick = { showAccountSheet = true },
+                    onTargetAccountClick = { showTargetAccountSheet = true },
+                    showBillingCycleMenu = showBillingCycleMenu,
+                    onBillingCycleMenuChange = { showBillingCycleMenu = it },
+                    paddingValues = paddingValues
+                )
+            }
+
+            if (isEditMode) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    MaterialTheme.colorScheme.surface,
+                                    MaterialTheme.colorScheme.surface
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.BottomCenter
+                ){
+                    TransactionSaveContent(
+                        isSaving = isSaving,
+                        onSaveClick = { viewModel.saveChanges() },
+                        modifier = Modifier
+                    )
+                }
+
+            }
         }
     }
 
@@ -385,59 +423,33 @@ private fun TransactionNavigationContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun TransactionActionContent(
-    isEditMode: Boolean,
+private fun TransactionSaveContent(
+    modifier: Modifier = Modifier,
     isSaving: Boolean,
-    onEditClick: () -> Unit,
     onSaveClick: () -> Unit
 ) {
-    if (isEditMode) {
-        TextButton(
-            onClick = onSaveClick,
-            enabled = !isSaving,
-            modifier = Modifier.padding(end = 16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+    TextButton(
+        onClick = onSaveClick,
+        enabled = !isSaving,
+        shapes = ButtonDefaults.shapes(),
+        modifier = modifier.padding(horizontal = 16.dp).fillMaxWidth().navigationBarsPadding(),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+        ),
+        contentPadding = PaddingValues(vertical = Spacing.md)
+    ) {
+        if (isSaving) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(Dimensions.Icon.small),
+                strokeWidth = 2.dp
             )
-        ) {
-            if (isSaving) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(Dimensions.Icon.small),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = "Save",
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-            }
-        }
-    } else {
-        Box(
-            modifier = Modifier
-                .animateContentSize()
-                .padding(end = 16.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onEditClick,
-                ),
-        ) {
-            IconButton(
-                onClick = onEditClick,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    contentColor = MaterialTheme.colorScheme.onBackground
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit",
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+        } else {
+            Text(
+                text = "Save",
+            )
         }
     }
 }
