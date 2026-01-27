@@ -5,11 +5,17 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -31,8 +37,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -48,8 +63,10 @@ import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.accounts.NumberPad
 import com.ritesh.cashiro.presentation.add.AmountInput
 import com.ritesh.cashiro.ui.components.*
+import com.ritesh.cashiro.ui.icons.CategoryMapping
 import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.ui.effects.overScrollVertical
+import com.ritesh.cashiro.ui.icons.BrandIcons
 import com.ritesh.cashiro.ui.theme.Dimensions
 import com.ritesh.cashiro.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
@@ -63,7 +80,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TransactionDetailScreen(
     transactionId: Long,
@@ -84,6 +101,7 @@ fun TransactionDetailScreen(
     val deleteSuccess by viewModel.deleteSuccess.collectAsStateWithLifecycle()
     val accountPrimaryCurrency by viewModel.primaryCurrency.collectAsStateWithLifecycle()
     val convertedAmount by viewModel.convertedAmount.collectAsStateWithLifecycle()
+    val availableAccounts by viewModel.availableAccounts.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -136,21 +154,10 @@ fun TransactionDetailScreen(
             // Show FABs only when not in edit mode and transaction exists
             if (!isEditMode && transaction != null) {
                 Column(
+                    modifier = Modifier.padding(bottom = Spacing.xxl),
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Delete FAB
-                    SmallFloatingActionButton(
-                        onClick = { viewModel.showDeleteDialog() },
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete Transaction"
-                        )
-                    }
-
                     // Report Issue FAB
                     FloatingActionButton(
                         onClick = {
@@ -223,9 +230,8 @@ fun TransactionDetailScreen(
                     }
                 }
             )
-        }
-    )
- { paddingValues ->
+        },
+    ) { paddingValues ->
         Box(modifier = Modifier.fillMaxWidth()) {
             val displayTransaction = if (isEditMode) editableTransaction else transaction
             displayTransaction?.let { txn ->
@@ -238,6 +244,7 @@ fun TransactionDetailScreen(
                     viewModel = viewModel,
                     accountPrimaryCurrency = accountPrimaryCurrency,
                     convertedAmount = convertedAmount,
+                    availableAccounts = availableAccounts,
                     hazeState = hazeState,
                     onAmountClick = { showNumberPad = true },
                     onCategoryClick = { showCategoryMenu = true },
@@ -271,7 +278,49 @@ fun TransactionDetailScreen(
                         modifier = Modifier
                     )
                 }
-
+            } else{
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    MaterialTheme.colorScheme.surface,
+                                    MaterialTheme.colorScheme.surface
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    TextButton(
+                        onClick = { viewModel.showDeleteDialog() },
+                        enabled = !isSaving,
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().navigationBarsPadding(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        contentPadding = PaddingValues(vertical = Spacing.md)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Transaction",
+                                modifier = Modifier.size(Dimensions.Icon.medium)
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+                            Text(
+                                text = "Delete",
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -472,6 +521,7 @@ private fun TransactionDetailContent(
     showBillingCycleMenu: Boolean,
     onBillingCycleMenuChange: (Boolean) -> Unit,
     paddingValues: PaddingValues,
+    availableAccounts: List<TransactionDetailViewModel.AccountInfo>,
     modifier: Modifier = Modifier
 ) {
 
@@ -490,49 +540,48 @@ private fun TransactionDetailContent(
             ),
     ) {
         // Header with amount and merchant
-        if (isEditMode) {
-            EditableTransactionHeader(
-                transaction = transaction,
-                viewModel = viewModel,
-                onAmountClick = onAmountClick
-            )
-        } else {
-            TransactionHeader(transaction, accountPrimaryCurrency, convertedAmount)
+        BlurredAnimatedVisibility (
+            visible = isEditMode,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+            ) {
+            Column() {
+                EditableTransactionHeader(
+                    transaction = transaction,
+                    viewModel = viewModel,
+                    onAmountClick = onAmountClick
+                )
+                Spacer(modifier = Modifier.height(Spacing.lg))
+                // SMS Body - Always read-only
+                if (!transaction.smsBody.isNullOrBlank()) {
+                    SmsBodyCard(transaction.smsBody)
+                    Spacer(modifier = Modifier.height(Spacing.md))
+                }
+
+                EditableExtractedInfoCard(
+                    transaction = transaction,
+                    applyToAllFromMerchant = applyToAllFromMerchant,
+                    updateExistingTransactions = updateExistingTransactions,
+                    existingTransactionCount = existingTransactionCount,
+                    onTargetAccountClick = onTargetAccountClick,
+                    showBillingCycleMenu = showBillingCycleMenu,
+                    onBillingCycleMenuChange = onBillingCycleMenuChange,
+                    viewModel = viewModel,
+                    onCategoryClick = onCategoryClick,
+                    onAccountClick = onAccountClick
+                )
+            }
+
         }
-
-        Spacer(modifier = Modifier.height(Spacing.lg))
-
-        // SMS Body - Always read-only
-        if (!transaction.smsBody.isNullOrBlank()) {
-            SmsBodyCard(transaction.smsBody)
+        BlurredAnimatedVisibility (
+            visible = !isEditMode,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+        )  {
+            TransactionReceipt(transaction, accountPrimaryCurrency, convertedAmount, availableAccounts)
             Spacer(modifier = Modifier.height(Spacing.md))
         }
-
-        // Extracted Information
-        if (isEditMode) {
-            EditableExtractedInfoCard(
-                transaction = transaction,
-                applyToAllFromMerchant = applyToAllFromMerchant,
-                updateExistingTransactions = updateExistingTransactions,
-                existingTransactionCount = existingTransactionCount,
-                onTargetAccountClick = onTargetAccountClick,
-                showBillingCycleMenu = showBillingCycleMenu,
-                onBillingCycleMenuChange = onBillingCycleMenuChange,
-                viewModel = viewModel,
-                onCategoryClick = onCategoryClick,
-                onAccountClick = onAccountClick
-            )
-        } else {
-            ExtractedInfoCard(transaction)
-        }
-
         Spacer(modifier = Modifier.height(Spacing.md))
-
-        // Additional Details - Always read-only
-        if (transaction.balanceAfter != null || transaction.accountNumber != null ||
-            transaction.fromAccount != null || transaction.toAccount != null) {
-            AdditionalDetailsCard(viewModel,transaction)
-        }
 
         // Add extra bottom padding when in edit mode to ensure description field is visible above keyboard
         if (isEditMode) {
@@ -1753,74 +1802,6 @@ private fun DateTimeField(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CurrencyDropdown(
-    selectedCurrency: String,
-    onCurrencySelected: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    // Common currencies
-    val currencies = listOf(
-        "INR", "USD", "EUR", "GBP", "AED", "SGD",
-        "CAD", "AUD", "JPY", "CNY", "NPR", "ETB",
-        "THB", "MYR", "KWD", "KRW"
-    )
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedCurrency,
-            onValueChange = { },
-            label = { Text("Currency") },
-            leadingIcon = {
-                Text(
-                    CurrencyFormatter.getCurrencySymbol(selectedCurrency),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-            readOnly = true,
-            singleLine = true
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            currencies.forEach { currency ->
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                CurrencyFormatter.getCurrencySymbol(currency),
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.width(32.dp)
-                            )
-                            Text(currency)
-                        }
-                    },
-                    onClick = {
-                        onCurrencySelected(currency)
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun AccountSelectionSheet(
@@ -1945,5 +1926,870 @@ private fun AccountSelectionSheet(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TransactionReceipt(
+    transaction: TransactionEntity,
+    primaryCurrency: String,
+    convertedAmount: BigDecimal?,
+    availableAccounts: List<TransactionDetailViewModel.AccountInfo>
+) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    var cutoutOffsetPx by remember { mutableStateOf(with(density) { 420.dp.toPx() }) }
+    val cutoutRadius = 10.dp
+    val cutoutRadiusPx = with(density) { cutoutRadius.toPx() }
+    val scallopRadiusPx = with(density) { 4.dp.toPx() }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 32.dp) // Space for floating badge
+    ) {
+        // Main Receipt Card
+        Surface(
+            modifier = Modifier
+                .animateContentSize(
+                    animationSpec = tween(durationMillis = 300)
+                )
+                .fillMaxWidth()
+                .clip(ReceiptShape(cutoutRadiusPx, cutoutOffsetPx, scallopRadiusPx))
+                .shadow(
+                    elevation = 12.dp,
+                    shape = ReceiptShape(cutoutRadiusPx, cutoutOffsetPx, scallopRadiusPx),
+                    spotColor = Color.Black.copy(1f),
+                    ambientColor = Color.Black.copy(1f),
+                ),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp), // Extra top padding for badge clearance
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    DashedLine(
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                    )
+                    ReceiptBadge(merchantName = transaction.merchantName)
+                    DashedLine(
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                    )
+                }
+
+
+                // Transaction Details Columns
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimensions.Padding.content),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Date Section
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "Date",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = transaction.dateTime.format(
+                                    DateTimeFormatter.ofPattern("d MMM yyyy")
+                                ),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Time Section
+                        val dateTime = transaction.dateTime
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                val hour = if (dateTime.hour % 12 == 0) 12 else dateTime.hour % 12
+                                val minute = dateTime.minute
+                                val amPm = if (dateTime.hour < 12) "AM" else "PM"
+
+                                Box(modifier = Modifier
+                                    .padding(5.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary.copy(0.2f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                ) {
+                                    Text(
+                                        text = String.format("%02d", hour),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        lineHeight = 16.sp,
+                                        modifier = Modifier.padding(5.dp)
+                                    )
+                                }
+
+                                Text(
+                                    text = ":",
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 16.sp,
+                                )
+
+                                Box(
+                                    modifier = Modifier
+                                        .padding(5.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.surfaceVariant,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                ) {
+                                    Text(
+                                        text = String.format("%02d", minute),
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 16.sp,
+                                        lineHeight = 16.sp,
+                                        modifier = Modifier.padding(5.dp)
+                                    )
+                                }
+
+                                Box(modifier = Modifier.padding(5.dp)) {
+                                    Text(
+                                        text = amPm,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 14.sp,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    ReceiptInfoRow(
+                        label = "Type",
+                        value = transaction.transactionType.name.lowercase().replaceFirstChar { it.uppercase() }
+                    )
+
+                    val subcategoryValue = transaction.subcategory
+                    ReceiptInfoRow(
+                        label = "Category",
+                        value = transaction.category,
+                        subValue = subcategoryValue,
+                        icon = {
+                            CategoryIcon(
+                                category = transaction.category,
+                                size = 20.dp,
+                                tint = null // Original colors
+                            )
+                        },
+                        subIcon = {
+                            if(transaction.subcategory != null) {
+                                CategoryIcon(
+                                    category = transaction.subcategory,
+                                    size = 20.dp,
+                                    tint = null // Original colors
+                                )
+                            }
+                        }
+                    )
+
+                    val fromAccount = transaction.fromAccount ?: transaction.accountNumber
+                    val toAccount = transaction.toAccount
+                    val isTransfer = transaction.transactionType == TransactionType.TRANSFER
+                    
+                    val fromBankName = if (isTransfer) {
+                        availableAccounts.find { it.accountLast4 == fromAccount }?.bankName ?: transaction.bankName ?: fromAccount ?: "Source"
+                    } else {
+                        transaction.bankName ?: "Account"
+                    }
+                    
+                    val toBankName = if (isTransfer && toAccount != null) {
+                        availableAccounts.find { it.accountLast4 == toAccount }?.bankName ?: toAccount
+                    } else null
+
+                    ReceiptInfoRow(
+                        label = "Account",
+                        value = if (isTransfer) fromAccount ?: "Source" else transaction.bankName ?: "Account",
+                        subValue = toAccount,
+                        bankName = fromBankName,
+                        subBankName = toBankName,
+                        isTransfer = isTransfer,
+                        icon = {
+                            BrandIcon(
+                                merchantName = fromBankName,
+                                size = 20.dp,
+                                showBackground = false
+                            )
+                        },
+                        subIcon = {
+                            if (toBankName != null) {
+                                BrandIcon(
+                                    merchantName = toBankName,
+                                    size = 20.dp,
+                                    showBackground = false
+                                )
+                            }
+                        }
+                    )
+
+                    transaction.balanceAfter?.let {
+                        ReceiptInfoRow(
+                            label = "Balance",
+                            value = CurrencyFormatter.formatCurrency(it, primaryCurrency),
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.AccountBalanceWallet,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        )
+                    }
+                }
+
+                // Expandable Description
+                if (!transaction.description.isNullOrBlank()) {
+                    var isDescriptionExpanded by remember { mutableStateOf(false) }
+                    
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.Padding.content)
+                            .padding(top = Spacing.md)
+                            .animateContentSize()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = { isDescriptionExpanded = !isDescriptionExpanded }
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Description",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            Icon(
+                                imageVector = if (isDescriptionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                        
+                        BlurredAnimatedVisibility(
+                            visible = isDescriptionExpanded,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                        ) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = transaction.description ?: "",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = FontFamily.Monospace,
+                                        lineHeight = 16.sp
+                                    ),
+                                    modifier = Modifier.padding(Spacing.sm)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Original SMS Content
+                if (!transaction.smsBody.isNullOrBlank()) {
+                    var isSMSExpanded by remember { mutableStateOf(true) }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.Padding.content)
+                            .padding(top = Spacing.md)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = { isSMSExpanded = !isSMSExpanded }
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Original SMS",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            Icon(
+                                imageVector = if (isSMSExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+
+                        BlurredAnimatedVisibility(
+                            visible = isSMSExpanded,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                            exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                        ) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = transaction.smsBody ?: "",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = FontFamily.Monospace,
+                                        lineHeight = 16.sp
+                                    ),
+                                    modifier = Modifier.padding(Spacing.sm)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(40.dp)) // Slightly reduced spacer
+
+                // Dashed Line
+                DashedLine(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
+                        .onGloballyPositioned { coordinates ->
+                            cutoutOffsetPx = coordinates.positionInParent().y + (coordinates.size.height / 2f)
+                        },
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                )
+
+                Spacer(modifier = Modifier.height(Spacing.lg))
+
+                // Amount
+                Text(
+                    text = "Amount",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                
+                val amountColor = when (transaction.transactionType) {
+                    TransactionType.INCOME -> Color(0xFF4CAF50)
+                    TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
+                    TransactionType.CREDIT -> Color(0xFFFF6B35)  // Orange for credit
+                    TransactionType.TRANSFER -> Color(0xFF9C27B0)  // Purple for transfer
+                    TransactionType.INVESTMENT -> Color(0xFF00796B)  // Teal for investment
+                }
+                val sign = when (transaction.transactionType) {
+                    TransactionType.INCOME -> "+"
+                    TransactionType.EXPENSE -> "-"
+                    TransactionType.CREDIT -> "💳"
+                    TransactionType.TRANSFER -> "↔"
+                    TransactionType.INVESTMENT -> "📈"
+                }
+
+                Text(
+                    text = "$sign${transaction.formatAmount()}",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = amountColor
+                )
+
+                if (transaction.currency.isNotEmpty() && !transaction.currency.equals(primaryCurrency, ignoreCase = true) && convertedAmount != null) {
+                    Spacer(modifier = Modifier.height(Spacing.xs))
+                    Text(
+                        text = "≈ ${CurrencyFormatter.formatCurrency(convertedAmount, primaryCurrency)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReceiptBadge(merchantName: String) {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shadowElevation = 8.dp,
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
+        modifier = Modifier.wrapContentSize()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+        ) {
+            BrandIcon(
+                merchantName = merchantName,
+                size = 32.dp,
+                showBackground = true
+            )
+            Text(
+                text = merchantName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReceiptInfoRow(
+    label: String,
+    value: String,
+    isTransfer: Boolean = false,
+    subValue: String? = null,
+    bankName: String? = null,
+    subBankName: String? = null,
+    icon: (@Composable () -> Unit)? = null,
+    subIcon: (@Composable () -> Unit)? = null
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        when (label) {
+            "Type", "Balance" -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = label.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    DashedLine(
+                        modifier = Modifier.weight(1f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                    ) {
+                        Row {
+                            if (icon != null) {
+                                icon()
+                            }
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+                            Text(
+                                text = value,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
+                }
+            }
+
+            "Category" -> {
+                if (subValue != null) {
+                    Text(
+                        text = label.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    ) {
+                        val categoryColor = CategoryMapping.categories[value]?.color?.copy(0.2f) ?: MaterialTheme.colorScheme.surfaceVariant
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    color = categoryColor,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                            ) {
+                                if (icon != null) {
+                                    icon()
+                                }
+                                Text(
+                                    text = value,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        val subcategoryColor = CategoryMapping.categories[value]?.color?.copy(0.2f) ?: MaterialTheme.colorScheme.surfaceVariant
+                        if (subValue != null) {
+                            DashedLine(
+                                modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .background(
+                                        color = subcategoryColor,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                                ) {
+                                    if (subIcon != null) {
+                                        subIcon()
+                                    }
+                                    Text(
+                                        text = subValue,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else{
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = label.uppercase(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        DashedLine(
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                        )
+                        val categoryColor = CategoryMapping.categories[value]?.color?.copy(0.2f) ?: MaterialTheme.colorScheme.surfaceVariant
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    color = categoryColor,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                            ) {
+                                if (icon != null) {
+                                    icon()
+                                }
+                                Text(
+                                    text = value,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            "Account" -> {
+                if (isTransfer) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement =Arrangement.spacedBy(Spacing.sm) ,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        val fromColorStr = bankName?.let { BrandIcons.getBrandColor(it) }
+                        val fromColor = fromColorStr?.let { Color(it.toColorInt()).copy(0.2f) } ?: MaterialTheme.colorScheme.surfaceVariant
+                        val toColorStr = subBankName?.let { BrandIcons.getBrandColor(it) }
+                        val toColor = toColorStr?.let { Color(it.toColorInt()).copy(0.2f) } ?: MaterialTheme.colorScheme.surfaceVariant
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ){
+                            Text(
+                                text = "FROM",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                modifier = Modifier.fillMaxWidth().weight(1f)
+                            )
+                            Text(
+                                text = "TO",
+                                style = MaterialTheme.typography.labelMedium,
+                                textAlign = TextAlign.End,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                modifier = Modifier.fillMaxWidth().weight(1f)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .background(
+                                        color = fromColor,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                                ) {
+                                    if (icon != null) {
+                                        icon()
+                                    }
+                                    Text(
+                                        text = value,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+                            DashedLine(
+                                modifier = Modifier.weight(1f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                            )
+                            Spacer(modifier = Modifier.width(Spacing.xs))
+                            Box(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp)
+                                    .background(
+                                        color = toColor,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                                ) {
+                                    if (subIcon != null) {
+                                        subIcon()
+                                    }
+                                    if (subValue != null) {
+                                        Text(
+                                            text = subValue,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else{
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = label.uppercase(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        DashedLine(
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                        )
+                        val bankColorStr = bankName?.let { BrandIcons.getBrandColor(it) }
+                        val bankColor = bankColorStr?.let { Color(it.toColorInt()).copy(0.2f) } ?: MaterialTheme.colorScheme.surfaceVariant
+                        
+                        Box(
+                            modifier = Modifier
+                                .padding(vertical = 4.dp)
+                                .background(
+                                    color = bankColor,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                            ) {
+                                if (icon != null) {
+                                    icon()
+                                }
+                                Text(
+                                    text = value,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            else -> {
+                Text(
+                    text = label.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (icon != null) {
+                        icon()
+                    }
+                    Text(
+                        text = value,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DashedLine(
+    modifier: Modifier = Modifier,
+    color: Color = Color.Gray,
+    dashWidth: Float = 10f,
+    gapWidth: Float = 10f
+) {
+    androidx.compose.foundation.Canvas(modifier = modifier.height(2.dp)) {
+        val width = size.width
+        var x = 0f
+        while (x < width) {
+            drawLine(
+                color = color,
+                start = androidx.compose.ui.geometry.Offset(x, 0f),
+                end = androidx.compose.ui.geometry.Offset(x + dashWidth, 0f),
+                strokeWidth = 2f
+            )
+            x += dashWidth + gapWidth
+        }
+    }
+}
+
+private class ReceiptShape(
+    private val cutoutRadius: Float,
+    private val cutoutTopOffset: Float,
+    private val scallopRadius: Float
+) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val path = Path().apply {
+            val scallopDiameter = scallopRadius * 2
+            val scallopCount = (size.width / scallopDiameter).toInt().coerceAtLeast(1)
+            val actualScallopWidth = size.width / scallopCount
+
+            // Start from bottom-left (after the last scallop)
+            moveTo(0f, size.height - scallopRadius)
+            
+            // Left edge with cutout
+            lineTo(0f, cutoutTopOffset + cutoutRadius)
+            arcTo(
+                rect = Rect(-cutoutRadius, cutoutTopOffset - cutoutRadius, cutoutRadius, cutoutTopOffset + cutoutRadius),
+                startAngleDegrees = 90f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+            lineTo(0f, scallopRadius)
+            
+            // Top edge with scallops (left to right)
+            for (i in 0 until scallopCount) {
+                val x = i * actualScallopWidth
+                arcTo(
+                    rect = Rect(x, 0f, x + actualScallopWidth, actualScallopWidth),
+                    startAngleDegrees = 180f,
+                    sweepAngleDegrees = 180f,
+                    forceMoveTo = false
+                )
+            }
+            
+            // Right edge with cutout
+            lineTo(size.width, cutoutTopOffset - cutoutRadius)
+            arcTo(
+                rect = Rect(size.width - cutoutRadius, cutoutTopOffset - cutoutRadius, size.width + cutoutRadius, cutoutTopOffset + cutoutRadius),
+                startAngleDegrees = 270f,
+                sweepAngleDegrees = -180f,
+                forceMoveTo = false
+            )
+            lineTo(size.width, size.height - scallopRadius)
+            
+            // Bottom edge with scallops (right to left)
+            for (i in 0 until scallopCount) {
+                val x = size.width - (i * actualScallopWidth)
+                arcTo(
+                    rect = Rect(x - actualScallopWidth, size.height - actualScallopWidth, x, size.height),
+                    startAngleDegrees = 0f,
+                    sweepAngleDegrees = 180f,
+                    forceMoveTo = false
+                )
+            }
+            
+            close()
+        }
+        return Outline.Generic(path)
     }
 }
