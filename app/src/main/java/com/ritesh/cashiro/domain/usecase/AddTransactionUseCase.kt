@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.domain.usecase
 
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionState
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
@@ -32,7 +33,9 @@ constructor(
             currency: String = "INR",
             sourceAccountId: Long? = null,
             targetAccountBankName: String? = null,
-            targetAccountLast4: String? = null
+            targetAccountLast4: String? = null,
+            billingCycle: String? = null,
+            createSubscription: Boolean = true
     ) {
         // Generate a unique hash for manual transactions
         val transactionHash =
@@ -57,7 +60,8 @@ constructor(
                         isRecurring = isRecurring,
                         createdAt = LocalDateTime.now(),
                         updatedAt = LocalDateTime.now(),
-                        currency = currency
+                        currency = currency,
+                        billingCycle = billingCycle
                 )
 
         // Insert the transaction
@@ -71,7 +75,7 @@ constructor(
                     val currentBalance = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
                     val newBalance = (currentBalance?.balance ?: BigDecimal.ZERO) + amount
                     accountBalanceRepository.insertBalance(
-                        com.ritesh.cashiro.data.database.entity.AccountBalanceEntity(
+                        AccountBalanceEntity(
                             bankName = bankName,
                             accountLast4 = accountLast4,
                             balance = newBalance,
@@ -90,7 +94,7 @@ constructor(
                     val currentBalance = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
                     val newBalance = (currentBalance?.balance ?: BigDecimal.ZERO) - amount
                     accountBalanceRepository.insertBalance(
-                        com.ritesh.cashiro.data.database.entity.AccountBalanceEntity(
+                        AccountBalanceEntity(
                             bankName = bankName,
                             accountLast4 = accountLast4,
                             balance = newBalance,
@@ -116,7 +120,7 @@ constructor(
                         val sourceBalance = accountBalanceRepository.getLatestBalance(bankName, accountLast4)
                         val newSourceBalance = (sourceBalance?.balance ?: BigDecimal.ZERO) - amount
                         accountBalanceRepository.insertBalance(
-                            com.ritesh.cashiro.data.database.entity.AccountBalanceEntity(
+                            AccountBalanceEntity(
                                 bankName = bankName,
                                 accountLast4 = accountLast4,
                                 balance = newSourceBalance,
@@ -134,7 +138,7 @@ constructor(
                         val targetBalance = accountBalanceRepository.getLatestBalance(targetAccountBankName, targetAccountLast4)
                         val newTargetBalance = (targetBalance?.balance ?: BigDecimal.ZERO) + amount
                         accountBalanceRepository.insertBalance(
-                            com.ritesh.cashiro.data.database.entity.AccountBalanceEntity(
+                            AccountBalanceEntity(
                                 bankName = targetAccountBankName,
                                 accountLast4 = targetAccountLast4,
                                 balance = newTargetBalance,
@@ -172,8 +176,8 @@ constructor(
         }
 
         // If marked as recurring, create a subscription
-        if (isRecurring && transactionId != -1L) {
-            val nextPaymentDate = date.toLocalDate().plusMonths(1) // Default to monthly
+        if (createSubscription && isRecurring && transactionId != -1L) {
+            val nextPaymentDate = calculateNextPaymentDate(date.toLocalDate(), billingCycle)
 
             val subscription =
                     SubscriptionEntity(
@@ -181,15 +185,30 @@ constructor(
                             amount = amount,
                             nextPaymentDate = nextPaymentDate,
                             state = SubscriptionState.ACTIVE,
-                            bankName = "Manual Entry",
+                            bankName = bankName ?: "Manual Entry",
                             category = category,
                             subcategory = subcategory,
                             createdAt = LocalDateTime.now(),
                             updatedAt = LocalDateTime.now(),
-                            currency = currency
+                            currency = currency,
+                            billingCycle = billingCycle
                     )
 
             subscriptionRepository.insertSubscription(subscription)
+        }
+    }
+
+    private fun calculateNextPaymentDate(
+        fromDate: java.time.LocalDate,
+        billingCycle: String?
+    ): java.time.LocalDate {
+        return when (billingCycle) {
+            "Weekly" -> fromDate.plusWeeks(1)
+            "Monthly" -> fromDate.plusMonths(1)
+            "Quarterly" -> fromDate.plusMonths(3)
+            "Semi-Annual" -> fromDate.plusMonths(6)
+            "Annual" -> fromDate.plusYears(1)
+            else -> fromDate.plusMonths(1)
         }
     }
 

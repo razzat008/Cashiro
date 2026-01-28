@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
 import com.ritesh.cashiro.domain.usecase.AddSubscriptionUseCase
@@ -405,11 +406,33 @@ constructor(
                 _subscriptionUiState.update { it.copy(isLoading = true) }
 
                 val amount = BigDecimal(state.amount)
+
+                val transactionDate = state.nextPaymentDate.atTime(java.time.LocalTime.now())
+                
+                addTransactionUseCase.execute(
+                    amount = amount,
+                    merchant = state.serviceName.trim(),
+                    category = state.category,
+                    subcategory = state.subcategory,
+                    type = TransactionType.EXPENSE, // Subscriptions are expenses
+                    date = transactionDate,
+                    notes = state.notes.takeIf { it.isNotBlank() },
+                    isRecurring = true, // It is part of a subscription
+                    bankName = state.selectedAccount?.bankName,
+                    accountLast4 = state.selectedAccount?.accountLast4,
+                    currency = state.currency,
+                    sourceAccountId = state.selectedAccount?.id,
+                    billingCycle = state.billingCycle,
+                    createSubscription = false
+                )
+
+                val actualNextPaymentDate = calculateNextPaymentDate(state.nextPaymentDate, state.billingCycle)
+
                 Log.d(
                     "AddViewModel",
                     "Calling addSubscriptionUseCase.execute with: " +
                             "merchantName=${state.serviceName.trim()}, amount=$amount, " +
-                            "nextPaymentDate=${state.nextPaymentDate}, billingCycle=${state.billingCycle}, " +
+                            "nextPaymentDate=$actualNextPaymentDate, billingCycle=${state.billingCycle}, " +
                             "category=${state.category}"
                 )
 
@@ -417,7 +440,7 @@ constructor(
                     addSubscriptionUseCase.execute(
                         merchantName = state.serviceName.trim(),
                         amount = amount,
-                        nextPaymentDate = state.nextPaymentDate,
+                        nextPaymentDate = actualNextPaymentDate,
                         billingCycle = state.billingCycle,
                         category = state.category,
                         subcategory = state.subcategory,
@@ -442,6 +465,20 @@ constructor(
             } finally {
                 _subscriptionUiState.update { it.copy(isLoading = false) }
             }
+        }
+    }
+    
+    private fun calculateNextPaymentDate(
+        fromDate: LocalDate,
+        billingCycle: String?
+    ):LocalDate {
+        return when (billingCycle) {
+            "Weekly" -> fromDate.plusWeeks(1)
+            "Monthly" -> fromDate.plusMonths(1)
+            "Quarterly" -> fromDate.plusMonths(3)
+            "Semi-Annual" -> fromDate.plusMonths(6)
+            "Annual" -> fromDate.plusYears(1)
+            else -> fromDate.plusMonths(1)
         }
     }
 
@@ -511,11 +548,11 @@ data class SubscriptionUiState(
     val amountError: String? = null,
     val billingCycle: String = "Monthly",
     val billingCycleError: String? = null,
-    val nextPaymentDate: LocalDate = LocalDate.now().plusMonths(1),
+    val nextPaymentDate: LocalDate = LocalDate.now(), // Default to today as "First Payment Date"
     val category: String = "Subscription",
     val subcategory: String? = null,
     val categoryError: String? = null,
-    val selectedAccount: com.ritesh.cashiro.data.database.entity.AccountBalanceEntity? = null,
+    val selectedAccount: AccountBalanceEntity? = null,
     val currency: String = "INR",
     val notes: String = "",
     val isLoading: Boolean = false,
