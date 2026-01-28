@@ -132,7 +132,6 @@ fun AnalyticsScreen(
                     top = paddingValues.calculateTopPadding() + Dimensions.Padding.content,
                     bottom = Dimensions.Padding.content + 80.dp
                 ),
-                verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 // Filters (Period and Type)
                 item {
@@ -218,6 +217,10 @@ fun AnalyticsScreen(
                     }
                 }
 
+                item{
+                    Spacer(Modifier.height(Spacing.md))
+                }
+
                 // Currency Selector (if multiple available)
                 if (availableCurrencies.size > 1) {
                     item {
@@ -228,6 +231,10 @@ fun AnalyticsScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
+                }
+
+                item{
+                    Spacer(Modifier.height(Spacing.md))
                 }
 
                 // Analytics Summary
@@ -253,6 +260,9 @@ fun AnalyticsScreen(
                     }
                 }
 
+                item{
+                    Spacer(Modifier.height(Spacing.md))
+                }
 
                 // Spending Trend Chart
                 if (uiState.spendingTrend.isNotEmpty()) {
@@ -422,6 +432,10 @@ fun AnalyticsScreen(
                     }
                 }
 
+                item{
+                    Spacer(Modifier.height(Spacing.md))
+                }
+
                 // Category Breakdown
                 if (uiState.categoryBreakdown.isNotEmpty()) {
                     item {
@@ -512,6 +526,10 @@ fun AnalyticsScreen(
                     }
                 }
 
+                item{
+                    Spacer(Modifier.height(Spacing.md))
+                }
+
                 // Top Merchants
                 if (uiState.topMerchants.isNotEmpty()) {
                     item {
@@ -530,10 +548,19 @@ fun AnalyticsScreen(
                             items = uiState.topMerchants,
                             visibleItemCount = 3,
                             modifier = Modifier.fillMaxWidth()
-                        ) { merchant ->
-                            MerchantListItem(
-                                merchant = merchant,
-                                currency = uiState.currency,
+                        ) { index, size, merchant ->
+                            val position = ListItemPosition.from(index, size)
+                            TransactionItem(
+                                merchantName = merchant.name,
+                                amount = merchant.amount,
+                                amountOverride = CurrencyFormatter.formatCurrency(merchant.amount, uiState.currency),
+                                subtitleOverride = buildString {
+                                    append("${merchant.transactionCount} ")
+                                    append(if (merchant.transactionCount == 1) "transaction" else "transactions")
+                                    if (merchant.isSubscription) {
+                                        append(" • Subscription")
+                                    }
+                                },
                                 categoryEntity = categoriesMap[merchant.categoryName],
                                 subcategoryEntity = if (merchant.categoryName != null && merchant.subcategoryName != null) {
                                     subcategoriesMap[merchant.subcategoryName]
@@ -546,15 +573,20 @@ fun AnalyticsScreen(
                                         uiState.currency
                                     )
                                 },
+                                shape = position.toShape(),
                                 modifier = Modifier.padding(
                                     start = Dimensions.Padding.content,
                                     end = Dimensions.Padding.content,
                                 ),
                                 sharedTransitionScope = sharedTransitionScope,
-                                animatedContentScope = animatedContentScope
+                                animatedContentScope = animatedContentScope,
+                                sharedElementKey = "merchant_${merchant.name}"
                             )
                         }
                     }
+                }
+                item{
+                    Spacer(Modifier.height(Spacing.md))
                 }
 
                 // Empty State
@@ -567,6 +599,10 @@ fun AnalyticsScreen(
                             )
                         )
                     }
+                }
+
+                item{
+                    Spacer(Modifier.height(200.dp))
                 }
             }
         }
@@ -710,59 +746,6 @@ fun CategoryProgressItem(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun MerchantListItem(
-    modifier: Modifier = Modifier,
-    merchant: MerchantData,
-    currency: String,
-    onClick: () -> Unit,
-    categoryEntity: CategoryEntity? = null,
-    subcategoryEntity: SubcategoryEntity? = null,
-    sharedTransitionScope: SharedTransitionScope? = null,
-    animatedContentScope: AnimatedContentScope? = null
-) {
-    val subtitle = buildString {
-        append("${merchant.transactionCount} ")
-        append(if (merchant.transactionCount == 1) "transaction" else "transactions")
-        if (merchant.isSubscription) {
-            append(" • Subscription")
-        }
-    }
-
-    ListItemCard(
-        leadingContent = {
-            BrandIcon(
-                merchantName = merchant.name,
-                size = 40.dp,
-                showBackground = true,
-                categoryEntity = categoryEntity,
-                subcategoryEntity = subcategoryEntity
-            )
-        },
-        title = merchant.name,
-        subtitle = subtitle,
-        amount = CurrencyFormatter.formatCurrency(merchant.amount, currency),
-        onClick = onClick,
-        modifier = modifier.then(
-            if (sharedTransitionScope != null && animatedContentScope != null) {
-                with(sharedTransitionScope) {
-                    Modifier.sharedBounds(
-                        rememberSharedContentState(key = "merchant_${merchant.name}"),
-                        animatedVisibilityScope = animatedContentScope,
-                        boundsTransform = { _, _ ->
-                            spring(
-                                stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioNoBouncy
-                            )
-                        },
-                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
-                    )
-                }
-            } else Modifier
-        ),
-    )
-}
 
 @Composable
 private fun EmptyAnalyticsState(

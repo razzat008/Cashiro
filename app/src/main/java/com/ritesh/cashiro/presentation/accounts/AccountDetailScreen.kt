@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -117,7 +118,6 @@ fun AccountDetailScreen(
                 top =Dimensions.Padding.content + paddingValues.calculateTopPadding(),
                 bottom = 0.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Account Card
             item {
@@ -129,6 +129,9 @@ fun AccountDetailScreen(
                     )
                 }
             }
+            item{
+                Spacer(Modifier.height(Spacing.md))
+            }
 
             // Date Range Filter
             item {
@@ -136,6 +139,9 @@ fun AccountDetailScreen(
                     selectedRange = selectedDateRange,
                     onRangeSelected = viewModel::selectDateRange
                 )
+            }
+            item{
+                Spacer(Modifier.height(Spacing.md))
             }
 
             // Balance Chart
@@ -149,7 +155,9 @@ fun AccountDetailScreen(
                     )
                 }
             }
-
+            item{
+                Spacer(Modifier.height(Spacing.md))
+            }
             // Summary Statistics
             item {
                 SummaryStatistics(
@@ -162,6 +170,9 @@ fun AccountDetailScreen(
                     modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                 )
             }
+            item{
+                Spacer(Modifier.height(Spacing.md))
+            }
 
             item {
                 SectionHeader(
@@ -169,7 +180,10 @@ fun AccountDetailScreen(
                     modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                 )
             }
-            
+
+            item{
+                Spacer(Modifier.height(Spacing.sm))
+            }
             // Transaction List
             if (uiState.transactions.isEmpty() && !uiState.isLoading) {
                 item {
@@ -178,20 +192,22 @@ fun AccountDetailScreen(
                     )
                 }
             } else {
-                items(
+                itemsIndexed(
                     items = uiState.transactions,
-                    key = { it.id }
-                ) { transaction ->
+                    key = { _, it -> it.id }
+                ) { index, transaction ->
                     val categoryEntity = categoriesMap[transaction.category]
                     val subcategoryEntity = if (categoryEntity != null && transaction.subcategory != null) {
                         subcategoriesMap[transaction.subcategory]
                     } else null
 
+                    val position = ListItemPosition.from(index, uiState.transactions.size)
                     TransactionItem(
                         transaction = transaction,
                         categoryEntity = categoryEntity,
                         subcategoryEntity = subcategoryEntity,
-                        primaryCurrency = uiState.primaryCurrency,
+                        balanceAfter = transaction.balanceAfter,
+                        balanceCurrency = uiState.primaryCurrency,
                         accountIconResId = uiState.currentBalance?.iconResId ?: 0,
                         accountColorHex = uiState.currentBalance?.color,
                         onClick = {
@@ -199,11 +215,14 @@ fun AccountDetailScreen(
                                 TransactionDetail(transaction.id)
                             )
                         },
+                        shape = position.toShape(),
                         modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                     )
                 }
             }
-            
+            item{
+                Spacer(Modifier.height(Spacing.md))
+            }
             // Loading State
             if (uiState.isLoading) {
                 item {
@@ -435,125 +454,6 @@ private fun DateRangeFilter(
     }
 }
 
-@Composable
-private fun TransactionItem(
-    modifier: Modifier = Modifier,
-    transaction: TransactionEntity,
-    categoryEntity: CategoryEntity? = null,
-    subcategoryEntity: SubcategoryEntity? = null,
-    accountIconResId: Int = 0,
-    accountColorHex: String? = null,
-    primaryCurrency: String,
-    onClick: () -> Unit
-) {
-    val amountColor = when (transaction.transactionType) {
-        TransactionType.INCOME -> if (!isSystemInDarkTheme()) income_light else income_dark
-        TransactionType.EXPENSE -> if (!isSystemInDarkTheme()) expense_light else expense_dark
-        TransactionType.CREDIT -> if (!isSystemInDarkTheme()) credit_light else credit_dark
-        TransactionType.TRANSFER -> if (!isSystemInDarkTheme()) transfer_light else transfer_dark
-        TransactionType.INVESTMENT -> if (!isSystemInDarkTheme()) investment_light else investment_dark
-    }
-    
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.Padding.content),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.md),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BrandIcon(
-                    merchantName = transaction.merchantName,
-                    size = 40.dp,
-                    showBackground = true,
-                    categoryEntity = categoryEntity,
-                    subcategoryEntity = subcategoryEntity,
-                    accountIconResId = accountIconResId,
-                    accountColorHex = accountColorHex
-                )
-                
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = transaction.merchantName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = transaction.dateTime.format(
-                                DateTimeFormatter.ofPattern("MMM d, h:mm a")
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        
-                        // Show balance after if available
-                        transaction.balanceAfter?.let { balance ->
-                            Text(
-                                text = "• Bal: ${CurrencyFormatter.formatCurrency(balance, primaryCurrency)}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
-            
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = CurrencyFormatter.formatCurrency(transaction.amount, transaction.currency),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = amountColor
-                )
-                
-                // Transaction type indicator
-                when (transaction.transactionType) {
-                    TransactionType.CREDIT -> Icon(
-                        Icons.Default.CreditCard,
-                        contentDescription = "Credit",
-                        modifier = Modifier.size(14.dp),
-                        tint = amountColor
-                    )
-                    TransactionType.TRANSFER -> Icon(
-                        Icons.Default.SwapHoriz,
-                        contentDescription = "Transfer",
-                        modifier = Modifier.size(14.dp),
-                        tint = amountColor
-                    )
-                    TransactionType.INVESTMENT -> Icon(
-                        Icons.AutoMirrored.Filled.ShowChart,
-                        contentDescription = "Investment",
-                        modifier = Modifier.size(14.dp),
-                        tint = amountColor
-                    )
-                    else -> {}
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun EmptyTransactionsState(

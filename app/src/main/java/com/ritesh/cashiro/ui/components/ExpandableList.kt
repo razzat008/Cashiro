@@ -17,7 +17,7 @@ fun <T> ExpandableList(
     items: List<T>,
     visibleItemCount: Int = 5,
     modifier: Modifier = Modifier,
-    itemContent: @Composable (T) -> Unit
+    itemContent: @Composable (Int, Int, T) -> Unit
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     val displayItems = if (isExpanded) items else items.take(visibleItemCount)
@@ -27,8 +27,8 @@ fun <T> ExpandableList(
         verticalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
         // Display items
-        displayItems.forEach { item ->
-            itemContent(item)
+        displayItems.forEachIndexed { index, item ->
+            itemContent(index, displayItems.size, item)
         }
         
         // View All / View Less button

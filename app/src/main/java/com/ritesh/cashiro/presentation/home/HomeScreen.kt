@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.automirrored.rounded.LiveHelp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -98,6 +99,7 @@ import com.ritesh.cashiro.utils.formatAmount
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
+import com.ritesh.cashiro.ui.components.TransactionItem
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import java.math.BigDecimal
@@ -337,7 +339,6 @@ fun HomeScreen(
                         top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
                         bottom = 0.dp
                     ),
-                verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 // Transaction Summary Cards
                 item {
@@ -348,7 +349,9 @@ fun HomeScreen(
                         },
                     )
                 }
-
+                item{
+                    Spacer(Modifier.height(Spacing.md))
+                }
                 // Unified Accounts Section (Credit Cards + Bank Accounts)
                 if (uiState.creditCards.isNotEmpty() ||
                     uiState.accountBalances.isNotEmpty()
@@ -370,7 +373,9 @@ fun HomeScreen(
                         )
                     }
                 }
-
+                item{
+                    Spacer(Modifier.height(Spacing.md))
+                }
                 // Upcoming Subscriptions Alert
                 if (uiState.upcomingSubscriptions.isNotEmpty()) {
                     item {
@@ -416,6 +421,9 @@ fun HomeScreen(
                             )
                         }
                     }
+                }
+                item{
+                    Spacer(Modifier.height(Spacing.md))
                 }
 
                 // Recent Transactions Section
@@ -491,6 +499,10 @@ fun HomeScreen(
                     )
                 }
 
+                item{
+                    Spacer(Modifier.height(Spacing.md))
+                }
+
                 if (uiState.isLoading) {
                     item {
                         Box(
@@ -522,28 +534,33 @@ fun HomeScreen(
                         }
                     }
                 } else {
-                    items(
+                    itemsIndexed(
                         items = uiState.recentTransactions,
-                        key = { it.id }
-                    ) { transaction ->
+                        key = { _, it -> it.id }
+                    ) { index, transaction ->
                         val categoryEntity = categoriesMap[transaction.category]
                         val subcategoryEntity = if (categoryEntity != null && transaction.subcategory != null) {
                             subcategoriesMap[transaction.subcategory]
                         } else null
+                        val position = ListItemPosition.from(index, uiState.recentTransactions.size)
 
-                        SimpleTransactionItem(
+                        TransactionItem(
                             transaction = transaction,
                             categoryEntity = categoryEntity,
                             subcategoryEntity = subcategoryEntity,
                             onClick = {
                                 onTransactionClick(transaction.id)
                             },
+                            shape = position.toShape(),
                             modifier = Modifier.padding(
                                 start = Dimensions.Padding.content,
                                 end = Dimensions.Padding.content,
                             )
                         )
                     }
+                }
+                item{
+                    Spacer(Modifier.height(200.dp))
                 }
             }
 
@@ -751,50 +768,6 @@ fun HomeScreen(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SimpleTransactionItem(
-    modifier: Modifier = Modifier,
-    transaction: TransactionEntity,
-    categoryEntity: CategoryEntity? = null,
-    subcategoryEntity: SubcategoryEntity? = null,
-    onClick: () -> Unit = {},
-) {
-    val amountColor =
-        when (transaction.transactionType) {
-            TransactionType.INCOME ->
-                if (!isSystemInDarkTheme()) income_light else income_dark
-            TransactionType.EXPENSE ->
-                if (!isSystemInDarkTheme()) expense_light else expense_dark
-            TransactionType.CREDIT ->
-                if (!isSystemInDarkTheme()) credit_light else credit_dark
-            TransactionType.TRANSFER ->
-                if (!isSystemInDarkTheme()) transfer_light else transfer_dark
-            TransactionType.INVESTMENT ->
-                if (!isSystemInDarkTheme()) investment_light else investment_dark
-        }
-
-    val dateTimeFormatter = DateTimeFormatter.ofPattern("MMM d • h:mm a")
-    val dateTimeText = transaction.dateTime.format(dateTimeFormatter)
-
-    ListItemCard(
-        title = transaction.merchantName,
-        subtitle = dateTimeText,
-        amount = transaction.formatAmount(),
-        amountColor = amountColor,
-        onClick = onClick,
-        leadingContent = {
-            BrandIcon(
-                merchantName = transaction.merchantName,
-                size = 40.dp,
-                showBackground = true,
-                categoryEntity = categoryEntity,
-                subcategoryEntity = subcategoryEntity
-            )
-        },
-        modifier = modifier
-    )
-}
 
 
 

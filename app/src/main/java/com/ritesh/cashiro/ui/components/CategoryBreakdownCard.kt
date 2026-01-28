@@ -42,7 +42,7 @@ fun CategoryBreakdownCard(
             ExpandableList(
                 items = categories,
                 visibleItemCount = 5
-            ) { category ->
+            ) { _, _, category ->
                 CategoryBar(
                     category = category,
                     maxAmount = maxAmount,

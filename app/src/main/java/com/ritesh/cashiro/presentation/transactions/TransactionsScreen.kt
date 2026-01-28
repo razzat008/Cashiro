@@ -149,7 +149,7 @@ fun TransactionsScreen(
     }
 
     // Cache expensive operations
-    val timePeriods = remember { TimePeriod.values().toList() }
+    val timePeriods = remember { TimePeriod.entries }
     val customRangeLabel = remember(customDateRange) {
         DateRangeUtils.formatDateRange(customDateRange)
     }
@@ -376,7 +376,7 @@ fun TransactionsScreen(
                                     expanded = showSortMenu,
                                     onDismissRequest = { showSortMenu = false }
                                 ) {
-                                    SortOption.values().forEach { option ->
+                                    SortOption.entries.forEach { option ->
                                         DropdownMenuItem(
                                             text = {
                                                 Row(
@@ -515,7 +515,7 @@ fun TransactionsScreen(
                     contentPadding = PaddingValues(horizontal = Dimensions.Padding.content),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
-                    items(TransactionTypeFilter.values().toList()) { typeFilter ->
+                    items(TransactionTypeFilter.entries) { typeFilter ->
                         FilterChip(
                             selected = transactionTypeFilter == typeFilter,
                             onClick = { viewModel.setTransactionTypeFilter(typeFilter) },
@@ -590,7 +590,6 @@ fun TransactionsScreen(
                             horizontal = Dimensions.Padding.content,
                             vertical = Spacing.md
                         ),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                     ) {
                         item {
                             // Totals Card - Moved after filters
@@ -672,9 +671,10 @@ fun TransactionsScreen(
                                     val position = ListItemPosition.from(index, transactions.size)
                                     TransactionItem(
                                         transaction = transaction,
-                                        categoriesMap = categoriesMap,
-                                        subcategoriesMap = subcategoriesMap,
-                                        accountsMap = accountsMap,
+                                        categoryEntity = categoriesMap[transaction.category],
+                                        subcategoryEntity = transaction.subcategory?.let { subcategoriesMap[it] },
+                                        accountIconResId = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.iconResId ?: 0,
+                                        accountColorHex = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.color,
                                         showDate = dateGroup == DateGroup.EARLIER,
                                         shape = position.toShape(),
                                         onClick = { onTransactionClick(transaction.id) }
@@ -723,129 +723,6 @@ fun TransactionsScreen(
 
 
 
-@Composable
-private fun TransactionItem(
-    transaction: TransactionEntity,
-    categoriesMap: Map<String, CategoryEntity>,
-    subcategoriesMap: Map<String, SubcategoryEntity>,
-    accountsMap: Map<String, AccountBalanceEntity>,
-    showDate: Boolean,
-    shape: CornerBasedShape,
-    onClick: () -> Unit = {}
-) {
-    var showMenu by remember { mutableStateOf(false) }
-    val amountColor = when (transaction.transactionType) {
-        TransactionType.INCOME -> if (!isSystemInDarkTheme()) income_light else income_dark
-        TransactionType.EXPENSE -> if (!isSystemInDarkTheme()) expense_light else expense_dark
-        TransactionType.CREDIT -> if (!isSystemInDarkTheme()) credit_light else credit_dark
-        TransactionType.TRANSFER -> if (!isSystemInDarkTheme()) transfer_light else transfer_dark
-        TransactionType.INVESTMENT -> if (!isSystemInDarkTheme()) investment_light else investment_dark
-    }
-    
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
-    val dateFormatter = DateTimeFormatter.ofPattern("MMM d")
-    val dateTimeFormatter = DateTimeFormatter.ofPattern("MMM d • h:mm a")
-    
-    // Always show both date and time
-    val dateTimeText = transaction.dateTime.format(dateTimeFormatter)
-    
-    // Build subtitle without category (will show category separately)
-    val subtitleParts = buildList {
-        // Add transaction type indicator for special types
-        when (transaction.transactionType) {
-            TransactionType.CREDIT -> add("Credit Card")
-            TransactionType.TRANSFER -> add("Transfer")
-            TransactionType.INVESTMENT -> add("Investment")
-            else -> {} // No special label for INCOME/EXPENSE
-        }
-        add(dateTimeText)
-        if (transaction.isRecurring) add("Recurring")
-    }
-    
-    ListItem(
-        headline = {
-            Text(
-                text = transaction.merchantName,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-        },
-        supporting = {
-            Text(
-                text = subtitleParts.joinToString(" • "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.85f)
-            )
-        },
-        leading = {
-            val categoryEntity = categoriesMap[transaction.category]
-            val subcategoryEntity = transaction.subcategory?.let { subcategoriesMap[it] }
-            val accountEntity = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]
-            
-            BrandIcon(
-                merchantName = transaction.merchantName,
-                size = 40.dp,
-                showBackground = true,
-                categoryEntity = categoryEntity,
-                subcategoryEntity = subcategoryEntity,
-                accountIconResId = accountEntity?.iconResId ?: 0,
-                accountColorHex = accountEntity?.color
-            )
-        },
-        trailing = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-            ) {
-                // Show icon for special transaction types
-                when (transaction.transactionType) {
-                    TransactionType.CREDIT -> Icon(
-                        Icons.Default.CreditCard,
-                        contentDescription = "Credit Card",
-                        modifier = Modifier.size(Dimensions.Icon.small),
-                        tint = if (!isSystemInDarkTheme()) credit_light else credit_dark
-                    )
-                    TransactionType.TRANSFER -> Icon(
-                        Icons.Default.SwapHoriz,
-                        contentDescription = "Transfer",
-                        modifier = Modifier.size(Dimensions.Icon.small),
-                        tint = if (!isSystemInDarkTheme()) transfer_light else transfer_dark
-                    )
-                    TransactionType.INVESTMENT -> Icon(
-                        Icons.AutoMirrored.Filled.ShowChart,
-                        contentDescription = "Investment",
-                        modifier = Modifier.size(Dimensions.Icon.small),
-                        tint = if (!isSystemInDarkTheme()) investment_light else investment_dark
-                    )
-                    TransactionType.INCOME -> Icon(
-                        Icons.AutoMirrored.Filled.TrendingUp,
-                        contentDescription = "Income",
-                        modifier = Modifier.size(Dimensions.Icon.small),
-                        tint = if (!isSystemInDarkTheme()) income_light else income_dark
-                    )
-                    TransactionType.EXPENSE -> Icon(
-                        Icons.AutoMirrored.Filled.TrendingDown,
-                        contentDescription = "Expense",
-                        modifier = Modifier.size(Dimensions.Icon.small),
-                        tint = if (!isSystemInDarkTheme()) expense_light else expense_dark
-                    )
-                }
-                
-                // Always show amount
-                Text(
-                    text = transaction.formatAmount(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = amountColor
-                )
-            }
-        },
-        onClick = onClick,
-        shape = shape,
-        listColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        padding = PaddingValues(0.dp)
-    )
-}
 
 @Composable
 private fun EmptyTransactionsState(
