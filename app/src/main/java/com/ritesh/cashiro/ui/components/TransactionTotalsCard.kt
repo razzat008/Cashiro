@@ -1,4 +1,4 @@
-package com.ritesh.cashiro.presentation.transactions
+package com.ritesh.cashiro.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ritesh.cashiro.ui.components.CashiroCard
 import com.ritesh.cashiro.ui.theme.*
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -33,6 +32,8 @@ fun TransactionTotalsCard(
     expenses: BigDecimal,
     netBalance: BigDecimal,
     currency: String,
+    title: String? = null,
+    isEstimated: Boolean = false,
     availableCurrenciesCount: Int = 0,
     onCurrencyClick: () -> Unit = {},
     isLoading: Boolean = false,
@@ -57,11 +58,11 @@ fun TransactionTotalsCard(
     )
 
     Box(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.BottomEnd
     ) {
         CashiroCard(
-            modifier = modifier.fillMaxWidth().padding(vertical = Spacing.md).padding(bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
@@ -87,8 +88,7 @@ fun TransactionTotalsCard(
                                     topEnd = Spacing.xs,
                                     topStart = Spacing.xxl,
                                     bottomEnd = Spacing.xs,
-                                    bottomStart = Spacing.xxl
-                                )
+                                    bottomStart = Spacing.xxl)
                             )
                             .padding(Spacing.sm),
                         contentAlignment = Alignment.Center
@@ -103,7 +103,7 @@ fun TransactionTotalsCard(
                                 )
                             },
                             label = "Income",
-                            amount = CurrencyFormatter.formatCurrency(income, currency),
+                            amount = formatAmount(income, currency, isEstimated),
                             color = if (!isSystemInDarkTheme()) income_light else income_dark,
                             modifier = Modifier
                                 .alpha(incomeAlpha)
@@ -146,7 +146,7 @@ fun TransactionTotalsCard(
                                 )
                             },
                             label = "Expenses",
-                            amount = CurrencyFormatter.formatCurrency(expenses, currency),
+                            amount = formatAmount(expenses, currency, isEstimated),
                             color = if (!isSystemInDarkTheme()) expense_light else expense_dark,
                             modifier = Modifier
                                 .alpha(expenseAlpha)
@@ -198,12 +198,7 @@ fun TransactionTotalsCard(
                                 )
                             },
                             label = "Net",
-                            amount = "$netPrefix${
-                                CurrencyFormatter.formatCurrency(
-                                    netBalance,
-                                    currency
-                                )
-                            }",
+                            amount = "$netPrefix${formatAmount(netBalance, currency, isEstimated)}",
                             color = netColor,
                             modifier = Modifier
                                 .alpha(netAlpha)
@@ -246,6 +241,11 @@ fun TransactionTotalsCard(
             }
         }
     }
+}
+
+private fun formatAmount(amount: BigDecimal, currency: String, isEstimated: Boolean): String {
+    val formatted = CurrencyFormatter.formatCurrency(amount, currency)
+    return if (isEstimated) "est. $formatted" else formatted
 }
 
 @Composable

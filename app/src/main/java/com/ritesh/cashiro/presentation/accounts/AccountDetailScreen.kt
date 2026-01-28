@@ -160,13 +160,14 @@ fun AccountDetailScreen(
             }
             // Summary Statistics
             item {
-                SummaryStatistics(
-                    totalIncome = uiState.totalIncome,
-                    totalExpenses = uiState.totalExpenses,
+                TransactionTotalsCard(
+                    income = uiState.totalIncome,
+                    expenses = uiState.totalExpenses,
                     netBalance = uiState.netBalance,
-                    period = selectedDateRange.label,
-                    primaryCurrency = uiState.primaryCurrency,
-                    hasMultipleCurrencies = uiState.hasMultipleCurrencies,
+                    currency = uiState.primaryCurrency,
+                    title = selectedDateRange.label,
+                    isEstimated = uiState.hasMultipleCurrencies,
+                    isLoading = uiState.isLoading,
                     modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
                 )
             }
@@ -177,7 +178,7 @@ fun AccountDetailScreen(
             item {
                 SectionHeader(
                     title = "Transactions (${uiState.transactions.size})",
-                    modifier = Modifier.padding(horizontal = Dimensions.Padding.content)
+                    modifier = Modifier.padding(horizontal = Dimensions.Padding.content + Spacing.sm)
                 )
             }
 
@@ -319,109 +320,6 @@ private fun ExpandableBalanceChart(
 }
 
 
-
-@Composable
-private fun SummaryStatistics(
-    modifier: Modifier = Modifier,
-    totalIncome: BigDecimal,
-    totalExpenses: BigDecimal,
-    netBalance: BigDecimal,
-    period: String,
-    primaryCurrency: String,
-    hasMultipleCurrencies: Boolean = false
-) {
-    CashiroCard(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.Padding.content)
-        ) {
-            Text(
-                text = period,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(Spacing.md))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatisticItem(
-                    label = "Income",
-                    value = formatWithEstimatedDisplay(totalIncome, primaryCurrency, hasMultipleCurrencies),
-                    icon = Icons.AutoMirrored.Filled.TrendingUp,
-                    color = if (!isSystemInDarkTheme()) income_light else income_dark
-                )
-                StatisticItem(
-                    label = "Expenses",
-                    value = formatWithEstimatedDisplay(totalExpenses, primaryCurrency, hasMultipleCurrencies),
-                    icon = Icons.AutoMirrored.Filled.TrendingDown,
-                    color = if (!isSystemInDarkTheme()) expense_light else expense_dark
-                )
-                StatisticItem(
-                    label = "Net",
-                    value = formatWithEstimatedDisplay(netBalance, primaryCurrency, hasMultipleCurrencies),
-                    icon = Icons.Default.AccountBalanceWallet,
-                    color = if (netBalance >= BigDecimal.ZERO) {
-                        if (!isSystemInDarkTheme()) income_light else income_dark
-                    } else {
-                        if (!isSystemInDarkTheme()) expense_light else income_dark
-                    }
-                )
-            }
-        }
-    }
-}
-
-/**
- * Formats currency with estimated display for multi-currency accounts
- */
-private fun formatWithEstimatedDisplay(
-    amount: BigDecimal,
-    currency: String,
-    hasMultipleCurrencies: Boolean
-): String {
-    val formattedAmount = CurrencyFormatter.formatCurrency(amount, currency)
-    return if (hasMultipleCurrencies) {
-        "est. $formattedAmount"
-    } else {
-        formattedAmount
-    }
-}
-
-@Composable
-private fun StatisticItem(
-    label: String,
-    value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = color
-        )
-        Spacer(modifier = Modifier.height(Spacing.xs))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            color = color
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
