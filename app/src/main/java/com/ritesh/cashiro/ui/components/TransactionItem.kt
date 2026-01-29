@@ -32,11 +32,6 @@ import com.ritesh.cashiro.utils.formatAmount
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 
-/**
- * A unified transaction list item component used across Home, Transactions, and Analytics screens.
- * 
- * Supports both standalone card style and grouped list item style.
- */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun TransactionItem(
