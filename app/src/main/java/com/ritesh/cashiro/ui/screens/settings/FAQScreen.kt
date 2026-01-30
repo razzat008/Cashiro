@@ -281,7 +281,7 @@ fun FAQScreen(
                         .fillMaxWidth()
                         .clickable {
                             val intent = Intent(Intent.ACTION_VIEW,
-                                "https://github.com/sarim2000/pennywiseai-tracker/issues/new/choose".toUri())
+                                "https://github.com/ritesh-kanwar/Cashiro/issues/new/choose".toUri())
                             context.startActivity(intent)
                         }
                 ) {

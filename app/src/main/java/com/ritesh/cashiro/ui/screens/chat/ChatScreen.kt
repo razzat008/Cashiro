@@ -125,7 +125,7 @@ fun ChatScreen(
                                 leadingIcon = {
                                     Icon(Icons.Outlined.Delete, contentDescription = null)
                                 },
-                                enabled = isDeveloperMode && messages.isNotEmpty()
+                                enabled = messages.isNotEmpty()
                             )
                         }
                     }
