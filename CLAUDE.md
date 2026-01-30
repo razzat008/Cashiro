@@ -1,7 +1,7 @@
-# PennyWise Project Context
+# Cashiro Project Context
 
 ## Project Overview
-PennyWise is a minimalist, AI-powered expense tracker for Android that automatically extracts transaction data from SMS messages using on-device processing.
+Cashiro is a minimalist, AI-powered expense tracker for Android that automatically extracts transaction data from SMS messages using on-device processing.
 
 ## Important Documents
 Please reference these documents when working on this project:
@@ -64,7 +64,7 @@ The project now uses a multi-module architecture:
 Bank parsers are now in the `parser-core` module for reusability across platforms.
 
 ### When adding new bank parsers:
-1. **Location**: Add to `parser-core/src/main/kotlin/com/pennywiseai/parser/core/bank/`
+1. **Location**: Add to `parser-core/src/main/kotlin/com/cashiro/parser/core/bank/`
 2. **Base Class**: All bank parsers extend `BankParser` abstract class
 3. **Key Methods**:
    - `getBankName()`: Returns the bank's display name
@@ -77,12 +77,12 @@ Bank parsers are now in the `parser-core` module for reusability across platform
 5. **Registration**: Add new parser to `BankParserFactory.parsers` list in parser-core
 6. **Return Type**: Use `ParsedTransaction` from parser-core
 7. **Imports for parser-core**:
-   - `com.pennywiseai.parser.core.TransactionType`
-   - `com.pennywiseai.parser.core.ParsedTransaction`
+   - `com.ritesh.parser.core.TransactionType`
+   - `com.ritesh.parser.core.ParsedTransaction`
    - `java.math.BigDecimal` for amounts
 
 ### Integration in main app:
-- Use `com.pennywiseai.tracker.data.mapper.toEntity()` to convert ParsedTransaction to TransactionEntity
+- Use `com.ritesh.tracker.data.mapper.toEntity()` to convert ParsedTransaction to TransactionEntity
 - The mapper handles type conversions between modules
 
 ## Supported Banks (44 parsers)

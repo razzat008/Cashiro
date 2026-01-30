@@ -97,7 +97,7 @@ fun AppLockScreen(
 
                 // Title
                 Text(
-                    text = "PennyWise is Locked",
+                    text = "Cashiro is Locked",
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center
                 )
