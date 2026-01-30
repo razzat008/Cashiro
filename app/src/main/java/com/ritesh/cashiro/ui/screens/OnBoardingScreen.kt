@@ -143,7 +143,7 @@ fun WelcomeStep() {
         Image(
             painter = painterResource(id = R.mipmap.ic_launcher_foreground),
             contentDescription = "App Logo",
-            modifier = Modifier.size(180.dp),
+            modifier = Modifier.size(100.dp),
             contentScale = ContentScale.Fit
         )
 

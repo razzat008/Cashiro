@@ -328,7 +328,7 @@ class DatabaseCallback : RoomDatabase.Callback() {
             CategoryData(
                 name = "Subscription",
                 description = "Recurring payment to online services",
-                iconResId = R.drawable.type_logo_spotify,
+                iconResId = R.drawable.type_tool_electronic_clapper_board,
                 color = "#5CCC4D",
                 isIncome = false,
                 displayOrder = 14
@@ -392,7 +392,7 @@ class DatabaseCallback : RoomDatabase.Callback() {
             CategoryData(
                 name = "Children",
                 description = "It takes a village to raise a child & a ton of cash",
-                iconResId = R.drawable.type_fruit_kiwi_fruit,
+                iconResId = R.drawable.type_event_and_place_houses,
                 color = "#8BC34A",
                 isIncome = false,
                 displayOrder = 22
@@ -488,7 +488,7 @@ class DatabaseCallback : RoomDatabase.Callback() {
             CategoryData(
                 name = "Salary",
                 description = "Job salary",
-                iconResId = R.drawable.type_finance_dollar_banknote,
+                iconResId = R.drawable.type_finance_coin,
                 color = "#8BC34A",
                 isIncome = true,
                 displayOrder = 33
@@ -631,13 +631,13 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // Groceries subcategories
         val groceriesSubcategories = listOf(
-            SubcategoryData("Staples", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Vegetables", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Fruits", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Meat", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Eggs", R.drawable.type_tool_electronic_video_game, "#993414"),
-            SubcategoryData("Bakery", R.drawable.type_stationary_blue_book, "#FF5722"),
-            SubcategoryData("Dairy", R.drawable.type_flower_and_tree_potted_plant, "#FF0041"),
+            SubcategoryData("Staples", R.drawable.type_vegetable_beans, "#423D3A"),
+            SubcategoryData("Vegetables", R.drawable.type_vegetable_broccoli, "#423D3A"),
+            SubcategoryData("Fruits", R.drawable.type_fruit_mango, "#B75300"),
+            SubcategoryData("Meat", R.drawable.type_groceries_cut_of_meat, "#FF5722"),
+            SubcategoryData("Eggs", R.drawable.type_groceries_egg, "#993414"),
+            SubcategoryData("Bakery", R.drawable.type_groceries_baguette_bread, "#FF5722"),
+            SubcategoryData("Dairy", R.drawable.type_groceries_glass_of_milk, "#FF0041"),
             SubcategoryData("Zepto", R.drawable.type_shopping_gem_stone, "#9C27B0"),
         )
         groceriesSubcategories.forEach { subcategory ->
