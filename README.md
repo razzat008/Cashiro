@@ -1,19 +1,21 @@
 <a name="top"></a>
-[![PennyWise AI Banner](banner.png)](https://github.com/sarim2000/pennywiseai-tracker)
+[![Cashiro Banner](banner.png)](https://github.com/sarim2000/pennywiseai-tracker)
 [![GitHub stars](https://img.shields.io/github/stars/sarim2000/pennywiseai-tracker?style=social)](https://github.com/sarim2000/pennywiseai-tracker)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-12+-3DDC84)](https://developer.android.com/about/versions/12)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF)](https://kotlinlang.org/)
 [![Privacy](https://img.shields.io/badge/AI-100%25_On--Device-FF6B6B)](https://developers.google.com/mediapipe)
 [![Downloads](https://img.shields.io/badge/Downloads-100+-green)](https://play.google.com/store/apps/details?id=com.pennywiseai.tracker)
-[![F-Droid](https://img.shields.io/f-droid/v/com.pennywiseai.tracker?color=1976d2)](https://f-droid.org/packages/com.pennywiseai.tracker/)
+
+[//]: # ([![F-Droid]&#40;https://img.shields.io/f-droid/v/com.pennywiseai.tracker?color=1976d2&#41;]&#40;https://f-droid.org/packages/com.pennywiseai.tracker/&#41;)
 [![GitHub release](https://img.shields.io/github/v/release/sarim2000/pennywiseai-tracker)](https://github.com/sarim2000/pennywiseai-tracker/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/sarim2000/pennywiseai-tracker)](https://github.com/sarim2000/pennywiseai-tracker/commits)
 [![Discord](https://img.shields.io/badge/Discord-Join_Community-5865F2)](https://discord.gg/H3xWeMWjKQ)
 
-## PennyWise AI — Free & Open‑Source, private SMS‑powered expense tracker
+## Cashiro — Free & Open‑Source, private SMS‑powered expense tracker
 
-Turn bank SMS into a clean, searchable money timeline with on-device AI assistance. 100% private, no cloud processing.
+A Fork of [PennyWise AI](https://github.com/sarim2000/pennywiseai-tracker) that Turn bank SMS into a clean, searchable money timeline with on-device AI assistance. 100% private, no cloud processing.
+
 
 
 ⭐ **Star us on GitHub — join 100+ supporters!**
@@ -37,17 +39,17 @@ For Android users worldwide who want automatic expense tracking from bank SMS �
 ### How it works
 
 1. Grant SMS permission (read‑only). No inbox changes, no messages sent.
-2. PennyWise parses transaction SMS, extracts amount, merchant, category, and date.
+2. Cashiro parses transaction SMS, extracts amount, merchant, category, and date.
 3. View analytics, subscriptions, and the full transaction timeline — with on-device AI assistant for insights.
 
-## Why PennyWise
+## Why Cashiro
 
 - **🤖 Smart SMS Parsing** - Automatically extracts transaction details from 40+ banks across 5 countries
 - **🌍 Multi-Currency Support** - Native support for ₹, $, د.إ, ₨, ብር with proper localization
 - **📊 Clear Insights** - Analytics and charts to instantly see where money goes
 - **🔄 Subscription Tracking** - Detects and monitors recurring payments
 - **💬 On-device AI Assistant** - Ask questions like "What did I spend on food last month?" locally
-- **🏷️ Auto‑Categorization** - Clean merchant names and sensible categories
+- **🏷️ Auto‑Categorization** - Clean merchant names and sensible categories and subcategories
 - **📤 Data Export** - Export as CSV or PDF for taxes or records
 
 ## Supported Banks & Countries
@@ -120,8 +122,8 @@ All processing happens on your device using MediaPipe's LLM. Your financial data
 
 ```bash
 # Clone repository
-git clone https://github.com/sarim2000/pennywiseai-tracker.git
-cd pennywiseai-tracker
+git clone https://github.com/ritesh-kanwar/Cashiro.git
+cd Cashiro
 
 # Build APK
 ./gradlew assembleDebug
@@ -188,9 +190,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
-## Star History
+[//]: # (## Star History)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sarim2000/pennywiseai-tracker&type=Date)](https://star-history.com/#sarim2000/pennywiseai-tracker&Date)
+[//]: # ([![Star History Chart]&#40;https://api.star-history.com/svg?repos=sarim2000/pennywiseai-tracker&type=Date&#41;]&#40;https://star-history.com/#sarim2000/pennywiseai-tracker&Date&#41;)
 
 ## License
 
