@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
+import com.ritesh.cashiro.ui.theme.Spacing
 import dev.chrisbanes.haze.*
 import dev.chrisbanes.haze.HazeDefaults.tint
 
@@ -97,6 +98,7 @@ private fun Modifier.animatedOffsetModifier(
     isHomeScreen: Boolean = false,
     isCategoryScreen: Boolean = false,
     isRuleScreen: Boolean = false,
+    isChatScreen: Boolean = false
 ): Modifier {
     // Define the target offset based on conditions
     val targetOffsetX = when {
@@ -107,6 +109,7 @@ private fun Modifier.animatedOffsetModifier(
         isHomeScreen-> (0).dp
         hasBackButton && isCategoryScreen-> 0.dp
         hasBackButton && isRuleScreen-> 0.dp
+        hasBackButton && isChatScreen-> 0.dp
         hasBackButton -> (-26).dp
         else -> (-10).dp
     }
@@ -221,24 +224,26 @@ private fun TitleForLargeTopAppBar(
     title: String,
     greetingCard: @Composable () -> Unit = {},
 ){
-    BlurredAnimatedVisibility(
-        visible = title != "Cashiro",
-        enter = fadeIn() + scaleIn(),
-        exit = fadeOut() + scaleOut()
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
     ) {
-        Text(
-            text = title,
-            fontSize = 28.sp,
-            fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Start,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(start = 10.dp)
-        )
-    }
-
-    if (title == "Cashiro"){
+        BlurredAnimatedVisibility(
+            visible = title != "Cashiro",
+            enter = fadeIn() + scaleIn(),
+            exit = fadeOut() + scaleOut()
+        ) {
+            Text(
+                text = title,
+                fontSize = 28.sp,
+                fontFamily = FontFamily.Default,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Start,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(start = 10.dp)
+            )
+        }
         greetingCard()
     }
 }
@@ -294,6 +299,7 @@ private fun RegularTopAppBar(
         val isTransactionScreen = title == "Transactions"
         val isTransactionDetailScreen = title == "Transaction Details"
         val isEditTransactionScreen = title == "Edit Transaction"
+        val isChatScreen = title == "Cashiro AI"
 
         TopAppBar(
             title = {
@@ -312,6 +318,7 @@ private fun RegularTopAppBar(
                         isHomeScreen = title == "Cashiro",
                         isCategoryScreen = title == "Categories",
                         isRuleScreen = title == "Smart Rules",
+                        isChatScreen = isChatScreen
                     )
                 )
             },

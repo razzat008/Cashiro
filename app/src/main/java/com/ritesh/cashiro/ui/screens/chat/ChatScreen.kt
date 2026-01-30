@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.ui.screens.chat
 
+import android.widget.Space
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -10,8 +11,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +34,7 @@ import com.ritesh.cashiro.ui.theme.Dimensions
 import com.ritesh.cashiro.ui.theme.Spacing
 import com.ritesh.cashiro.utils.TokenUtils
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import dev.chrisbanes.haze.HazeState
@@ -44,7 +49,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ChatScreen(
     modifier: Modifier = Modifier,
@@ -62,6 +67,7 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
+    var showMenu by remember { mutableStateOf(false) }
     
     // Auto-scroll to bottom when new messages arrive
     LaunchedEffect(messages.size, currentResponse) {
@@ -89,141 +95,160 @@ fun ChatScreen(
                 hazeState = hazeState,
                 hasBackButton = true,
                 navigationContent = {NavigationContent(onNavigateToSettings)},
-            )
-        }
-    ) { paddingValues ->
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-        when (modelState) {
-            ModelState.NOT_DOWNLOADED, ModelState.ERROR -> {
-                // Show existing messages if any, but disable input
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = paddingValues.calculateTopPadding(), bottom = paddingValues.calculateBottomPadding())
-                ) {
-                    // If no messages, show the download prompt centered
-                    if (messages.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+                actionContent = {
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                contentColor = MaterialTheme.colorScheme.onBackground
+                            ),
+                            shapes =  IconButtonDefaults.shapes(),
+                            modifier = Modifier.padding(end =Spacing.md)
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                            Icon(
+                                imageVector = Icons.Rounded.MoreHoriz,
+                                contentDescription = "More options",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Clear Chat") },
+                                onClick = {
+                                    showMenu = false
+                                    viewModel.clearChat()
+                                },
+                                leadingIcon = {
+                                    Icon(Icons.Outlined.Delete, contentDescription = null)
+                                },
+                                enabled = isDeveloperMode && messages.isNotEmpty()
+                            )
+                        }
+                    }
+                },
+                greetingCard = {
+                    // Developer info card
+                    if(isDeveloperMode && messages.isNotEmpty()) {
+                        DeveloperInfoCard(
+                            chatStats = chatStats,
+                            modifier = Modifier.padding(end =Spacing.md)
+                        )
+                    }
+                }
+            )
+        },
+
+    ) { paddingValues ->
+        Box(
+            modifier = modifier.fillMaxSize()
+        ) {
+            when (modelState) {
+                ModelState.NOT_DOWNLOADED, ModelState.ERROR -> {
+                    // Show existing messages if any, but disable input
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = paddingValues.calculateTopPadding(), bottom = paddingValues.calculateBottomPadding())
+                    ) {
+                        // If no messages, show the download prompt centered
+                        if (messages.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    Icons.Default.CloudDownload,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(64.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "Qwen Model Required",
-                                    style = MaterialTheme.typography.headlineSmall
-                                )
-                                Text(
-                                    text = "Download the AI model from Settings to start chatting",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Button(onClick = onNavigateToSettings) {
-                                    Text("Go to Settings")
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                                ) {
+                                    Icon(
+                                        Icons.Default.CloudDownload,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(64.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "Qwen Model Required",
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    Text(
+                                        text = "Download the AI model from Settings to start chatting",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Button(onClick = onNavigateToSettings) {
+                                        Text("Go to Settings")
+                                    }
+                                }
+                            }
+                        } else {
+                            // Show existing messages (read-only)
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                                    .overScrollVertical(),
+                                flingBehavior = rememberOverscrollFlingBehavior { listState },
+                                contentPadding = PaddingValues(
+                                    start = Dimensions.Padding.content,
+                                    end = Dimensions.Padding.content,
+                                    top = Dimensions.Padding.content,
+                                    bottom = Spacing.lg
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                            ) {
+                                items(messages) { message ->
+                                    ChatMessageItem(message = message)
                                 }
                             }
                         }
-                    } else {
-                        // Show existing messages (read-only)
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .hazeSource(state = hazeState)
-                                .overScrollVertical(),
-                            flingBehavior = rememberOverscrollFlingBehavior { listState },
-                            contentPadding = PaddingValues(
-                                start = Dimensions.Padding.content,
-                                end = Dimensions.Padding.content,
-                                top = Dimensions.Padding.content,
-                                bottom = Spacing.lg
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+
+                        // Show model required banner at bottom
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            tonalElevation = 3.dp
                         ) {
-                            items(messages) { message ->
-                                ChatMessageItem(message = message)
-                            }
-                        }
-                    }
-                    
-                    // Show model required banner at bottom
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        tonalElevation = 3.dp
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(Dimensions.Padding.content),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Model Required",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "Download to continue chatting",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                            Button(
-                                onClick = onNavigateToSettings,
-                                modifier = Modifier.padding(start = Spacing.sm)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(Dimensions.Padding.content),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Download")
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Model Required",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Download to continue chatting",
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                Button(
+                                    onClick = onNavigateToSettings,
+                                    modifier = Modifier.padding(start = Spacing.sm)
+                                ) {
+                                    Text("Download")
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            ModelState.DOWNLOADING -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Spacing.md)
-                    ) {
-                        CircularProgressIndicator()
-                        Text(
-                            text = "Downloading Model...",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = "Check Settings for progress",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            ModelState.READY, ModelState.LOADING -> {
-                // Show loading overlay when model is loading
-                if (modelState == ModelState.LOADING) {
+                ModelState.DOWNLOADING -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -232,206 +257,216 @@ fun ChatScreen(
                         ) {
                             CircularProgressIndicator()
                             Text(
-                                text = "Initializing AI Model...",
+                                text = "Downloading Model...",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                text = "This may take a few seconds",
+                                text = "Check Settings for progress",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = paddingValues.calculateTopPadding(), bottom = paddingValues.calculateBottomPadding())
-                    ) {
-                        // Developer info card
-                        AnimatedVisibility(
-                            visible = isDeveloperMode && messages.isNotEmpty(),
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            DeveloperInfoCard(chatStats = chatStats)
-                        }
-                        
-                        // Token limit warning
-                        AnimatedVisibility(
-                            visible = chatStats.contextUsagePercent >= 80,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            TokenLimitWarning(
-                                usagePercent = chatStats.contextUsagePercent,
-                                onClearChat = { viewModel.clearChat() }
-                            )
-                        }
+                }
 
-                        // Clear chat button when there are messages
-                        AnimatedVisibility(
-                            visible = messages.isNotEmpty(),
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
+                ModelState.READY, ModelState.LOADING -> {
+                    // Show loading overlay when model is loading
+                    if (modelState == ModelState.LOADING) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.surface,
-                                tonalElevation = 1.dp
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(Spacing.md)
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(
-                                            horizontal = Dimensions.Padding.content,
-                                            vertical = Spacing.sm
-                                        ),
-                                    horizontalArrangement = Arrangement.End
-                                ) {
-                                    TextButton(
-                                        onClick = { viewModel.clearChat() },
-                                        colors = ButtonDefaults.textButtonColors(
-                                            contentColor = MaterialTheme.colorScheme.error
-                                        )
-                                    ) {
-                                        Icon(
-                                            Icons.Outlined.Delete,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(Spacing.xs))
-                                        Text("Clear Chat")
-                                    }
-                                }
-                            }
-                        }
-
-                        // Messages list
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .hazeSource(state = hazeState)
-                                .overScrollVertical(),
-                            flingBehavior = rememberOverscrollFlingBehavior { listState },
-                            contentPadding = PaddingValues(
-                                start = Dimensions.Padding.content,
-                                end = Dimensions.Padding.content,
-                                top = Dimensions.Padding.content,
-                                bottom = Dimensions.Padding.content
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
-                            reverseLayout = false
-                        ) {
-                            items(messages) { message ->
-                                ChatMessageItem(message = message)
-                            }
-
-                            // Show streaming response if available
-                            if (currentResponse.isNotEmpty()) {
-                                item {
-                                    ChatMessageItem(
-                                        message = com.ritesh.cashiro.data.database.entity.ChatMessage(
-                                            message = currentResponse,
-                                            isUser = false,
-                                            timestamp = System.currentTimeMillis()
-                                        ),
-                                        isStreaming = true
-                                    )
-                                }
-                            } else if (uiState.isLoading) {
-                                // Show typing indicator while waiting for response
-                                item {
-                                    TypingIndicator()
-                                }
-                            }
-                        }
-
-                        // Error message
-                        AnimatedVisibility(
-                            visible = uiState.error != null,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = Dimensions.Padding.content),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer
+                                CircularProgressIndicator()
+                                Text(
+                                    text = "Initializing AI Model...",
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(Dimensions.Padding.content),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = uiState.error ?: "",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onErrorContainer,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    IconButton(onClick = { viewModel.clearError() }) {
-                                        Icon(
-                                            Icons.Default.Close,
-                                            contentDescription = "Dismiss",
-                                            tint = MaterialTheme.colorScheme.onErrorContainer
-                                        )
-                                    }
-                                }
+                                Text(
+                                    text = "This may take a few seconds",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
-
-                        // Input field
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surface,
-                            tonalElevation = 3.dp
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(Dimensions.Padding.content),
-                                verticalAlignment = Alignment.Bottom
-                            ) {
-                                OutlinedTextField(
-                                    value = inputText,
-                                    onValueChange = { inputText = it },
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.BottomCenter
+                        ){
+                            Column{
+                                // Messages list
+                                LazyColumn(
+                                    state = listState,
                                     modifier = Modifier
                                         .weight(1f)
-                                        .focusRequester(focusRequester),
-                                    placeholder = { Text("Ask about your expenses...") },
-                                    enabled = !uiState.isLoading,
-                                    maxLines = 3,
-                                    shape = RoundedCornerShape(24.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(Spacing.sm))
-
-                                FilledIconButton(
-                                    onClick = {
-                                        viewModel.sendMessage(inputText)
-                                        inputText = ""
-                                        // Keep keyboard open by requesting focus
-                                        focusRequester.requestFocus()
-                                    },
-                                    enabled = inputText.isNotBlank() && !uiState.isLoading,
-                                    modifier = Modifier.size(48.dp)
+                                        .fillMaxWidth()
+                                        .clip( CardDefaults.shape)
+                                        .overScrollVertical(),
+                                    flingBehavior = rememberOverscrollFlingBehavior { listState },
+                                    contentPadding = PaddingValues(
+                                        start = Dimensions.Padding.content,
+                                        end = Dimensions.Padding.content,
+                                        top = Dimensions.Padding.content + paddingValues.calculateTopPadding(),
+                                        bottom = Dimensions.Padding.content
+                                    ),
+                                    verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+                                    reverseLayout = false
                                 ) {
-                                    if (uiState.isLoading) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.dp
+                                    items(messages) { message ->
+                                        ChatMessageItem(message = message)
+                                    }
+
+                                    // Show streaming response if available
+                                    if (currentResponse.isNotEmpty()) {
+                                        item {
+                                            ChatMessageItem(
+                                                message = com.ritesh.cashiro.data.database.entity.ChatMessage(
+                                                    message = currentResponse,
+                                                    isUser = false,
+                                                    timestamp = System.currentTimeMillis()
+                                                ),
+                                                isStreaming = true
+                                            )
+                                        }
+                                    } else if (uiState.isLoading) {
+                                        // Show typing indicator while waiting for response
+                                        item {
+                                            TypingIndicator()
+                                        }
+                                    }
+                                    item{
+                                        Spacer(modifier = Modifier.height(180.dp))
+                                    }
+                                }
+                            }
+
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .fillMaxWidth()
+                            ) {
+                                // Error message
+                                AnimatedVisibility(
+                                    visible = uiState.error != null,
+                                    enter = expandVertically() + fadeIn(),
+                                    exit = shrinkVertically() + fadeOut()
+                                ) {
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = Dimensions.Padding.content),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.errorContainer
                                         )
-                                    } else {
-                                        Icon(
-                                            Icons.AutoMirrored.Filled.Send,
-                                            contentDescription = "Send"
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(Dimensions.Padding.content),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = uiState.error ?: "",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            IconButton(onClick = { viewModel.clearError() }) {
+                                                Icon(
+                                                    Icons.Default.Close,
+                                                    contentDescription = "Dismiss",
+                                                    tint = MaterialTheme.colorScheme.onErrorContainer
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Token limit warning
+                                AnimatedVisibility(
+                                    visible = chatStats.contextUsagePercent >= 80,
+                                    enter = expandVertically() + fadeIn(),
+                                    exit = shrinkVertically() + fadeOut()
+                                ) {
+                                    TokenLimitWarning(
+                                        usagePercent = chatStats.contextUsagePercent,
+                                        onClearChat = { viewModel.clearChat() }
+                                    )
+                                }
+
+                                // Input field
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            Brush.verticalGradient(
+                                                colors = listOf(
+                                                    Color.Transparent,
+                                                    MaterialTheme.colorScheme.surface,
+                                                )
+                                            )
+                                        )
+                                        .navigationBarsPadding(),
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(Dimensions.Padding.content),
+                                        verticalAlignment = Alignment.Bottom
+                                    ) {
+                                        TextField(
+                                            value = inputText,
+                                            onValueChange = { inputText = it },
+                                            placeholder = { Text("Ask about your expenses...") },
+                                            enabled = !uiState.isLoading,
+                                            singleLine = true,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .focusRequester(focusRequester),
+                                            shape = RoundedCornerShape(Spacing.xxl),
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                                    0.7f
+                                                )
+                                            ),
+                                            trailingIcon = {
+                                                FilledIconButton(
+                                                    onClick = {
+                                                        viewModel.sendMessage(inputText)
+                                                        inputText = ""
+                                                        // Keep keyboard open by requesting focus
+                                                        focusRequester.requestFocus()
+                                                    },
+                                                    enabled = inputText.isNotBlank() && !uiState.isLoading,
+                                                    modifier = Modifier
+                                                        .size(48.dp)
+                                                        .padding(Spacing.xs)
+                                                ) {
+                                                    if (uiState.isLoading) {
+                                                        CircularProgressIndicator(
+                                                            modifier = Modifier.size(24.dp),
+                                                            strokeWidth = 2.dp
+                                                        )
+                                                    } else {
+                                                        Icon(
+                                                            Icons.AutoMirrored.Outlined.Send,
+                                                            contentDescription = "Send",
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         )
                                     }
                                 }
@@ -441,7 +476,6 @@ fun ChatScreen(
                 }
             }
         }
-    }
     }
 }
 
@@ -535,9 +569,7 @@ fun DeveloperInfoCard(
     
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimensions.Padding.content)
-            .padding(bottom = Spacing.sm),
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
