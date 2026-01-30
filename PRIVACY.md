@@ -26,7 +26,7 @@ Cashiro is built with privacy as the core principle. We believe your financial d
 ### Where It's Stored
 - All data is stored in a local SQLite database on your device
 - Database is protected by Android's app sandboxing
-- Data is only accessible to PennyWise AI app
+- Data is only accessible to Cashiro app
 
 ### Data Deletion
 - Uninstalling the app completely removes all data

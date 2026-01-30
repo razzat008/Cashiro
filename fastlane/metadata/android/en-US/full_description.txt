@@ -1,4 +1,4 @@
-PennyWise AI — Free & Open-Source, private SMS-powered expense tracker
+Cashiro — Free & Open-Source, private SMS-powered expense tracker
 
 Automatically extracts transaction data from bank SMS messages using pattern-based parsing. Works 100% offline - no internet connection required.
 

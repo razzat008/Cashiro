@@ -1,6 +1,6 @@
-# Contributing to PennyWise AI
+# Contributing to Cashiro
 
-Thank you for your interest in contributing to PennyWise AI! We welcome contributions from the community.
+Thank you for your interest in contributing to Cashiro! We welcome contributions from the community.
 
 ## How to Contribute
 
@@ -111,8 +111,8 @@ app/
 
 ## Community
 
-- Join our [Discord](https://discord.gg/H3xWeMWjKQ) for discussions
-- Follow development updates on [GitHub](https://github.com/sarim2000/pennywiseai-tracker)
+[//]: # (- Join our [Discord]&#40;https://discord.gg/H3xWeMWjKQ&#41; for discussions)
+- Follow development updates on [GitHub](https://github.com/ritesh-kanwar/Cashiro)
 
 ## Code of Conduct
 
@@ -130,7 +130,8 @@ All contributors will be recognized in our README following the [all-contributor
 
 Feel free to:
 - Open an issue for clarification
-- Ask in our [Discord](https://discord.gg/H3xWeMWjKQ)
+
+[//]: # (- Ask in our [Discord]&#40;https://discord.gg/H3xWeMWjKQ&#41;)
 - Reach out to maintainers
 
-Thank you for helping make PennyWise AI better! 🚀
+Thank you for helping make Cashiro better! 🚀
