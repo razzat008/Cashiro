@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +25,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.ui.theme.Spacing
@@ -88,7 +92,36 @@ fun GreetingCard(
                 color = MaterialTheme.colorScheme.onBackground
             )
             
-            if (unreadUpdatesCount > 0) {
+            val greeting = remember {
+                val hour = LocalTime.now().hour
+                when (hour) {
+                    in 5..11 -> "Good morning"
+                    in 12..16 -> "Good afternoon"
+                    in 17..21 -> "Good evening"
+                    else -> "Good night"
+                }
+            }
+
+            val monthStatus = remember {
+                val now = LocalDate.now()
+                val lastDay = now.withDayOfMonth(now.lengthOfMonth())
+                val daysLeft = ChronoUnit.DAYS.between(now, lastDay)
+                val monthName = now.month.name.lowercase().replaceFirstChar { it.uppercase() }
+                
+                when {
+                    daysLeft == 0L -> "Last day of $monthName"
+                    daysLeft <= 7 -> "$daysLeft days left in $monthName"
+                    else -> null
+                }
+            }
+
+            // Priority Logic:
+            // 1. If unread updates > 0 and (it's not the last day of month OR 50% chance)
+            // 2. If monthStatus is available
+            // 3. Greeting
+            val showUpdates = unreadUpdatesCount > 0 && (monthStatus == null || Math.random() > 0.5)
+            
+            if (showUpdates) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable(onClick = onUpdatesClick)
@@ -108,7 +141,7 @@ fun GreetingCard(
                 }
             } else {
                 Text(
-                    text = "All caught up",
+                    text = monthStatus ?: greeting,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
