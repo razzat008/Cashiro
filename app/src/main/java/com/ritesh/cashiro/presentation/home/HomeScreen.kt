@@ -101,6 +101,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.ritesh.cashiro.data.preferences.NavigationBarStyle
+import com.ritesh.cashiro.ui.viewmodel.ThemeViewModel
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
@@ -141,6 +143,7 @@ import java.time.LocalDate
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel(),
     navController: NavController,
     onNavigateToSettings: () -> Unit = {},
     onNavigateToChat: () -> Unit = {},
@@ -158,6 +161,7 @@ fun HomeScreen(
     val smsScanWorkInfo by viewModel.smsScanWorkInfo.collectAsState()
     val categoriesMap by viewModel.categoriesMap.collectAsStateWithLifecycle()
     val subcategoriesMap by viewModel.subcategoriesMap.collectAsStateWithLifecycle()
+    val themeUiState by themeViewModel.themeUiState.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -730,7 +734,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(Dimensions.Padding.content)
-                    .padding(bottom = 72.dp),
+                    .padding(
+                        bottom = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING) 72.dp else 100.dp
+                    ),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {

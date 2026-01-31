@@ -2,6 +2,7 @@ package com.ritesh.cashiro.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +23,8 @@ class ThemeViewModel @Inject constructor(
                 isDarkTheme = preferences.isDarkThemeEnabled,
                 isDynamicColorEnabled = preferences.isDynamicColorEnabled,
                 hasSkippedSmsPermission = preferences.hasSkippedSmsPermission,
-                isAmoledMode = preferences.isAmoledMode
+                isAmoledMode = preferences.isAmoledMode,
+                navigationBarStyle = preferences.navigationBarStyle
             )
         }
         .stateIn(
@@ -48,11 +50,18 @@ class ThemeViewModel @Inject constructor(
             userPreferencesRepository.updateAmoledMode(enabled)
         }
     }
+
+    fun updateNavigationBarStyle(style: NavigationBarStyle) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateNavigationBarStyle(style)
+        }
+    }
 }
 
 data class ThemeUiState(
     val isDarkTheme: Boolean? = null, // null = follow system
     val isDynamicColorEnabled: Boolean = false, // Default to custom theme colors
     val hasSkippedSmsPermission: Boolean = false,
-    val isAmoledMode: Boolean = false
+    val isAmoledMode: Boolean = false,
+    val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING
 )

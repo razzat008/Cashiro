@@ -44,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.presentation.categories.NavigationContent
 import com.ritesh.cashiro.ui.components.CashiroCard
 import com.ritesh.cashiro.ui.components.CustomTitleTopAppBar
@@ -247,6 +248,102 @@ fun AppearanceScreen(
                                 padding = PaddingValues(0.dp),
                                 isSingle = true
                             )
+                        }
+                    }
+                }
+
+                // Navigation Style Section
+                SectionHeader(
+                    title = "Navigation Style",
+                    modifier = Modifier.padding(start = Spacing.md)
+                )
+
+                CashiroCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(Spacing.md),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                        ) {
+                            // Floating Option
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(80.dp)
+                                    .shadow(
+                                        elevation = 4.dp,
+                                        shape = RoundedCornerShape(Dimensions.Radius.md)
+                                    )
+                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
+                                    .background(
+                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING) 
+                                            MaterialTheme.colorScheme.primaryContainer 
+                                        else MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                    .clickable {
+                                        themeViewModel.updateNavigationBarStyle(NavigationBarStyle.FLOATING)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "Floating",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "Modern & Sleek",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
+                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+
+                            // Normal Option
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(80.dp)
+                                    .shadow(
+                                        elevation = 4.dp,
+                                        shape = RoundedCornerShape(Dimensions.Radius.md)
+                                    )
+                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
+                                    .background(
+                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL) 
+                                            MaterialTheme.colorScheme.primaryContainer 
+                                        else MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                    .clickable {
+                                        themeViewModel.updateNavigationBarStyle(NavigationBarStyle.NORMAL)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "Normal",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "Standard M3",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
+                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

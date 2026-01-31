@@ -63,6 +63,7 @@ constructor(@ApplicationContext private val context: Context) {
         val DISABLED_SUBSCRIPTION_NOTIFICATION_IDS = androidx.datastore.preferences.core.stringSetPreferencesKey("disabled_subscription_notification_ids")
         val TEST_NOTIFICATION_ALERTS_ENABLED = booleanPreferencesKey("test_notification_alerts_enabled")
         val SHOW_BANNER_IMAGE = booleanPreferencesKey("show_banner_image")
+        val NAVIGATION_BAR_STYLE = stringPreferencesKey("navigation_bar_style")
     }
 
     val userPreferences: Flow<UserPreferences> =
@@ -89,7 +90,14 @@ constructor(@ApplicationContext private val context: Context) {
                         profileBackgroundColor =
                                 preferences[PreferencesKeys.PROFILE_BACKGROUND_COLOR] ?: 0,
                         bannerImageUri = preferences[PreferencesKeys.BANNER_IMAGE_URI],
-                        showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: false
+                        showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: false,
+                        navigationBarStyle = try {
+                            NavigationBarStyle.valueOf(
+                                preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] ?: NavigationBarStyle.FLOATING.name
+                            )
+                        } catch (e: Exception) {
+                            NavigationBarStyle.FLOATING
+                        }
                 )
             }
 
@@ -482,6 +490,12 @@ constructor(@ApplicationContext private val context: Context) {
             preferences[PreferencesKeys.TEST_NOTIFICATION_ALERTS_ENABLED] = enabled
         }
     }
+
+    suspend fun updateNavigationBarStyle(style: NavigationBarStyle) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] = style.name
+        }
+    }
 }
 
 data class UserPreferences(
@@ -498,5 +512,6 @@ data class UserPreferences(
         val profileImageUri: String? = null,
         val profileBackgroundColor: Int = 0,
         val bannerImageUri: String? = null,
-        val showBannerImage: Boolean = false
+        val showBannerImage: Boolean = false,
+        val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING
 )

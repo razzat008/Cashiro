@@ -8,6 +8,8 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +22,9 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TonalToggleButton
@@ -39,6 +44,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.navigation.AddTransaction
 import com.ritesh.cashiro.navigation.AnimatedNavHost
 import com.ritesh.cashiro.navigation.Subscriptions
@@ -53,6 +59,7 @@ import com.ritesh.cashiro.presentation.home.HomeViewModel
 import com.ritesh.cashiro.presentation.navigation.BottomNavItem
 import com.ritesh.cashiro.presentation.profile.ProfileScreen
 import com.ritesh.cashiro.ui.components.SpotlightTutorial
+import com.ritesh.cashiro.ui.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.ui.screens.analytics.AnalyticsScreen
 import com.ritesh.cashiro.ui.screens.chat.ChatScreen
 import com.ritesh.cashiro.ui.screens.rules.CreateRuleScreen
@@ -89,9 +96,58 @@ fun MainScreen(
 
     val navigationItems =
             listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Chat)
+    
+    val themeUiState by themeViewModel.themeUiState.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold { paddingValues ->
+        Scaffold(
+            bottomBar = {
+                BlurredAnimatedVisibility(
+                    visible = themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL &&
+                            currentRoute in listOf("home", "analytics"),
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                ) {
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 2.dp
+                    ) {
+                        navigationItems.forEach { item ->
+                            val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    navController.navigate(item.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { 
+                                    Icon(
+                                        imageVector = item.icon, 
+                                        contentDescription = item.title,
+                                        tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    ) 
+                                },
+                                label = { 
+                                    Text(
+                                        text = item.title,
+                                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.labelMedium
+                                    ) 
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        ) { paddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {
                 AnimatedNavHost(
                     navController = navController,
@@ -292,7 +348,12 @@ fun MainScreen(
                 )
 
                 // HorizontalFloatingToolbar
-                if (currentRoute in listOf("home", "analytics")) {
+                BlurredAnimatedVisibility(
+                    visible = themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING &&
+                    currentRoute in listOf("home", "analytics"),
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
