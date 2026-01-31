@@ -1,5 +1,8 @@
 package com.ritesh.cashiro.ui.screens.analytics
 
+import android.app.Activity
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -133,6 +136,19 @@ fun AnalyticsScreen(
     var selectedChartType by remember { mutableStateOf(ChartType.LINE) }
     var showChartTypeSelector by remember { mutableStateOf(false) }
     var selectedBreakdownType by remember { mutableStateOf(BreakdownType.PIE) }
+    
+    var lastBackPressTime by remember { mutableStateOf(0L) }
+    val context = LocalContext.current
+    
+    BackHandler {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastBackPressTime < 2000) {
+            (context as? Activity)?.finish()
+        } else {
+            lastBackPressTime = currentTime
+            Toast.makeText(context, "Press back again to close the app", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Calculate active filter count
     val activeFilterCount = if (transactionTypeFilter != TransactionTypeFilter.EXPENSE) 1 else 0
@@ -146,7 +162,6 @@ fun AnalyticsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
-    val context = LocalContext.current
     val lazyListState = rememberLazyListState()
 
     Scaffold(

@@ -1,7 +1,10 @@
 package com.ritesh.cashiro.presentation.home
 
+import android.app.Activity
 import android.view.HapticFeedbackConstants
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.AnimatedVisibility
@@ -158,6 +161,19 @@ fun HomeScreen(
     val activity = LocalActivity.current
 
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    var lastBackPressTime by remember { mutableStateOf(0L) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
+    BackHandler {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastBackPressTime < 2000) {
+            (context as? Activity)?.finish()
+        } else {
+            lastBackPressTime = currentTime
+            Toast.makeText(context, "Press back again to close the app", Toast.LENGTH_SHORT).show()
+        }
+    }
     val scope = rememberCoroutineScope()
 
     // State for full resync confirmation dialog
