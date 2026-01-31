@@ -237,14 +237,17 @@ fun AccountDetailScreen(
                         accountColorHex = uiState.currentBalance?.color,
                         onClick = {
                             navController.navigate(
-                                TransactionDetail(transaction.id)
+                                TransactionDetail(
+                                    transactionId = transaction.id,
+                                    sharedElementKey = "account_transaction_${transaction.id}"
+                                )
                             )
                         },
                         shape = shape,
                         modifier = Modifier.padding(horizontal = Dimensions.Padding.content),
                         sharedTransitionScope = sharedTransitionScope,
                         animatedContentScope = animatedContentScope,
-                        sharedElementKey = "transaction_${transaction.id}"
+                        sharedElementKey = "account_transaction_${transaction.id}"
                     )
                 }
             }

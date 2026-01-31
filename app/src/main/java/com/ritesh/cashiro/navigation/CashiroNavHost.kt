@@ -165,6 +165,7 @@ fun CashiroNavHost(
                 val transactionDetail = backStackEntry.toRoute<TransactionDetail>()
                 TransactionDetailScreen(
                     transactionId = transactionDetail.transactionId,
+                    sharedElementKey = transactionDetail.sharedElementKey,
                     onNavigateBack = {
                         onEditComplete()
                         navController.popBackStack()
@@ -250,8 +251,8 @@ fun CashiroNavHost(
                     initialType = transactions.type,
                     focusSearch = transactions.focusSearch,
                     onNavigateBack = { navController.popBackStack() },
-                    onTransactionClick = { transactionId ->
-                        navController.navigate(TransactionDetail(transactionId))
+                    onTransactionClick = { transactionId, key ->
+                        navController.navigate(TransactionDetail(transactionId, key))
                     },
                     onAddTransactionClick = {
                         navController.navigate(AddTransaction())

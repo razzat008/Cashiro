@@ -97,6 +97,7 @@ import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
 @Composable
 fun TransactionDetailScreen(
     transactionId: Long,
+    sharedElementKey: String? = null,
     onNavigateBack: () -> Unit,
     viewModel: TransactionDetailViewModel = hiltViewModel(),
     sharedTransitionScope: SharedTransitionScope? = null,
@@ -172,7 +173,7 @@ fun TransactionDetailScreen(
             if (sharedTransitionScope != null && animatedContentScope != null) {
                 with(sharedTransitionScope) {
                     Modifier.sharedBounds(
-                        rememberSharedContentState(key = "transaction_$transactionId"),
+                        rememberSharedContentState(key = sharedElementKey ?: "transaction_$transactionId"),
                         animatedVisibilityScope = animatedContentScope,
                         boundsTransform = { _, _ ->
                             spring(

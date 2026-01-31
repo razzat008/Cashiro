@@ -145,7 +145,7 @@ fun HomeScreen(
     onNavigateToTransactionsWithSearch: () -> Unit = {},
     onNavigateToSubscriptions: () -> Unit = {},
     onNavigateToAddScreen: () -> Unit = {},
-    onTransactionClick: (Long) -> Unit = {},
+    onTransactionClick: (Long, String) -> Unit = { _, _ -> },
     onFabPositioned: (Rect) -> Unit = {},
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedContentScope: AnimatedContentScope? = null
@@ -586,7 +586,7 @@ fun HomeScreen(
                             categoryEntity = categoryEntity,
                             subcategoryEntity = subcategoryEntity,
                             onClick = {
-                                onTransactionClick(transaction.id)
+                                onTransactionClick(transaction.id, "home_transaction_${transaction.id}")
                             },
                             shape = position.toShape(),
                             modifier = Modifier.padding(
@@ -595,7 +595,7 @@ fun HomeScreen(
                             ),
                             sharedTransitionScope = sharedTransitionScope,
                             animatedContentScope = animatedContentScope,
-                            sharedElementKey = "transaction_${transaction.id}"
+                            sharedElementKey = "home_transaction_${transaction.id}"
                         )
                     }
                 }

@@ -114,9 +114,9 @@ fun MainScreen(
                                     Transactions(focusSearch = true)) },
                                 onNavigateToSubscriptions = { rootNavController?.navigate(Subscriptions) },
                                 onNavigateToAddScreen = { rootNavController?.navigate(AddTransaction()) },
-                                onTransactionClick = { transactionId ->
+                                onTransactionClick = { transactionId, key ->
                                     rootNavController?.navigate(
-                                        TransactionDetail(transactionId)
+                                        TransactionDetail(transactionId, key)
                                     ) },
                                 onFabPositioned = { position ->
                                     spotlightViewModel.updateFabPosition(position) },

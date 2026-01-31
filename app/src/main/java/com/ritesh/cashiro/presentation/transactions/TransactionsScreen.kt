@@ -79,7 +79,7 @@ fun TransactionsScreen(
     focusSearch: Boolean = false,
     viewModel: TransactionsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
-    onTransactionClick: (Long) -> Unit = {},
+    onTransactionClick: (Long, String) -> Unit = { _, _ -> },
     onAddTransactionClick: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     sharedTransitionScope: SharedTransitionScope? = null,
@@ -677,10 +677,10 @@ fun TransactionsScreen(
                                         accountColorHex = accountsMap["${transaction.bankName}_${transaction.accountNumber}"]?.color,
                                         showDate = dateGroup == DateGroup.EARLIER,
                                         shape = position.toShape(),
-                                        onClick = { onTransactionClick(transaction.id) },
+                                        onClick = { onTransactionClick(transaction.id, "list_transaction_${transaction.id}") },
                                         sharedTransitionScope = sharedTransitionScope,
                                         animatedContentScope = animatedContentScope,
-                                        sharedElementKey = "transaction_${transaction.id}"
+                                        sharedElementKey = "list_transaction_${transaction.id}"
                                     )
                                 }
                             }
