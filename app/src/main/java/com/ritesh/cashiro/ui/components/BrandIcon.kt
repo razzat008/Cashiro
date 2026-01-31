@@ -67,8 +67,9 @@ fun BrandIcon(
                     Modifier
                         .clip(CircleShape)
                         .background(
-                            brandColor?.let { Color(it.toColorInt())}
-                                ?: generateColorFromString(merchantName)
+                            brandColor?.let { (colorHex, alpha) -> 
+                                Color(colorHex.toColorInt()).copy(alpha = alpha)
+                            } ?: generateColorFromString(merchantName)
                         )
                         .padding(8.dp)
                 } else {

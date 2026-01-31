@@ -378,7 +378,7 @@ fun HomeScreen(
                 item{
                     Spacer(Modifier.height(Spacing.md))
                 }
-                // Unified Accounts Section (Credit Cards + Bank Accounts)
+
                 if (uiState.creditCards.isNotEmpty() ||
                     uiState.accountBalances.isNotEmpty()
                 ) {
@@ -433,6 +433,7 @@ fun HomeScreen(
                                             alignment = Alignment.Center
                                         )
                                     )
+                                    .skipToLookaheadSize()
                                 )
                             }
                         } else {
@@ -473,7 +474,7 @@ fun HomeScreen(
                                                     boundsTransform = { _, _ ->
                                                         spring(
                                                             stiffness = Spring.StiffnessLow,
-                                                            dampingRatio = Spring.DampingRatioLowBouncy
+                                                            dampingRatio = Spring.DampingRatioNoBouncy
                                                         )
                                                     },
                                                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
@@ -481,6 +482,7 @@ fun HomeScreen(
                                                         alignment = Alignment.Center
                                                     )
                                                 )
+                                                .skipToLookaheadSize()
                                             }
                                         } else Modifier
                                     )
@@ -504,7 +506,7 @@ fun HomeScreen(
                                                     boundsTransform = { _, _ ->
                                                         spring(
                                                             stiffness = Spring.StiffnessLow,
-                                                            dampingRatio = Spring.DampingRatioLowBouncy
+                                                            dampingRatio = Spring.DampingRatioNoBouncy
                                                         )
                                                     },
                                                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
@@ -512,6 +514,7 @@ fun HomeScreen(
                                                         alignment = Alignment.Center
                                                     )
                                                 )
+                                                .skipToLookaheadSize()
                                             }
                                         } else Modifier
                                     )
@@ -544,7 +547,14 @@ fun HomeScreen(
                     }
                 } else if (uiState.recentTransactions.isEmpty()) {
                     item {
-                        CashiroCard(modifier = Modifier.fillMaxWidth()) {
+                        CashiroCard(
+                            modifier = Modifier
+                                .padding(
+                                    start = Dimensions.Padding.content,
+                                    end = Dimensions.Padding.content
+                                )
+                                .fillMaxWidth()
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -722,6 +732,7 @@ fun HomeScreen(
                                         alignment = Alignment.Center
                                     )
                                 )
+                                .skipToLookaheadSize()
                             }
                         } else Modifier
                     ),

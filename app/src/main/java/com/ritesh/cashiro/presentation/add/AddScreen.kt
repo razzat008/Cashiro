@@ -62,6 +62,7 @@ fun AddScreen(
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
                     )
+                    .skipToLookaheadSize()
                 }
             } else {
                 Modifier

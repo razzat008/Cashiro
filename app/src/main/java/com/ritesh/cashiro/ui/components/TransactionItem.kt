@@ -3,6 +3,8 @@ package com.ritesh.cashiro.ui.components
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerBasedShape
@@ -88,8 +90,15 @@ fun TransactionItem(
                 Modifier.sharedBounds(
                     rememberSharedContentState(key = sharedElementKey),
                     animatedVisibilityScope = animatedContentScope,
+                    boundsTransform = { _, _ ->
+                        spring(
+                            stiffness = Spring.StiffnessLow,
+                            dampingRatio = Spring.DampingRatioNoBouncy
+                        )
+                    },
                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
                 )
+                .skipToLookaheadSize()
             }
         } else Modifier
     )

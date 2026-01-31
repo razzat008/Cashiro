@@ -34,14 +34,14 @@ import com.ritesh.cashiro.R
 object DatabaseModule {
 
     /**
-     * Provides the singleton instance of PennyWiseDatabase.
+     * Provides the singleton instance of CashiroDatabase.
      *
      * @param context Application context
      * @return Configured Room database instance
      */
     @Provides
     @Singleton
-    fun providePennyWiseDatabase(@ApplicationContext context: Context): CashiroDatabase {
+    fun provideCashiroDatabase(@ApplicationContext context: Context): CashiroDatabase {
         val database =
             Room.databaseBuilder(
                 context,
@@ -74,7 +74,7 @@ object DatabaseModule {
     /**
      * Provides the TransactionDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return TransactionDao for accessing transaction data
      */
     @Provides
@@ -86,7 +86,7 @@ object DatabaseModule {
     /**
      * Provides the SubscriptionDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return SubscriptionDao for accessing subscription data
      */
     @Provides
@@ -98,7 +98,7 @@ object DatabaseModule {
     /**
      * Provides the ChatDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return ChatDao for accessing chat message data
      */
     @Provides
@@ -110,7 +110,7 @@ object DatabaseModule {
     /**
      * Provides the MerchantMappingDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return MerchantMappingDao for accessing merchant mapping data
      */
     @Provides
@@ -122,7 +122,7 @@ object DatabaseModule {
     /**
      * Provides the CategoryDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return CategoryDao for accessing category data
      */
     @Provides
@@ -134,7 +134,7 @@ object DatabaseModule {
     /**
      * Provides the AccountBalanceDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return AccountBalanceDao for accessing account balance data
      */
     @Provides
@@ -146,7 +146,7 @@ object DatabaseModule {
     /**
      * Provides the UnrecognizedSmsDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return UnrecognizedSmsDao for accessing unrecognized SMS data
      */
     @Provides
@@ -158,7 +158,7 @@ object DatabaseModule {
     /**
      * Provides the CardDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return CardDao for accessing card data
      */
     @Provides
@@ -170,7 +170,7 @@ object DatabaseModule {
     /**
      * Provides the RuleDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return RuleDao for accessing rule data
      */
     @Provides
@@ -182,7 +182,7 @@ object DatabaseModule {
     /**
      * Provides the RuleApplicationDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return RuleApplicationDao for accessing rule application data
      */
     @Provides
@@ -194,7 +194,7 @@ object DatabaseModule {
     /**
      * Provides the ExchangeRateDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The CashiroDatabase instance
      * @return ExchangeRateDao for accessing exchange rate data
      */
     @Provides

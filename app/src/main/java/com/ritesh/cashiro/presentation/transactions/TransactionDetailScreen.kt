@@ -175,11 +175,12 @@ fun TransactionDetailScreen(
                         boundsTransform = { _, _ ->
                             spring(
                                 stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
+                                dampingRatio = Spring.DampingRatioNoBouncy
                             )
                         },
                         resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
                     )
+                    .skipToLookaheadSize()
                 }
             } else Modifier
         ),

@@ -1205,25 +1205,27 @@ object IconProvider {
 
     /**
      * Get color with full fallback chain for transactions
-     * Priority: Brand Color → Subcategory Color → Category Color → null
+     * Priority: Brand Color → Subcategory Color → Category Color → Account Color
+     * Returns: Pair of (colorHex, alpha) where brand colors have full opacity (1.0f)
+     * and other colors have reduced opacity (0.2f)
      */
     fun getColorForTransaction(
         merchantName: String,
         categoryEntity: CategoryEntity? = null,
         subcategoryEntity: SubcategoryEntity? = null,
         accountColorHex: String? = null
-    ): String? {
-        // brand color first
-        BrandIcons.getBrandColor(merchantName)?.let { return it }
+    ): Pair<String, Float>? {
+        // brand color first - full opacity
+        BrandIcons.getBrandColor(merchantName)?.let { return Pair(it, 1.0f) }
 
-        // subcategory color
-        subcategoryEntity?.color?.let { return it }
+        // subcategory color - reduced opacity
+        subcategoryEntity?.color?.let { return Pair(it, 0.2f) }
 
-        // category color
-        categoryEntity?.color?.let { return it }
+        // category color - reduced opacity
+        categoryEntity?.color?.let { return Pair(it, 0.2f) }
 
-        // account color fallback
-        accountColorHex?.let { return it }
+        // account color fallback - reduced opacity
+        accountColorHex?.let { return Pair(it, 0.2f) }
 
         // Return null to use default
         return null

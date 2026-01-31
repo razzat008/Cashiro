@@ -15,8 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TonalToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,14 +33,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.ritesh.cashiro.navigation.AddTransaction
 import com.ritesh.cashiro.navigation.AnimatedNavHost
 import com.ritesh.cashiro.navigation.Subscriptions
@@ -48,8 +52,6 @@ import com.ritesh.cashiro.presentation.home.HomeScreen
 import com.ritesh.cashiro.presentation.home.HomeViewModel
 import com.ritesh.cashiro.presentation.navigation.BottomNavItem
 import com.ritesh.cashiro.presentation.profile.ProfileScreen
-import com.ritesh.cashiro.presentation.subscriptions.SubscriptionsScreen
-import com.ritesh.cashiro.presentation.transactions.TransactionsScreen
 import com.ritesh.cashiro.ui.components.SpotlightTutorial
 import com.ritesh.cashiro.ui.screens.analytics.AnalyticsScreen
 import com.ritesh.cashiro.ui.screens.chat.ChatScreen
@@ -123,9 +125,6 @@ fun MainScreen(
                             ) },
                         navPage("analytics") {
                             AnalyticsScreen(
-                                onNavigateToChat = {
-                                    navController.navigate("chat")
-                                },
                                 onNavigateToTransactions = {
                                     category,
                                     merchant,
@@ -139,9 +138,6 @@ fun MainScreen(
                                             currency = currency
                                         )
                                     )
-                                },
-                                onNavigateToSettings = {
-                                    navController.navigate("settings")
                                 },
                                 sharedTransitionScope = sharedTransitionScope,
                                 animatedContentScope = animatedContentScope
@@ -318,7 +314,8 @@ fun MainScreen(
                                 .shadow(
                                     elevation = 16.dp,
                                     shape = MaterialTheme.shapes.extraLarge
-                                ),
+                                )
+                                .zIndex(1000f),
                             expanded = true,
                         ) {
                             navigationItems.forEach { item ->

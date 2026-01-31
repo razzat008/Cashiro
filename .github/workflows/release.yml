@@ -250,10 +250,10 @@ jobs:
           # Rename universal APK (contains all architectures)
           if [ -f "$STANDARD_PATH/app-standard-universal-release.apk" ]; then
             mv "$STANDARD_PATH/app-standard-universal-release.apk" \
-               "$STANDARD_PATH/PennyWise-v${VERSION}-universal.apk"
+               "$STANDARD_PATH/Cashiro-v${VERSION}-universal.apk"
           elif [ -f "$STANDARD_PATH/app-standard-universal-release-unsigned.apk" ]; then
             mv "$STANDARD_PATH/app-standard-universal-release-unsigned.apk" \
-               "$STANDARD_PATH/PennyWise-v${VERSION}-universal.apk"
+               "$STANDARD_PATH/Cashiro-v${VERSION}-universal.apk"
           fi
           
           # Rename architecture-specific APKs

@@ -656,5 +656,5 @@ data class HomeUiState(
     val profileBackgroundColor: Color = Color.Transparent,
     val unreadUpdatesCount: Int = 0,
     val bannerImageUri: Uri? = null,
-    val showBannerImage: Boolean = true
+    val showBannerImage: Boolean = false
 )

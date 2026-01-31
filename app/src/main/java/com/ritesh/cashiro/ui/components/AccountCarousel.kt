@@ -47,37 +47,69 @@ fun AccountCarousel(
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedContentScope: AnimatedVisibilityScope? = null
 ) {
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        items(bankAccounts) { account ->
+    val totalAccounts = bankAccounts.size + creditCards.size
+    val allAccounts = bankAccounts + creditCards
+    
+    if (totalAccounts == 1) {
+        // Single account - show single wide card
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            val account = allAccounts.first()
             AccountCarouselCard(
                 bankName = account.bankName,
                 accountLast4 = account.accountLast4,
                 balance = account.formatBalance(),
-                subtitle = if (account.isWallet) "Wallet" else "Savings account",
+                subtitle = when {
+                    account.isWallet -> "Wallet"
+                    creditCards.contains(account) -> "Credit Card"
+                    else -> "Savings account"
+                },
                 onClick = { onAccountClick(account.bankName, account.accountLast4) },
                 sharedTransitionScope = sharedTransitionScope,
                 animatedContentScope = animatedContentScope,
                 isWallet = account.isWallet,
                 iconResId = account.iconResId,
-                color = account.color
+                color = account.color,
+                modifier = Modifier.fillMaxWidth()
             )
         }
-        items(creditCards) { card ->
-            AccountCarouselCard(
-                bankName = card.bankName,
-                accountLast4 = card.accountLast4,
-                balance = card.formatBalance(),
-                subtitle = "Credit Card",
-                onClick = { onAccountClick(card.bankName, card.accountLast4) },
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                iconResId = card.iconResId,
-                color = card.color
-            )
+    } else {
+        // Multiple accounts - show as carousel
+        LazyRow(
+            modifier = modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(bankAccounts) { account ->
+                AccountCarouselCard(
+                    bankName = account.bankName,
+                    accountLast4 = account.accountLast4,
+                    balance = account.formatBalance(),
+                    subtitle = if (account.isWallet) "Wallet" else "Savings account",
+                    onClick = { onAccountClick(account.bankName, account.accountLast4) },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
+                    isWallet = account.isWallet,
+                    iconResId = account.iconResId,
+                    color = account.color
+                )
+            }
+            items(creditCards) { card ->
+                AccountCarouselCard(
+                    bankName = card.bankName,
+                    accountLast4 = card.accountLast4,
+                    balance = card.formatBalance(),
+                    subtitle = "Credit Card",
+                    onClick = { onAccountClick(card.bankName, card.accountLast4) },
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedContentScope = animatedContentScope,
+                    iconResId = card.iconResId,
+                    color = card.color
+                )
+            }
         }
     }
 }
@@ -99,7 +131,9 @@ fun AccountCarouselCard(
 ) {
     Surface(
         modifier = modifier
-            .width(220.dp)
+            .then(
+                if (modifier == Modifier) Modifier.width(220.dp) else Modifier.fillMaxWidth()
+            )
             .height(180.dp)
             .clip(RoundedCornerShape(28.dp))
             .clickable(onClick = onClick)
@@ -120,6 +154,7 @@ fun AccountCarouselCard(
                                 alignment = Alignment.Center
                             )
                         )
+                        .skipToLookaheadSize()
                     }
                 } else Modifier
             ),
@@ -133,14 +168,14 @@ fun AccountCarouselCard(
                 .padding(24.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Icon / Logo
-                BrandIcon(
-                    merchantName = bankName,
-                    size = 48.dp,
-                    showBackground = true,
-                    accountIconResId = iconResId,
-                    accountColorHex = color
-                )
+            BrandIcon(
+                merchantName = bankName,
+                size = 48.dp,
+                showBackground = true,
+                accountIconResId = iconResId,
+                accountColorHex = color
+            )
+
             
             Column {
                 Text(

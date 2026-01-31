@@ -257,7 +257,7 @@ class SettingsViewModel @Inject constructor(
             // Create download request
             val request = DownloadManager.Request(Uri.parse(Constants.ModelDownload.MODEL_URL))
                 .setTitle("Qwen 2.5 Chat Model")
-                .setDescription("Downloading AI chat assistant for PennyWise")
+                .setDescription("Downloading AI chat assistant for Cashiro")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, Constants.ModelDownload.MODEL_FILE_NAME)
                 .setAllowedOverMetered(true) // Allow mobile data downloads
@@ -419,7 +419,7 @@ class SettingsViewModel @Inject constructor(
             val notification = NotificationCompat.Builder(context, SmsBroadcastReceiver.CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("Test Notification")
-                .setContentText("This is a test notification from PennyWise.")
+                .setContentText("This is a test notification from Cashiro.")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
@@ -559,7 +559,7 @@ class SettingsViewModel @Inject constructor(
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/octet-stream"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "PennyWise Backup")
+                putExtra(Intent.EXTRA_SUBJECT, "Cashiro Backup")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }

@@ -89,7 +89,7 @@ constructor(@ApplicationContext private val context: Context) {
                         profileBackgroundColor =
                                 preferences[PreferencesKeys.PROFILE_BACKGROUND_COLOR] ?: 0,
                         bannerImageUri = preferences[PreferencesKeys.BANNER_IMAGE_URI],
-                        showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: true
+                        showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: false
                 )
             }
 
@@ -498,5 +498,5 @@ data class UserPreferences(
         val profileImageUri: String? = null,
         val profileBackgroundColor: Int = 0,
         val bannerImageUri: String? = null,
-        val showBannerImage: Boolean = true
+        val showBannerImage: Boolean = false
 )
