@@ -49,6 +49,8 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
     var showNumberPad by remember { mutableStateOf(false) }
     val allSubcategories by viewModel.allSubcategories.collectAsState(initial = emptyMap())
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     val selectedCategoryObj = remember(uiState.category, categories) {
         categories.find { it.name == uiState.category }
     }
@@ -526,6 +528,7 @@ fun SubscriptionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
             if (showNumberPad) {
                 ModalBottomSheet(
                     onDismissRequest = { showNumberPad = false },
+                    sheetState = sheetState,
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {

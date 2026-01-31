@@ -49,6 +49,8 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
     val categories by viewModel.categories.collectAsState()
     val transactionSubcategories by viewModel.transactionSubcategories.collectAsState()
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     val selectedCategoryObj = remember(uiState.category, categories) {
         categories.find { it.name == uiState.category }
     }
@@ -882,6 +884,7 @@ fun TransactionTabContent(viewModel: AddViewModel, onSave: () -> Unit) {
             if (showNumberPad) {
                 ModalBottomSheet(
                     onDismissRequest = { showNumberPad = false },
+                    sheetState = sheetState ,
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {

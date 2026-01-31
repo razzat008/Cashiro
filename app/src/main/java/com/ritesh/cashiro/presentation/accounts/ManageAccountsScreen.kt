@@ -85,6 +85,8 @@ fun ManageAccountsScreen(
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     // Show snackbar messages
     LaunchedEffect(uiState.successMessage) {
         uiState.successMessage?.let {
@@ -586,6 +588,7 @@ fun ManageAccountsScreen(
                 selectedAccount = null
                 selectedAccountEntity = null
             },
+            sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {

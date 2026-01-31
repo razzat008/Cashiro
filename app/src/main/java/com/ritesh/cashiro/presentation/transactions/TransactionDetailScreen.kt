@@ -133,6 +133,8 @@ fun TransactionDetailScreen(
     var showTargetAccountSheet by remember { mutableStateOf(false) }
     var showBillingCycleMenu by remember { mutableStateOf(false) }
 
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     // Show success snackbar
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {
@@ -370,6 +372,7 @@ fun TransactionDetailScreen(
     if (showNumberPad && isEditMode) {
         ModalBottomSheet(
             onDismissRequest = { showNumberPad = false },
+            sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {

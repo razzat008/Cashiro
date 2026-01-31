@@ -60,7 +60,7 @@ fun NumberPad(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(if (doneButtonLabel == "Update Balance") 0.8f else 0.7f)
+            .fillMaxHeight(if (doneButtonLabel == "Update Balance") 0.9f else 0.8f)
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(Spacing.md),
@@ -119,19 +119,25 @@ fun NumberPad(
             }
 
             // Display Area
+            val isCalculation = remember(expression) {
+                expression.any { it in "+-*/%(" }
+            }
+
             Column(
                     modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.md),
                     horizontalAlignment = Alignment.End
             ) {
+                if (isCalculation) {
+                    Text(
+                        text = expression,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.End,
+                        maxLines = 1
+                    )
+                }
                 Text(
-                    text = expression.ifEmpty { "0" },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.End,
-                    maxLines = 1
-                )
-                Text(
-                    text = result,
+                    text = if (isCalculation) result else expression.ifEmpty { "0" },
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -213,6 +219,7 @@ fun NumberPad(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(Spacing.xxl))
         }
         Button(
             onClick = { onDone(result) },
