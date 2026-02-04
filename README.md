@@ -17,7 +17,7 @@
 
 ## Cashiro — Free & Open‑Source, private SMS‑powered expense tracker
 
-A Fork of [PennyWise AI v2.15.42](https://github.com/sarim2000/pennywiseai-tracker) that Turn bank SMS into a clean, searchable money timeline with on-device AI assistance. 100% private, no cloud processing.
+Cashiro is a comprehensive financial tracking manager based on [PennyWise AI v2.15.42](https://github.com/sarim2000/pennywiseai-tracker) that Turn bank SMS into a clean, searchable money timeline with on-device AI assistance. 100% private, no cloud processing.
 
 
 [//]: # ()
@@ -34,7 +34,7 @@ A Fork of [PennyWise AI v2.15.42](https://github.com/sarim2000/pennywiseai-track
 
 ## Overview
 
-For Android users worldwide who want automatic expense tracking from bank SMS — clean categories, subscription detection, and clear insights. Supporting 40+ banks across 5 countries with multi-currency capabilities.
+For Android users worldwide who want comprehensive financial tracking — automatic expense tracking from bank SMS, manual cash entry, budgeting, clean categories, subscription detection, and clear insights. Supporting 40+ banks across 5 countries with multi-currency capabilities.
 
 [//]: # (<a href="https://play.google.com/store/apps/details?id=com.pennywiseai.tracker">)
 
@@ -57,11 +57,16 @@ For Android users worldwide who want automatic expense tracking from bank SMS �
 ## Why Cashiro
 
 - **🤖 Smart SMS Parsing** - Automatically extracts transaction details from 40+ banks across 5 countries
+- **💰 Smart Budgeting** - Set and track monthly budgets with visual progress indicators
+- **👛 Cash Wallet** - Dedicated default wallet for tracking cash expenses
+- **📂 Custom Categories** - Create and manage custom categories and subcategories
+- **📈 Advanced Visualizations** - Interactive animated Line, Bar, and Heatmap graphs
+- **👤 User Profiles** - Support for personal user profiles
+- **🔔 Smart Notifications** - Alerts and reminders for important financial events
 - **🌍 Multi-Currency Support** - Native support for ₹, $, د.إ, ₨, ብር with proper localization
 - **📊 Clear Insights** - Analytics and charts to instantly see where money goes
 - **🔄 Subscription Tracking** - Detects and monitors recurring payments
 - **💬 On-device AI Assistant** - Ask questions like "What did I spend on food last month?" locally
-- **🏷️ Auto‑Categorization** - Clean merchant names and sensible categories and subcategories
 - **📤 Data Export** - Export as CSV or PDF for taxes or records
 
 ## Supported Banks & Countries
@@ -163,6 +168,28 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 **Architecture**: MVVM • Jetpack Compose • Room • Coroutines • Hilt • MediaPipe AI • Material Design 3
 
+## Project Structure
+
+The app follows a modern Android architecture guideline, separating concerns into Data, Domain, and Presentation layers.
+
+```
+com.ritesh.cashiro
+├── data                # Data layer (Repositories, Room Database, Data Sources)
+│   ├── database        # Room entities and DAOs
+│   ├── repository      # Repository implementations
+│   ├── manager         # SMS and Notification managers
+│   └── preferences     # DataStore preferences
+├── domain              # Domain layer (Use Cases, Models)
+├── presentation        # UI layer (Jetpack Compose)
+│   ├── ui              # Composable screens and components
+│   │   ├── features    # Feature-specific screens (Transactions, Budget, etc.)
+│   │   └── components  # Reusable UI components
+│   ├── viewmodel       # Feature viewmodels
+│   └── navigation      # Navigation graph and destinations
+├── di                  # Dependency Injection (Hilt Modules)
+└── utils               # Utility classes and extensions
+```
+
 ## Community & Support
 
 [//]: # (- **Discord**: Join the community, share feedback, and get help — [Join Discord]&#40;https://discord.gg/H3xWeMWjKQ&#41;)
@@ -209,6 +236,15 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 [//]: # (## Star History)
 
 [//]: # ([![Star History Chart]&#40;https://api.star-history.com/svg?repos=sarim2000/pennywiseai-tracker&type=Date&#41;]&#40;https://star-history.com/#sarim2000/pennywiseai-tracker&Date&#41;)
+
+## Acknowledgements
+
+Special thanks to the following projects and resources:
+
+- **[PennyWise AI](https://github.com/sarim2000/pennywiseai-tracker)** - The foundation of this project.
+- **[Microsoft Fluent Emojis](https://github.com/microsoft/fluentui-emoji)** - Beautiful emojis used for category icons.
+- **[Haze](https://chrisbanes.github.io/haze/latest/)** - Applied for stunning blur effects.
+- **[Compose Charts](https://github.com/ehsannarmani/ComposeCharts)** - Used for creating animated charts and graphs.
 
 ## License
 
