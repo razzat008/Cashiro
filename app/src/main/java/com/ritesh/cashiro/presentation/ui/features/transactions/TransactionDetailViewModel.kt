@@ -431,33 +431,32 @@ class TransactionDetailViewModel @Inject constructor(
     fun getReportUrl(): String {
         val txn = _uiState.value.transaction ?: return ""
 
-        // Use the original SMS body if available
         val smsBody = txn.smsBody ?: "Transaction: ${txn.merchantName} - ${txn.amount}"
+        val sender = txn.smsSender ?: "Unknown Sender"
+        val bank = txn.bankName ?: "Manual"
 
-        // Use the original SMS sender if available
-        val sender = txn.smsSender ?: ""
+        val issueTitle = "[Parsing Issue] ${txn.merchantName} - ${txn.amount}"
+        val issueBody = """
+            ### Transaction Details
+            - **Merchant:** ${txn.merchantName}
+            - **Amount:** ${txn.amount} ${txn.currency}
+            - **Type:** ${txn.transactionType}
+            - **Bank:** $bank
+            - **Sender:** $sender
+            
+            ### Original SMS
+            ```
+            $smsBody
+            ```
+            
+            ### Expected Behavior
+            _Describe what was wrong (e.g., wrong category, wrong date, etc.)_
+        """.trimIndent()
 
-        Log.d("TransactionDetailVM", "Generating report URL for transaction")
+        val encodedTitle = URLEncoder.encode(issueTitle, "UTF-8")
+        val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
 
-        // URL encode the parameters
-        val encodedMessage = URLEncoder.encode(smsBody, "UTF-8")
-        val encodedSender = URLEncoder.encode(sender, "UTF-8")
-
-        // Encrypt device data for verification
-        val encryptedDeviceData =
-            DeviceEncryption.encryptDeviceData(context)
-        val encodedDeviceData = if (encryptedDeviceData != null) {
-            URLEncoder.encode(encryptedDeviceData, "UTF-8")
-        } else {
-            ""
-        }
-
-        // Create the report URL using hash fragment for privacy
-        val url =
-            "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&device=$encodedDeviceData&autoparse=true"
-        Log.d("TransactionDetailVM", "Report URL: ${url.take(200)}...")
-
-        return url
+        return "https://github.com/ritesh-kanwar/Cashiro/issues/new?title=$encodedTitle&body=$encodedBody"
     }
 
     fun showDeleteDialog() {

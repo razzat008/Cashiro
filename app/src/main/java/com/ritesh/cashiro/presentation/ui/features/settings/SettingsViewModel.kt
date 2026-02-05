@@ -514,24 +514,25 @@ class SettingsViewModel @Inject constructor(
                 val firstUnreported = unrecognizedSmsRepository.getFirstUnreported()
 
                 if (firstUnreported != null) {
-                    // URL encode the parameters
-                    val encodedMessage = URLEncoder.encode(firstUnreported.smsBody, "UTF-8")
-                    val encodedSender = URLEncoder.encode(firstUnreported.sender, "UTF-8")
+                    val issueTitle = "[Unrecognized SMS] From: ${firstUnreported.sender}"
+                    val issueBody = """
+                        ### Unrecognized SMS Details
+                        - **Sender:** ${firstUnreported.sender}
+                        - **Date:** ${firstUnreported.receivedAt}
+                        
+                        ### Original SMS
+                        ```
+                        ${firstUnreported.smsBody}
+                        ```
+                        
+                        ### Expected Behavior
+                        _Describe how this SMS should have been parsed_
+                    """.trimIndent()
 
-                    // Encrypt device data for verification
-                    val encryptedDeviceData = com.ritesh.cashiro.utils.DeviceEncryption.encryptDeviceData(context)
-                    Log.d("SettingsViewModel", "Encrypted device data: ${encryptedDeviceData?.take(50)}... (length: ${encryptedDeviceData?.length})")
+                    val encodedTitle = URLEncoder.encode(issueTitle, "UTF-8")
+                    val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
 
-                    val encodedDeviceData = if (encryptedDeviceData != null) {
-                        URLEncoder.encode(encryptedDeviceData, "UTF-8")
-                    } else {
-                        ""
-                    }
-                    Log.d("SettingsViewModel", "Encoded device data: ${encodedDeviceData.take(50)}... (length: ${encodedDeviceData.length})")
-
-                    // Create the report URL using hash fragment for privacy
-                    val url = "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&device=$encodedDeviceData&autoparse=true"
-                    Log.d("SettingsViewModel", "Full URL length: ${url.length}")
+                    val url = "https://github.com/ritesh-kanwar/Cashiro/issues/new?title=$encodedTitle&body=$encodedBody"
 
                     // Open in browser
                     val intent = Intent(Intent.ACTION_VIEW, url.toUri())

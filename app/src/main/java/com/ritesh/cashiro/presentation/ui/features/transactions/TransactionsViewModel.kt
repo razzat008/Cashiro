@@ -684,25 +684,32 @@ class TransactionsViewModel @Inject constructor(
     }
     
     fun getReportUrl(transaction: TransactionEntity): String {
-        // If we have the original SMS body, create report URL
-        val smsBody = transaction.smsBody ?: ""
-        // Use the original SMS sender if available
-        val sender = transaction.smsSender ?: ""
-        
-        // URL encode the parameters
-        val encodedMessage = URLEncoder.encode(smsBody, "UTF-8")
-        val encodedSender = URLEncoder.encode(sender, "UTF-8")
-        
-        // Encrypt device data for verification
-        val encryptedDeviceData = DeviceEncryption.encryptDeviceData(context)
-        val encodedDeviceData = if (encryptedDeviceData != null) {
-            URLEncoder.encode(encryptedDeviceData, "UTF-8")
-        } else {
-            ""
-        }
-        
-        // Create the report URL using hash fragment for privacy
-        return "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&device=$encodedDeviceData&autoparse=true"
+        val smsBody = transaction.smsBody ?: "Transaction: ${transaction.merchantName} - ${transaction.amount}"
+        val sender = transaction.smsSender ?: "Unknown Sender"
+        val bank = transaction.bankName ?: "Manual"
+
+        val issueTitle = "[Parsing Issue] ${transaction.merchantName} - ${transaction.amount}"
+        val issueBody = """
+            ### Transaction Details
+            - **Merchant:** ${transaction.merchantName}
+            - **Amount:** ${transaction.amount} ${transaction.currency}
+            - **Type:** ${transaction.transactionType}
+            - **Bank:** $bank
+            - **Sender:** $sender
+            
+            ### Original SMS
+            ```
+            $smsBody
+            ```
+            
+            ### Expected Behavior
+            _Describe what was wrong (e.g., wrong category, wrong date, etc.)_
+        """.trimIndent()
+
+        val encodedTitle = URLEncoder.encode(issueTitle, "UTF-8")
+        val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
+
+        return "https://github.com/ritesh-kanwar/Cashiro/issues/new?title=$encodedTitle&body=$encodedBody"
     }
     
 }

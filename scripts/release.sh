@@ -422,32 +422,5 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     fi
 fi
 
-# 12. Deploy webapp (optional)
-echo ""
-read -p "Deploy webapp (pennywise-web) to Cloudflare? (y/n) " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo -e "${YELLOW}🌐 Deploying webapp to Cloudflare...${NC}"
-
-    WEBAPP_DIR="$ORIGINAL_DIR/pennywise-web"
-
-    if [ -d "$WEBAPP_DIR" ]; then
-        if [ -f "$WEBAPP_DIR/deploy.sh" ]; then
-            cd "$WEBAPP_DIR"
-            if bash deploy.sh; then
-                echo -e "${GREEN}✅ Webapp deployed successfully${NC}"
-            else
-                echo -e "${RED}❌ Webapp deployment failed${NC}"
-                echo -e "${YELLOW}You can retry manually: cd pennywise-web && ./deploy.sh${NC}"
-            fi
-            cd "$ORIGINAL_DIR"
-        else
-            echo -e "${RED}❌ deploy.sh not found in pennywise-web${NC}"
-        fi
-    else
-        echo -e "${RED}❌ pennywise-web directory not found${NC}"
-    fi
-fi
-
-echo ""
+# 12. Complete
 echo -e "${GREEN}✨ Release $NEXT_VERSION complete!${NC}"

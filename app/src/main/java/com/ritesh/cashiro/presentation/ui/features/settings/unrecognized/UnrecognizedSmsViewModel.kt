@@ -52,24 +52,25 @@ class UnrecognizedSmsViewModel @Inject constructor(
     fun reportMessage(message: UnrecognizedSmsEntity) {
         viewModelScope.launch {
             try {
-                // URL encode the parameters
-                val encodedMessage = URLEncoder.encode(message.smsBody, "UTF-8")
-                val encodedSender = URLEncoder.encode(message.sender, "UTF-8")
-                
-                // Encrypt device data for verification
-                val encryptedDeviceData = DeviceEncryption.encryptDeviceData(context)
-                Log.d("UnrecognizedSmsViewModel", "Encrypted device data: ${encryptedDeviceData?.take(50)}... (length: ${encryptedDeviceData?.length})")
-                
-                val encodedDeviceData = if (encryptedDeviceData != null) {
-                    URLEncoder.encode(encryptedDeviceData, "UTF-8")
-                } else {
-                    ""
-                }
-                Log.d("UnrecognizedSmsViewModel", "Encoded device data: ${encodedDeviceData.take(50)}... (length: ${encodedDeviceData.length})")
-                
-                // Create the report URL using hash fragment for privacy
-                val url = "${Constants.Links.WEB_PARSER_URL}/#message=$encodedMessage&sender=$encodedSender&device=$encodedDeviceData&autoparse=true"
-                Log.d("UnrecognizedSmsViewModel", "Full URL length: ${url.length}")
+                val issueTitle = "[Unrecognized SMS] From: ${message.sender}"
+                val issueBody = """
+                    ### Unrecognized SMS Details
+                    - **Sender:** ${message.sender}
+                    - **Date:** ${message.receivedAt}
+                    
+                    ### Original SMS
+                    ```
+                    ${message.smsBody}
+                    ```
+                    
+                    ### Expected Behavior
+                    _Describe how this SMS should have been parsed (e.g., this is a transaction of 500 INR from HDFC bank)_
+                """.trimIndent()
+
+                val encodedTitle = URLEncoder.encode(issueTitle, "UTF-8")
+                val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
+
+                val url = "https://github.com/ritesh-kanwar/Cashiro/issues/new?title=$encodedTitle&body=$encodedBody"
                 
                 // Open in browser
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
