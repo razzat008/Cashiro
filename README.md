@@ -1,8 +1,8 @@
 <a name="top"></a>
 [![Cashiro Banner](banner.png)](https://github.com/sarim2000/pennywiseai-tracker)
 [![GitHub stars](https://img.shields.io/github/stars/sarim2000/pennywiseai-tracker?style=social)](https://github.com/sarim2000/pennywiseai-tracker)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Android](https://img.shields.io/badge/Android-12+-3DDC84)](https://developer.android.com/about/versions/12)
+[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](LICENSE)
+[![Android](https://img.shields.io/badge/Android-8.0+-3DDC84)](https://developer.android.com/about/versions/oreo)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF)](https://kotlinlang.org/)
 [![Privacy](https://img.shields.io/badge/AI-100%25_On--Device-FF6B6B)](https://developers.google.com/mediapipe)
 
@@ -155,7 +155,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ### Requirements
 
-- Android 12+ (API 31)
+- Android 8.0+ (API 26)
 - Android Studio Ladybug or newer
 - JDK 11
 
@@ -182,9 +182,8 @@ com.ritesh.cashiro
 ├── domain              # Domain layer (Use Cases, Models)
 ├── presentation        # UI layer (Jetpack Compose)
 │   ├── ui              # Composable screens and components
-│   │   ├── features    # Feature-specific screens (Transactions, Budget, etc.)
+│   │   ├── features    # Feature-specific screens and viewmodels (Transactions, Budget, etc.)
 │   │   └── components  # Reusable UI components
-│   ├── viewmodel       # Feature viewmodels
 │   └── navigation      # Navigation graph and destinations
 ├── di                  # Dependency Injection (Hilt Modules)
 └── utils               # Utility classes and extensions
@@ -248,7 +247,7 @@ Special thanks to the following projects and resources:
 
 ## License
 
-MIT License - see [LICENSE](LICENSE)
+GNU General Public License v3.0 - see [LICENSE](LICENSE)
 
 ---
 
