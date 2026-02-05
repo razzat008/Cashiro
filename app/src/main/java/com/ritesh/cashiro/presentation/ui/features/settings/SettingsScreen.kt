@@ -994,18 +994,15 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
-                        onClick = { onNavigateToFaq() },
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                "https://github.com/ritesh-kanwar/Cashiro/issues/new/choose".toUri()
+                            )
+                            context.startActivity(intent)
+                        },
                         shape = ListItemPosition.Bottom.toShape(),
-                        padding = PaddingValues(0.dp),
-                        modifier =
-                            Modifier.clickable {
-                                val intent =
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        "https://github.com/ritesh-kanwar/Cashiro/issues/new/choose".toUri()
-                                    )
-                                context.startActivity(intent)
-                            }
+                        padding = PaddingValues(0.dp)
                     )
                 }
 
