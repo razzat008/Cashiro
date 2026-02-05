@@ -40,6 +40,11 @@ fun SharedTransitionScope.AddScreen(
     )
     val coroutineScope = rememberCoroutineScope()
 
+    // Reset state when screen is opened to avoid stale data from previous entries
+    LaunchedEffect(Unit) {
+        addViewModel.resetAllStates()
+    }
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }

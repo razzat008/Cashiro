@@ -94,6 +94,10 @@ constructor(
         _subscriptionSubcategories.asStateFlow()
 
     init {
+        initializeData()
+    }
+
+    private fun initializeData() {
         // Load default subcategories for both tabs
         updateTransactionSubcategories("Miscellaneous")
         updateSubscriptionSubcategories("Subscription")
@@ -113,6 +117,12 @@ constructor(
                 }
             }
         }
+    }
+
+    fun resetAllStates() {
+        _transactionUiState.value = TransactionUiState()
+        _subscriptionUiState.value = SubscriptionUiState()
+        initializeData()
     }
 
     // Transaction Tab Functions
