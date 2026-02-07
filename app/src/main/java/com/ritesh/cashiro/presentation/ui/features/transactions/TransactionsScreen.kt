@@ -69,7 +69,6 @@ fun SharedTransitionScope.TransactionsScreen(
     transactionsViewModel: TransactionsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
     onTransactionClick: (Long, String) -> Unit = { _, _ -> },
-    onAddTransactionClick: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     animatedContentScope: AnimatedVisibilityScope? = null
 ) {

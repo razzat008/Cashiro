@@ -103,7 +103,6 @@ import java.time.temporal.ChronoUnit
 fun SubscriptionsScreen(
     subscriptionsViewModel: SubscriptionsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
-    onAddSubscriptionClick: () -> Unit = {},
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedContentScope: AnimatedVisibilityScope? = null
 ) {
@@ -164,39 +163,6 @@ fun SubscriptionsScreen(
                 hazeState = hazeState,
                 navigationContent = { NavigationContent(onNavigateBack) }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddSubscriptionClick,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.then(
-                    if (sharedTransitionScope != null && animatedContentScope != null) {
-                        with(sharedTransitionScope) {
-                            Modifier.sharedBounds(
-                                rememberSharedContentState(key = "fab_to_add"),
-                                animatedVisibilityScope = animatedContentScope,
-                                boundsTransform = { _, _ ->
-                                    spring(
-                                        stiffness = Spring.StiffnessLow,
-                                        dampingRatio = Spring.DampingRatioLowBouncy
-                                    )
-                                },
-                                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                    contentScale = ContentScale.FillBounds,
-                                    alignment = Alignment.Center
-                                )
-                            )
-                            .skipToLookaheadSize()
-                        }
-                    } else Modifier
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Subscription"
-                )
-            }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->

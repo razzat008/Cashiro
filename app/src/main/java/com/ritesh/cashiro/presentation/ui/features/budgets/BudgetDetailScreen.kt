@@ -65,7 +65,6 @@ import dev.chrisbanes.haze.hazeSource
 fun SharedTransitionScope.BudgetDetailScreen(
     budgetId: Long,
     onNavigateBack: () -> Unit,
-    onAddTransaction: () -> Unit,
     onTransactionClick: (Long, String?) -> Unit,
     budgetViewModel: BudgetViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
@@ -192,15 +191,6 @@ fun SharedTransitionScope.BudgetDetailScreen(
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddTransaction,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Transaction")
-            }
         }
     ) { paddingValues ->
         Box(

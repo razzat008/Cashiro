@@ -127,6 +127,8 @@ fun CashiroNavHost(
     val isHomeScreen = currentRoute?.contains(Home::class.qualifiedName ?: "") == true
     val isTransactionsScreen = currentRoute?.contains(Transactions::class.qualifiedName ?: "") == true
     val isAddTransactionScreen = currentRoute?.contains(AddTransaction::class.qualifiedName ?: "") == true
+    val isSubscriptionsScreen = currentRoute?.contains(Subscriptions::class.qualifiedName ?: "") == true
+    val isBudgetDetailScreen = currentRoute?.contains(BudgetDetail::class.qualifiedName ?: "") == true
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -452,9 +454,6 @@ fun CashiroNavHost(
                 ) {
                     SubscriptionsScreen(
                         onNavigateBack = { navController.safePopBackStack() },
-                        onAddSubscriptionClick = {
-                            navController.safeNavigate(AddTransaction(initialTab = 1))
-                        },
                         sharedTransitionScope = this@SharedTransitionLayout,
                         animatedContentScope = this@composable
                     )
@@ -478,9 +477,6 @@ fun CashiroNavHost(
                         onNavigateBack = { navController.safePopBackStack() },
                         onTransactionClick = { transactionId, key ->
                             navController.safeNavigate(TransactionDetail(transactionId, key))
-                        },
-                        onAddTransactionClick = {
-                            navController.safeNavigate(AddTransaction())
                         },
                         onNavigateToSettings = {
                             navController.safeNavigate(Settings)
@@ -516,7 +512,6 @@ fun CashiroNavHost(
                     BudgetDetailScreen(
                         budgetId = budgetDetail.budgetId,
                         onNavigateBack = { navController.safePopBackStack() },
-                        onAddTransaction = { navController.safeNavigate(AddTransaction()) },
                         onTransactionClick = { transactionId, key ->
                             navController.safeNavigate(TransactionDetail(transactionId, key))
                         },
@@ -547,12 +542,12 @@ fun CashiroNavHost(
                 )
             }
 
-            // FABs Container - Only shown on HomeScreen and TransactionsScreen
+            // FABs Container - Shown on Home, Transactions, Subscriptions, and Budget Detail
             Box(
                 modifier = Modifier.fillMaxSize()
             ) {
                 AnimatedVisibility(
-                    visible = isHomeScreen || isTransactionsScreen,
+                    visible = isHomeScreen || isTransactionsScreen || isSubscriptionsScreen || isBudgetDetailScreen,
                     enter = fadeIn() + scaleIn(),
                     exit = fadeOut() + scaleOut(),
                     modifier = Modifier
@@ -560,8 +555,8 @@ fun CashiroNavHost(
                         .padding(Dimensions.Padding.content)
                         .padding(
                             bottom = when (themeUiState.navigationBarStyle) {
-                                NavigationBarStyle.FLOATING if isHomeScreen -> 56.dp
-                                NavigationBarStyle.NORMAL if isHomeScreen -> 84.dp
+                                NavigationBarStyle.FLOATING if showBottomNav -> 56.dp
+                                NavigationBarStyle.NORMAL if showBottomNav -> 84.dp
                                 else -> 10.dp
                             }
                         )
@@ -571,52 +566,57 @@ fun CashiroNavHost(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
-                        // Secondary FAB (Sync or Download)
-                        SmallFloatingActionButton(
-                            onClick = {
+                        // Secondary FAB (Sync or Download) - Only on Home and Transactions
+                        if (isHomeScreen || isTransactionsScreen) {
+                            SmallFloatingActionButton(
+                                onClick = {
+                                    if (isHomeScreen) {
+                                        view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                                        homeViewModel.scanSmsMessages()
+                                    } else if (isTransactionsScreen) {
+                                        showExportDialog = true
+                                    }
+                                },
+                                modifier = Modifier.pointerInput(isHomeScreen) {
+                                    if (isHomeScreen) {
+                                        detectTapGestures(
+                                            onLongPress = {
+                                                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                                                showFullResyncDialog = true
+                                            }
+                                        )
+                                    } else {
+                                        // Use default click handling for Transactions screen
+                                        detectTapGestures(onTap = {
+                                            if (isTransactionsScreen) showExportDialog = true
+                                        })
+                                    }
+                                },
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            ) {
                                 if (isHomeScreen) {
-                                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                                    homeViewModel.scanSmsMessages()
-                                } else if (isTransactionsScreen) {
-                                    showExportDialog = true
-                                }
-                            },
-                            modifier = Modifier.pointerInput(isHomeScreen) {
-                                if (isHomeScreen) {
-                                    detectTapGestures(
-                                        onLongPress = {
-                                            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                                            showFullResyncDialog = true
-                                        }
+                                    Icon(
+                                        imageVector = Icons.Default.Sync,
+                                        contentDescription = "Sync SMS transactions",
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 } else {
-                                    // Use default click handling for Transactions screen
-                                    detectTapGestures(onTap = { 
-                                         if (isTransactionsScreen) showExportDialog = true 
-                                    })
+                                    Icon(
+                                        imageVector = Icons.Default.FileDownload,
+                                        contentDescription = "Export Transactions",
+                                        modifier = Modifier.size(20.dp)
+                                    )
                                 }
-                            },
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                        ) {
-                            if (isHomeScreen) {
-                                Icon(
-                                    imageVector = Icons.Default.Sync,
-                                    contentDescription = "Sync SMS transactions",
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.FileDownload,
-                                    contentDescription = "Export Transactions",
-                                    modifier = Modifier.size(20.dp)
-                                )
                             }
                         }
 
                         // Add FAB
                         FloatingActionButton(
-                            onClick = { navController.safeNavigate(AddTransaction()) },
+                            onClick = { 
+                                val initialTab = if (isSubscriptionsScreen) 1 else 0
+                                navController.safeNavigate(AddTransaction(initialTab = initialTab)) 
+                            },
                             modifier = Modifier.then(
                                 Modifier.sharedBounds(
                                     rememberSharedContentState(key = "fab_to_add"),

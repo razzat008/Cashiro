@@ -50,12 +50,9 @@ fun SharedTransitionScope.AddScreen(
     val hazeState = remember { HazeState() }
     
     // Track if a transition is currently running to prevent race conditions in UI interaction
-    val isTransitioning = animatedVisibilityScope.transition.let { 
-        it.currentState != it.targetState 
+    val isTransitioning = animatedVisibilityScope.transition.let {
+        it.currentState != it.targetState
     }
-
-    // Intercept back button during transition to prevent double-pops or desync
-    BackHandler(enabled = isTransitioning) { }
 
     val tabs = listOf("Transaction", "Subscription")
 
