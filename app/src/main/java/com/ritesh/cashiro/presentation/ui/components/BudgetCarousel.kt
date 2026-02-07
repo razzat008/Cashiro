@@ -11,6 +11,11 @@ import com.ritesh.cashiro.data.repository.BudgetWithSpending
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import com.ritesh.cashiro.presentation.effects.overScrollVertical
+import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 
 /**
  * Carousel component for displaying multiple budgets.
@@ -28,6 +33,8 @@ fun SharedTransitionScope.BudgetCarousel(
     val isTransitioning = animatedVisibilityScope?.transition?.let { 
         it.currentState != it.targetState 
     } ?: false
+    val lazyListState = rememberLazyListState()
+
 
     if (budgets.isEmpty()) return
     
@@ -50,7 +57,9 @@ fun SharedTransitionScope.BudgetCarousel(
     } else {
         // Multiple budgets - show as carousel
         LazyRow(
-            modifier = modifier.fillMaxWidth(),
+            state = lazyListState,
+            modifier = modifier.fillMaxWidth().overScrollVertical(),
+            flingBehavior = rememberOverscrollFlingBehavior { lazyListState },
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             userScrollEnabled = !isTransitioning

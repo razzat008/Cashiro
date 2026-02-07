@@ -246,7 +246,14 @@ fun EditAccountSheet(
                             isCreditCard = false
                             isWallet = false 
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+                        colors = SegmentedButtonDefaults.colors(
+                            inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                            inactiveBorderColor = Color.Transparent,
+                            activeBorderColor = Color.Transparent
+                        ),
+                        icon = {}
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AccountBalance, null, modifier = Modifier.size(18.dp))
@@ -260,13 +267,20 @@ fun EditAccountSheet(
                             isCreditCard = true
                             isWallet = false 
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+                        colors = SegmentedButtonDefaults.colors(
+                            inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                            inactiveBorderColor = Color.Transparent,
+                            activeBorderColor = Color.Transparent
+                        ),
+                        icon = {}
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.CreditCard, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("Credit Card")
+                            Text("Card")
                         }
                     }
                     SegmentedButton(
@@ -279,7 +293,14 @@ fun EditAccountSheet(
                             iconResId = R.drawable.type_finance_dollar_banknote
                             colorHex = "#8BC34A"
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+                        colors = SegmentedButtonDefaults.colors(
+                            inactiveContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            inactiveContentColor = MaterialTheme.colorScheme.onSurface,
+                            inactiveBorderColor = Color.Transparent,
+                            activeBorderColor = Color.Transparent
+                        ),
+                        icon = {}
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AccountBalanceWallet, null, modifier = Modifier.size(18.dp))
@@ -606,7 +627,7 @@ fun EditAccountSheet(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     )
                 ) {
-                    Column(modifier = Modifier.padding(Spacing.md)) {
+                    Column{
                         ColorPickerContent(
                             initialColor = colorHex.toColorInt(),
                             onColorChanged = { colorInt ->

@@ -66,7 +66,7 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
             BudgetEntity::class,
             BudgetCategoryLimitEntity::class
         ],
-    version = 38,
+    version = 39,
     exportSchema = true,
     autoMigrations =
         [
@@ -80,7 +80,8 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
             AutoMigration(from = 34, to = 35, spec = Migration34To35::class),
             AutoMigration(from = 35, to = 36),
             AutoMigration(from = 36, to = 37),
-            AutoMigration(from = 37, to = 38)
+            AutoMigration(from = 37, to = 38),
+            AutoMigration(from = 38, to = 39)
         ]
 )
 @TypeConverters(Converters::class)

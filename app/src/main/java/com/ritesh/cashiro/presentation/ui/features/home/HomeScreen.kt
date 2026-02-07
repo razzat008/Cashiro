@@ -395,32 +395,6 @@ fun SharedTransitionScope.HomeScreen(
                     Spacer(Modifier.height(Spacing.md))
                 }
 
-                // Budgets Carousel
-                if (uiState.activeBudgets.isNotEmpty()) {
-                    item {
-                       var lastBudgetClickTime by remember { mutableLongStateOf(0L) }
-                       BudgetCarousel(
-                            budgets = uiState.activeBudgets,
-                            onBudgetClick = {
-                                val currentTime = System.currentTimeMillis()
-                                if (currentTime - lastBudgetClickTime > 500) {
-                                    lastBudgetClickTime = currentTime
-                                    onNavigateToBudgets(it)
-                                }
-                            },
-                            onEditClick = {
-                               val currentTime = System.currentTimeMillis()
-                               if (currentTime - lastBudgetClickTime > 500) {
-                                 lastBudgetClickTime = currentTime
-                                 onNavigateToBudgets(it) 
-                               }
-                            },
-                            modifier = Modifier.padding(bottom = Spacing.md),
-                            animatedVisibilityScope = animatedContentScope
-                        )
-                    }
-                }
-
                 if (uiState.creditCards.isNotEmpty() ||
                     uiState.accountBalances.isNotEmpty()
                 ) {
@@ -629,6 +603,32 @@ fun SharedTransitionScope.HomeScreen(
                             ),
                             animatedContentScope = animatedContentScope,
                             sharedElementKey = "transaction_${transaction.id}"
+                        )
+                    }
+                }
+                item { Spacer(modifier = Modifier.height(Spacing.md)) }
+                // Budgets Carousel
+                if (uiState.activeBudgets.isNotEmpty()) {
+                    item {
+                        var lastBudgetClickTime by remember { mutableLongStateOf(0L) }
+                        BudgetCarousel(
+                            budgets = uiState.activeBudgets,
+                            onBudgetClick = {
+                                val currentTime = System.currentTimeMillis()
+                                if (currentTime - lastBudgetClickTime > 500) {
+                                    lastBudgetClickTime = currentTime
+                                    onNavigateToBudgets(it)
+                                }
+                            },
+                            onEditClick = {
+                                val currentTime = System.currentTimeMillis()
+                                if (currentTime - lastBudgetClickTime > 500) {
+                                    lastBudgetClickTime = currentTime
+                                    onNavigateToBudgets(it)
+                                }
+                            },
+                            modifier = Modifier.padding(bottom = Spacing.md),
+                            animatedVisibilityScope = animatedContentScope
                         )
                     }
                 }

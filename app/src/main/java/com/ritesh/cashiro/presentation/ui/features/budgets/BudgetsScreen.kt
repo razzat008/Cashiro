@@ -1,38 +1,64 @@
 package com.ritesh.cashiro.presentation.ui.features.budgets
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
-import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesViewModel
-import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
-import com.ritesh.cashiro.presentation.ui.components.BudgetCard
-import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.BudgetCard
+import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
+import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesViewModel
+import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
     ExperimentalMaterial3ExpressiveApi::class
@@ -40,6 +66,7 @@ import androidx.compose.ui.layout.ContentScale
 @Composable
 fun SharedTransitionScope.BudgetsScreen(
     onNavigateBack: () -> Unit,
+    onBudgetClick: (Long, String?) -> Unit,
     budgetViewModel: BudgetViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
     animatedContentScope: AnimatedContentScope? = null,
@@ -71,9 +98,16 @@ fun SharedTransitionScope.BudgetsScreen(
                 budgetState = editBudgetState,
                 categories = categories,
                 subcategoriesMap = subcategories,
+                allAccounts = uiState.allAccounts,
                 onAmountChange = budgetViewModel::updateBudgetAmount,
                 onNameChange = budgetViewModel::updateBudgetName,
-                onMonthChange = budgetViewModel::updateBudgetMonth,
+                onStartDateChange = budgetViewModel::updateStartDate,
+                onEndDateChange = budgetViewModel::updateEndDate,
+                onPeriodTypeChange = budgetViewModel::updatePeriodType,
+                onTrackTypeChange = budgetViewModel::updateTrackType,
+                onBudgetTypeChange = budgetViewModel::updateBudgetType,
+                onAccountIdsChange = budgetViewModel::updateAccountIds,
+                onColorChange = budgetViewModel::updateColor,
                 onAddCategoryLimit = budgetViewModel::addCategoryLimit,
                 onRemoveCategoryLimit = budgetViewModel::removeCategoryLimit,
                 onSave = {
@@ -213,6 +247,7 @@ fun SharedTransitionScope.BudgetsScreen(
                                 }
                             }
                         },
+                        onBudgetClick = onBudgetClick,
                         animatedContentScope = animatedContentScope,
                         sharedElementPrefix = sharedElementPrefix
                     )
@@ -227,15 +262,12 @@ fun SharedTransitionScope.BudgetsScreen(
 private fun SharedTransitionScope.BudgetsList(
     budgets: List<BudgetWithSpending>,
     onEditClick: (Long) -> Unit,
+    onBudgetClick: (Long, String?) -> Unit,
     paddingValues: PaddingValues,
     lazyListState: LazyListState,
     animatedContentScope: AnimatedContentScope? = null,
     sharedElementPrefix: Long? = null
 ) {
-    val isTransitioning = animatedContentScope?.transition?.let { 
-        it.currentState != it.targetState 
-    } ?: false
-
     LazyColumn(
         state = lazyListState,
         modifier = Modifier
@@ -247,7 +279,7 @@ private fun SharedTransitionScope.BudgetsList(
             start = Spacing.md,
             end = Spacing.md,
             top = Spacing.md + paddingValues.calculateTopPadding(),
-            bottom = 100.dp // Space for FAB
+            bottom = 100.dp
         ),
         verticalArrangement = Arrangement.spacedBy(Spacing.md),
     ) {
@@ -257,6 +289,7 @@ private fun SharedTransitionScope.BudgetsList(
         ) { budgetWithSpending ->
             BudgetCard(
                 budgetWithSpending = budgetWithSpending,
+                onClick = { onBudgetClick(budgetWithSpending.budget.id, "budget_card_${budgetWithSpending.budget.id}") },
                 onEditClick = { onEditClick(budgetWithSpending.budget.id) },
                 animatedVisibilityScope = animatedContentScope,
                 sharedElementKey = if (sharedElementPrefix != null) null else "budget_card_${budgetWithSpending.budget.id}"

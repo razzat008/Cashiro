@@ -40,13 +40,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.R
+import androidx.core.graphics.toColorInt
+import com.ritesh.cashiro.presentation.ui.theme.Spacing
 
 @Composable
 fun ColorPickerContent(
+    modifier: Modifier = Modifier,
     initialColor: Int,
     onColorChanged: (Int) -> Unit,
     showCustomOnly: Boolean = false,
-    modifier: Modifier = Modifier
 ) {
     var showColors by remember { mutableStateOf(!showCustomOnly) }
     var selectedColor by remember { mutableIntStateOf(initialColor) }
@@ -77,7 +79,7 @@ fun ColorPickerContent(
     fun updateFromHex(hex: String) {
         try {
             if (hex.length == 6) {
-                val color = AndroidColor.parseColor("#$hex")
+                val color = "#$hex".toColorInt()
                 selectedColor = color
                 val newHsv = FloatArray(3)
                 AndroidColor.colorToHSV(color, newHsv)
@@ -136,7 +138,8 @@ fun ColorPickerContent(
         Text(
             text =  "Colors",
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = Spacing.md).padding(top = Spacing.md)
         )
 
         Column(
@@ -147,6 +150,7 @@ fun ColorPickerContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
+                item { Spacer(modifier = Modifier.width(16.dp)) }
                 item {
                     Icon(
                         painter = painterResource(R.drawable.color_picker),
@@ -192,6 +196,7 @@ fun ColorPickerContent(
                         }
                     }
                 }
+                item { Spacer(modifier = Modifier.width(16.dp)) }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -201,6 +206,7 @@ fun ColorPickerContent(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                Spacer(modifier = Modifier.width(16.dp))
                 shadeColors.forEach { color ->
                     val isSelected = color.toArgb() == selectedColor
                     Box(
@@ -220,6 +226,7 @@ fun ColorPickerContent(
                             }
                     )
                 }
+                Spacer(modifier = Modifier.width(16.dp))
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -228,7 +235,7 @@ fun ColorPickerContent(
                 visible = !showColors || showCustomOnly,
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().padding(Spacing.md)
                 ) {
                     // Custom Color Picker (HSV)
                     // Saturation-Value Panel

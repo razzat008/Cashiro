@@ -4,25 +4,26 @@ import com.ritesh.cashiro.data.database.dao.BudgetDao
 import com.ritesh.cashiro.data.database.dao.TransactionDao
 import com.ritesh.cashiro.data.database.entity.BudgetCategoryLimitEntity
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
+import com.ritesh.cashiro.data.database.entity.BudgetTrackType
+import com.ritesh.cashiro.data.database.entity.BudgetType
+import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.YearMonth
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Data class representing a budget with its current spending information.
- */
 data class BudgetWithSpending(
     val budget: BudgetEntity,
     val currentSpending: BigDecimal,
@@ -49,9 +50,6 @@ data class BudgetWithSpending(
     }
 }
 
-/**
- * Data class representing a category limit with its current spending.
- */
 data class CategoryLimitWithSpending(
     val limit: BudgetCategoryLimitEntity,
     val currentSpending: BigDecimal
@@ -117,6 +115,10 @@ class BudgetRepository @Inject constructor(
         return budgetDao.insertBudget(budget)
     }
 
+    suspend fun insertBudget(budget: BudgetEntity): Long {
+        return budgetDao.insertBudget(budget)
+    }
+
     suspend fun updateBudget(budget: BudgetEntity) {
         budgetDao.updateBudget(budget.copy(updatedAt = LocalDateTime.now()))
     }
@@ -125,7 +127,6 @@ class BudgetRepository @Inject constructor(
         budgetDao.deleteBudget(budgetId)
     }
 
-    // Category limit operations
     fun getCategoryLimitsForBudget(budgetId: Long): Flow<List<BudgetCategoryLimitEntity>> {
         return budgetDao.getCategoryLimitsForBudget(budgetId)
     }
@@ -163,14 +164,136 @@ class BudgetRepository @Inject constructor(
 
     // Spending calculation methods
     suspend fun getBudgetWithSpending(budget: BudgetEntity): BudgetWithSpending {
-        val yearMonth = YearMonth.of(budget.year, budget.month)
-        val startOfMonth = yearMonth.atDay(1).atStartOfDay()
-        val endOfMonth = yearMonth.atEndOfMonth().atTime(23, 59, 59)
+        val startDate = budget.startDate
+        val endDate = budget.endDate
         val now = LocalDateTime.now()
 
         // Get transactions for the budget period
-        val transactions = transactionDao.getTransactionsBetweenDatesList(startOfMonth, endOfMonth)
-            .filter { it.transactionType == TransactionType.EXPENSE && it.currency == budget.currency }
+        var transactions = transactionDao.getTransactionsBetweenDatesList(startDate, endDate)
+            .filter { !it.isDeleted }
+            
+        // Filter by budget type
+        transactions = if (budget.budgetType == BudgetType.EXPENSE) {
+            transactions.filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.CREDIT }
+        } else {
+            transactions.filter { it.transactionType == TransactionType.INCOME }
+        }
+        
+        // Filter by tracking type
+        if (budget.trackType == BudgetTrackType.ADDED_ONLY) {
+            transactions = transactions.filter { it.smsBody.isNullOrBlank() }
+        }
+        
+        // Filter by currency
+        transactions = transactions.filter { it.currency == budget.currency }
+
+        // Filter by accounts if specified
+        if (budget.accountIds.isNotEmpty()) {
+            transactions = transactions.filter { txn ->
+                val accountKey = "${txn.bankName}:${txn.accountNumber?.takeLast(4) ?: ""}"
+                budget.accountIds.any { it.contains(txn.bankName ?: "") && it.contains(txn.accountNumber?.takeLast(4) ?: "") }
+            }
+        }
+
+        val totalSpending = transactions.sumOf { it.amount }
+
+        // Calculate spending per category
+        val categorySpending = transactions
+            .groupBy { it.category }
+            .mapValues { (_, txns) -> txns.sumOf { it.amount } }
+
+        val categoryLimits = budgetDao.getCategoryLimitsForBudgetSync(budget.id)
+
+        // Calculate days remaining
+        val duration = Duration.between(startDate, endDate)
+        val totalDays = duration.toDays().toInt().coerceAtLeast(1)
+        
+        val daysRemaining = if (now.isBefore(startDate)) {
+            totalDays
+        } else if (now.isAfter(endDate)) {
+            0
+        } else {
+            Duration.between(now, endDate).toDays().toInt().coerceAtLeast(0)
+        }
+
+        return BudgetWithSpending(
+            budget = budget,
+            currentSpending = totalSpending,
+            categoryLimits = categoryLimits,
+            categorySpending = categorySpending,
+            daysRemaining = daysRemaining,
+            daysInMonth = totalDays
+        )
+    }
+
+    fun getBudgetsWithSpendingForMonth(year: Int, month: Int): Flow<List<BudgetWithSpending>> {
+        val startOfMonth = YearMonth.of(year, month).atDay(1).atStartOfDay()
+        val endOfMonth = YearMonth.of(year, month).atEndOfMonth().atTime(23, 59, 59)
+        
+        return combine(
+            budgetDao.getAllBudgets(),
+            transactionDao.getAllTransactions(),
+            budgetDao.getAllCategoryLimits()
+        ) { budgets, transactions, categoryLimits ->
+            budgets.filter { budget ->
+                budget.isActive && (
+                    (budget.startDate.isBefore(endOfMonth) || budget.startDate.isEqual(endOfMonth)) &&
+                    (budget.endDate.isAfter(startOfMonth) || budget.endDate.isEqual(startOfMonth))
+                )
+            }.map { budget ->
+                calculateSpendingSync(budget, transactions, categoryLimits)
+            }
+        }
+    }
+
+    fun getAllBudgetsWithSpending(): Flow<List<BudgetWithSpending>> {
+        return combine(
+            budgetDao.getAllBudgets(),
+            transactionDao.getAllTransactions(),
+            budgetDao.getAllCategoryLimits()
+        ) { budgets, transactions, categoryLimits ->
+            budgets.map { budget ->
+                calculateSpendingSync(budget, transactions, categoryLimits)
+            }
+        }
+    }
+
+    private fun calculateSpendingSync(
+        budget: BudgetEntity,
+        allTransactions: List<TransactionEntity>,
+        allCategoryLimits: List<BudgetCategoryLimitEntity>
+    ): BudgetWithSpending {
+        val startDate = budget.startDate
+        val endDate = budget.endDate
+        val now = LocalDateTime.now()
+
+        // Filter transactions for this specific budget (already excludes deleted by DAO)
+        var transactions = allTransactions.filter { txn ->
+            (txn.dateTime.isAfter(startDate) || txn.dateTime.isEqual(startDate)) &&
+            (txn.dateTime.isBefore(endDate) || txn.dateTime.isEqual(endDate))
+        }
+
+        // Filter by budget type
+        transactions = if (budget.budgetType == BudgetType.EXPENSE) {
+            transactions.filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.CREDIT }
+        } else {
+            transactions.filter { it.transactionType == TransactionType.INCOME }
+        }
+        
+        // Filter by tracking type
+        if (budget.trackType == BudgetTrackType.ADDED_ONLY) {
+            transactions = transactions.filter { it.smsBody.isNullOrBlank() }
+        }
+        
+        // Filter by currency
+        transactions = transactions.filter { it.currency == budget.currency }
+
+        // Filter by accounts if specified
+        if (budget.accountIds.isNotEmpty()) {
+            transactions = transactions.filter { txn ->
+                budget.accountIds.any { it.contains(txn.bankName ?: "") && it.contains(txn.accountNumber?.takeLast(4) ?: "") }
+            }
+        }
 
         // Calculate total spending
         val totalSpending = transactions.sumOf { it.amount }
@@ -180,17 +303,19 @@ class BudgetRepository @Inject constructor(
             .groupBy { it.category }
             .mapValues { (_, txns) -> txns.sumOf { it.amount } }
 
-        // Get category limits
-        val categoryLimits = budgetDao.getCategoryLimitsForBudgetSync(budget.id)
+        // Get category limits for this budget
+        val categoryLimits = allCategoryLimits.filter { it.budgetId == budget.id }
 
         // Calculate days remaining
-        val daysInMonth = yearMonth.lengthOfMonth()
-        val daysRemaining = if (now.year == budget.year && now.monthValue == budget.month) {
-            (daysInMonth - now.dayOfMonth).coerceAtLeast(0)
-        } else if (now.isAfter(endOfMonth)) {
+        val duration = Duration.between(startDate, endDate)
+        val totalDays = duration.toDays().toInt().coerceAtLeast(1)
+        
+        val daysRemaining = if (now.isBefore(startDate)) {
+            totalDays
+        } else if (now.isAfter(endDate)) {
             0
         } else {
-            daysInMonth
+            Duration.between(now, endDate).toDays().toInt().coerceAtLeast(0)
         }
 
         return BudgetWithSpending(
@@ -199,39 +324,53 @@ class BudgetRepository @Inject constructor(
             categoryLimits = categoryLimits,
             categorySpending = categorySpending,
             daysRemaining = daysRemaining,
-            daysInMonth = daysInMonth
+            daysInMonth = totalDays
         )
-    }
-
-    fun getBudgetsWithSpendingForMonth(year: Int, month: Int): Flow<List<BudgetWithSpending>> {
-        return budgetDao.getActiveBudgetsForMonth(year, month)
-            .map { budgets ->
-                budgets.map { getBudgetWithSpending(it) }
-            }
     }
 
     suspend fun getCategoryLimitsWithSpending(budgetId: Long): List<CategoryLimitWithSpending> {
         val budget = budgetDao.getBudgetById(budgetId) ?: return emptyList()
-        val yearMonth = YearMonth.of(budget.year, budget.month)
-        val startOfMonth = yearMonth.atDay(1).atStartOfDay()
-        val endOfMonth = yearMonth.atEndOfMonth().atTime(23, 59, 59)
+        val budgetWithSpending = getBudgetWithSpending(budget)
 
-        // Get transactions for the budget period
-        val transactions = transactionDao.getTransactionsBetweenDatesList(startOfMonth, endOfMonth)
-            .filter { it.transactionType == TransactionType.EXPENSE && it.currency == budget.currency }
-
-        // Calculate spending per category
-        val categorySpending = transactions
-            .groupBy { it.category }
-            .mapValues { (_, txns) -> txns.sumOf { it.amount } }
-
-        // Get category limits and combine with spending
-        val limits = budgetDao.getCategoryLimitsForBudgetSync(budgetId)
-        return limits.map { limit ->
+        return budgetWithSpending.categoryLimits.map { limit ->
             CategoryLimitWithSpending(
                 limit = limit,
-                currentSpending = categorySpending[limit.categoryName] ?: BigDecimal.ZERO
+                currentSpending = budgetWithSpending.categorySpending[limit.categoryName] ?: BigDecimal.ZERO
             )
         }
+    }
+
+    fun getTransactionsForBudget(budget: BudgetEntity): Flow<List<TransactionEntity>> {
+        val startDate = budget.startDate
+        val endDate = budget.endDate
+
+        return transactionDao.getTransactionsBetweenDates(startDate, endDate)
+            .map { transactions ->
+                var filtered = transactions.filter { !it.isDeleted }
+                
+                // Filter by budget type
+                filtered = if (budget.budgetType == BudgetType.EXPENSE) {
+                    filtered.filter { it.transactionType == TransactionType.EXPENSE || it.transactionType == TransactionType.CREDIT }
+                } else {
+                    filtered.filter { it.transactionType == TransactionType.INCOME }
+                }
+                
+                // Filter by tracking type
+                if (budget.trackType == BudgetTrackType.ADDED_ONLY) {
+                    filtered = filtered.filter { it.smsBody.isNullOrBlank() }
+                }
+                
+                // Filter by currency
+                filtered = filtered.filter { it.currency == budget.currency }
+
+                // Filter by accounts if specified
+                if (budget.accountIds.isNotEmpty()) {
+                    filtered = filtered.filter { txn ->
+                        budget.accountIds.any { it.contains(txn.bankName ?: "") && it.contains(txn.accountNumber?.takeLast(4) ?: "") }
+                    }
+                }
+                
+                filtered
+            }
     }
 }

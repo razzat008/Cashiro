@@ -16,21 +16,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.navigation.NavBackStackEntry
 import kotlinx.serialization.Serializable
 
-// Shared Element Keys for consistent shared transitions
-object SharedElementKeys {
-    const val FAB_ADD_TRANSACTION = "fab_add_transaction_key"
-    const val TRANSACTION_ITEM_PREFIX = "transaction_item_key_"
-    const val ACCOUNT_CARD_PREFIX = "account_card_key_"
-    const val SUBSCRIPTION_CARD_PREFIX = "subscription_card_key_"
-    const val BUDGET_CARD_PREFIX = "budget_card_key_"
-    const val SEARCH_BUTTON = "search_transaction_key"
-    
-    fun transactionItem(id: Long) = "$TRANSACTION_ITEM_PREFIX$id"
-    fun accountCard(bankName: String, last4: String) = "$ACCOUNT_CARD_PREFIX${bankName}_$last4"
-    fun subscriptionCard(id: Long) = "$SUBSCRIPTION_CARD_PREFIX$id"
-    fun budgetCard(id: Long) = "$BUDGET_CARD_PREFIX$id"
-}
-
 // Centralized transition definitions
 object CashiroTransitions {
     
@@ -182,7 +167,6 @@ object CashiroTransitions {
     }
 }
 
-// Define navigation destinations using Kotlin Serialization
 @Serializable object AppLock
 
 @Serializable object OnBoarding
@@ -233,6 +217,8 @@ data class Transactions(
 @Serializable object NotificationSettings
 
 @Serializable data class Budgets(val sharedElementPrefix: Long? = null)
+
+@Serializable data class BudgetDetail(val budgetId: Long, val sharedElementKey: String? = null)
 
 @Serializable object DeveloperOptions
 

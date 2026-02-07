@@ -294,7 +294,7 @@ fun EditCategorySheet(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     )
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column{
                     ColorPickerContent(
                         initialColor = colorHex.toColorInt(),
                         onColorChanged = { colorInt ->

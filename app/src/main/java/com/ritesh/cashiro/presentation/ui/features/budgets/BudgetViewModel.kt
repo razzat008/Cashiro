@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.database.entity.BudgetEntity
 import com.ritesh.cashiro.data.repository.BudgetRepository
-import com.ritesh.cashiro.data.repository.BudgetWithSpending
 import com.ritesh.cashiro.data.repository.CategoryLimitWithSpending
+import com.ritesh.cashiro.data.database.dao.AccountBalanceDao
+import com.ritesh.cashiro.data.database.entity.BudgetPeriod
+import com.ritesh.cashiro.data.database.entity.BudgetTrackType
+import com.ritesh.cashiro.data.database.entity.BudgetType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,15 +17,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.time.YearMonth
-import java.time.format.TextStyle
-import java.util.Locale
 import javax.inject.Inject
 
 
 @HiltViewModel
 class BudgetViewModel @Inject constructor(
-    private val budgetRepository: BudgetRepository
+    private val budgetRepository: BudgetRepository,
+    private val accountBalanceDao: AccountBalanceDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BudgetUiState())
@@ -31,18 +32,27 @@ class BudgetViewModel @Inject constructor(
     private val _editBudgetState = MutableStateFlow(EditBudgetState())
     val editBudgetState: StateFlow<EditBudgetState> = _editBudgetState.asStateFlow()
 
+    private var transactionCollectionJob: kotlinx.coroutines.Job? = null
+    private var selectedBudgetCollectionJob: kotlinx.coroutines.Job? = null
+
     init {
         loadBudgets()
+        loadAccounts()
+    }
+
+    private fun loadAccounts() {
+        viewModelScope.launch {
+            accountBalanceDao.getAllLatestBalances().collect { accounts ->
+                _uiState.update { it.copy(allAccounts = accounts) }
+            }
+        }
     }
 
     fun loadBudgets() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                budgetRepository.getAllBudgets().collect { budgets ->
-                    val budgetsWithSpending = budgets.map { budget ->
-                        budgetRepository.getBudgetWithSpending(budget)
-                    }
+                budgetRepository.getAllBudgetsWithSpending().collect { budgetsWithSpending ->
                     _uiState.update { 
                         it.copy(
                             isLoading = false,
@@ -63,35 +73,61 @@ class BudgetViewModel @Inject constructor(
     }
 
     fun selectBudget(budgetId: Long) {
+        selectedBudgetCollectionJob?.cancel()
+        selectedBudgetCollectionJob = viewModelScope.launch {
+            budgetRepository.getAllBudgetsWithSpending().collect { allBudgets ->
+                val budgetWithSpending = allBudgets.find { it.budget.id == budgetId }
+                if (budgetWithSpending != null) {
+                    val categoryLimitsWithSpending = budgetWithSpending.categoryLimits.map { limit ->
+                        CategoryLimitWithSpending(
+                            limit = limit,
+                            currentSpending = budgetWithSpending.categorySpending[limit.categoryName] ?: BigDecimal.ZERO
+                        )
+                    }
+                    _uiState.update { 
+                        it.copy(
+                            selectedBudget = budgetWithSpending,
+                            categoryLimitsWithSpending = categoryLimitsWithSpending
+                        )
+                    }
+                }
+            }
+        }
+
+        // Collect transactions for the selected budget
+        transactionCollectionJob?.cancel()
         viewModelScope.launch {
             val budget = budgetRepository.getBudgetById(budgetId) ?: return@launch
-            val budgetWithSpending = budgetRepository.getBudgetWithSpending(budget)
-            val categoryLimitsWithSpending = budgetRepository.getCategoryLimitsWithSpending(budgetId)
-            
-            _uiState.update { 
-                it.copy(
-                    selectedBudget = budgetWithSpending,
-                    categoryLimitsWithSpending = categoryLimitsWithSpending
-                )
+            transactionCollectionJob = viewModelScope.launch {
+                budgetRepository.getTransactionsForBudget(budget).collect { transactions ->
+                    _uiState.update { it.copy(selectedBudgetTransactions = transactions) }
+                }
             }
         }
     }
 
     fun clearSelectedBudget() {
+        transactionCollectionJob?.cancel()
+        transactionCollectionJob = null
+        selectedBudgetCollectionJob?.cancel()
+        selectedBudgetCollectionJob = null
         _uiState.update { 
             it.copy(
                 selectedBudget = null,
-                categoryLimitsWithSpending = emptyList()
+                categoryLimitsWithSpending = emptyList(),
+                selectedBudgetTransactions = emptyList()
             )
         }
     }
 
     // Edit budget state management
     fun initNewBudget(currency: String = "INR") {
-        val yearMonth = YearMonth.now()
+        val now = LocalDateTime.now()
         _editBudgetState.value = EditBudgetState(
-            year = yearMonth.year,
-            month = yearMonth.monthValue,
+            year = now.year,
+            month = now.monthValue,
+            startDate = now,
+            endDate = now.plusMonths(1).minusDays(1),
             currency = currency
         )
     }
@@ -105,6 +141,13 @@ class BudgetViewModel @Inject constructor(
                 amount = budget.amount,
                 year = budget.year,
                 month = budget.month,
+                startDate = budget.startDate,
+                endDate = budget.endDate,
+                periodType = budget.periodType,
+                trackType = budget.trackType,
+                budgetType = budget.budgetType,
+                accountIds = budget.accountIds,
+                color = budget.color,
                 currency = budget.currency,
                 categoryLimits = limits.map { limit ->
                     EditCategoryLimit(
@@ -126,7 +169,69 @@ class BudgetViewModel @Inject constructor(
     }
 
     fun updateBudgetMonth(year: Int, month: Int) {
-        _editBudgetState.update { it.copy(year = year, month = month) }
+        val startDate = LocalDateTime.of(year, month, 1, 0, 0)
+        val endDate = startDate.plusMonths(1).minusDays(1)
+        
+        _editBudgetState.update { 
+            it.copy(
+                year = year, 
+                month = month,
+                startDate = startDate,
+                endDate = endDate
+            ) 
+        }
+    }
+    
+    fun updateStartDate(date: LocalDateTime) {
+        _editBudgetState.update { state -> 
+            val newEndDate = calculateEndDate(date, state.periodType)
+            state.copy(
+                startDate = date,
+                endDate = newEndDate,
+                year = date.year,
+                month = date.monthValue
+            )
+        }
+    }
+
+    fun updateEndDate(date: LocalDateTime) {
+         _editBudgetState.update { it.copy(endDate = date) }
+    }
+
+    fun updatePeriodType(periodType: BudgetPeriod) {
+        _editBudgetState.update { state ->
+            val newEndDate = calculateEndDate(state.startDate, periodType)
+            state.copy(
+                periodType = periodType,
+                endDate = newEndDate
+            )
+        }
+    }
+
+    fun updateTrackType(trackType: BudgetTrackType) {
+        _editBudgetState.update { it.copy(trackType = trackType) }
+    }
+
+    fun updateBudgetType(budgetType: BudgetType) {
+        _editBudgetState.update { it.copy(budgetType = budgetType) }
+    }
+
+    fun updateAccountIds(accountIds: List<String>) {
+        _editBudgetState.update { it.copy(accountIds = accountIds) }
+    }
+    
+    fun updateColor(color: String) {
+        _editBudgetState.update { it.copy(color = color) }
+    }
+
+    private fun calculateEndDate(startDate: LocalDateTime, periodType: BudgetPeriod): LocalDateTime {
+        return when (periodType) {
+            BudgetPeriod.DAILY -> startDate
+            BudgetPeriod.WEEKLY -> startDate.plusDays(6)
+            BudgetPeriod.MONTHLY -> startDate.plusMonths(1).minusDays(1)
+            BudgetPeriod.YEARLY -> startDate.plusYears(1).minusDays(1)
+            BudgetPeriod.CUSTOM -> startDate // User selects end date manually
+        }
     }
 
     fun addCategoryLimit(categoryName: String, limitAmount: BigDecimal) {
@@ -171,8 +276,15 @@ class BudgetViewModel @Inject constructor(
                             existingBudget.copy(
                                 name = name,
                                 amount = state.amount,
-                                year = state.year,
-                                month = state.month,
+                                year = state.startDate.year,
+                                month = state.startDate.monthValue,
+                                startDate = state.startDate,
+                                endDate = state.endDate,
+                                periodType = state.periodType,
+                                trackType = state.trackType,
+                                budgetType = state.budgetType,
+                                accountIds = state.accountIds,
+                                color = state.color,
                                 currency = state.currency,
                                 updatedAt = LocalDateTime.now()
                             )
@@ -189,13 +301,23 @@ class BudgetViewModel @Inject constructor(
                     }
                 } else {
                     // Create new budget
-                    val budgetId = budgetRepository.createBudget(
+                    val budget = BudgetEntity(
                         name = name,
                         amount = state.amount,
-                        year = state.year,
-                        month = state.month,
+                        year = state.startDate.year,
+                        month = state.startDate.monthValue,
+                        startDate = state.startDate,
+                        endDate = state.endDate,
+                        periodType = state.periodType,
+                        trackType = state.trackType,
+                        budgetType = state.budgetType,
+                        accountIds = state.accountIds,
+                        color = state.color,
                         currency = state.currency
                     )
+                    
+                    val budgetId = budgetRepository.insertBudget(budget)
+                    
                     // Add category limits
                     state.categoryLimits.forEach { limit ->
                         budgetRepository.addCategoryLimit(

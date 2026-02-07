@@ -37,6 +37,9 @@ interface BudgetDao {
     suspend fun deleteAllBudgets()
 
     // Category limit operations
+    @Query("SELECT * FROM budget_category_limits")
+    fun getAllCategoryLimits(): Flow<List<BudgetCategoryLimitEntity>>
+
     @Query("SELECT * FROM budget_category_limits WHERE budget_id = :budgetId")
     fun getCategoryLimitsForBudget(budgetId: Long): Flow<List<BudgetCategoryLimitEntity>>
 

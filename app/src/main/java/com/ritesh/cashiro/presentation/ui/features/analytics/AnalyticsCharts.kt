@@ -309,7 +309,6 @@ fun CategoryPieChart(
     currency: String
 ) {
     if (categories.isEmpty()) return
-    val themeColors = MaterialTheme.colorScheme
 
     val total = categories.sumOf { it.amount }.toDouble()
     if (total == 0.0) return
@@ -322,7 +321,12 @@ fun CategoryPieChart(
                 color = CategoryMapping.categories[category.name]?.color ?: Color.Gray,
                 selectedColor = (CategoryMapping.categories[category.name]?.color
                     ?: Color.Gray).copy(alpha = 0.8f),
-                selected = false
+                selected = false,
+                scaleAnimEnterSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                ),
+                colorAnimEnterSpec = tween(500)
             )
         }
     }
@@ -357,6 +361,7 @@ fun CategoryPieChart(
                     dampingRatio = Spring.DampingRatioMediumBouncy,
                     stiffness = Spring.StiffnessLow
                 ),
+                colorAnimEnterSpec = tween(500),
                 style = Pie.Style.Stroke(width = 12.dp)
             )
 

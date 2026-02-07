@@ -234,7 +234,6 @@ fun ProfileStep(
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     shape = RoundedCornerShape(Dimensions.Radius.md)
                 )
-                .padding(Spacing.md)
         ) {
             ColorPickerContent(
                 initialColor = state.editedProfileBackgroundColor.toArgb(),

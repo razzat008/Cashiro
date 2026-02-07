@@ -3,6 +3,9 @@ package com.ritesh.cashiro.data.database.converter
 import androidx.room.TypeConverter
 import com.ritesh.cashiro.data.database.entity.SubscriptionState
 import com.ritesh.cashiro.data.database.entity.TransactionType
+import com.ritesh.cashiro.data.database.entity.BudgetPeriod
+import com.ritesh.cashiro.data.database.entity.BudgetTrackType
+import com.ritesh.cashiro.data.database.entity.BudgetType
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -81,5 +84,61 @@ class Converters {
     @TypeConverter
     fun toSubscriptionState(value: String): SubscriptionState {
         return SubscriptionState.valueOf(value)
+    }
+
+    @TypeConverter
+    fun fromBudgetPeriod(value: BudgetPeriod): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun toBudgetPeriod(value: String): BudgetPeriod {
+        return try {
+            BudgetPeriod.valueOf(value)
+        } catch (e: Exception) {
+            BudgetPeriod.MONTHLY
+        }
+    }
+
+    @TypeConverter
+    fun fromBudgetTrackType(value: BudgetTrackType): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun toBudgetTrackType(value: String): BudgetTrackType {
+        return try {
+            BudgetTrackType.valueOf(value)
+        } catch (e: Exception) {
+            BudgetTrackType.ALL_TRANSACTIONS
+        }
+    }
+
+    @TypeConverter
+    fun fromBudgetType(value: BudgetType): String {
+        return value.name
+    }
+
+    @TypeConverter
+    fun toBudgetType(value: String): BudgetType {
+        return try {
+            BudgetType.valueOf(value)
+        } catch (e: Exception) {
+            BudgetType.EXPENSE
+        }
+    }
+
+    @TypeConverter
+    fun fromStringList(value: List<String>): String {
+        return value.joinToString(",")
+    }
+
+    @TypeConverter
+    fun toStringList(value: String): List<String> {
+        return if (value.isBlank()) {
+            emptyList()
+        } else {
+            value.split(",")
+        }
     }
 }

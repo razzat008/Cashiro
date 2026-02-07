@@ -3,11 +3,10 @@ package com.ritesh.cashiro.presentation.ui.components
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,7 +19,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -55,10 +61,16 @@ fun SharedTransitionScope.BudgetCard(
     }
     
     // Determine colors based on spending status
+    val budgetColor = try {
+        Color(budget.color.toColorInt())
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
+
     val progressColor = when {
         budgetWithSpending.isOverBudget -> MaterialTheme.colorScheme.error
         budgetWithSpending.percentUsed > 0.8f -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.primary
+        else -> budgetColor
     }
     
     val progressBackgroundColor = progressColor.copy(alpha = 0.15f)
@@ -83,24 +95,19 @@ fun SharedTransitionScope.BudgetCard(
         Modifier
     }
 
-    Surface(
+    BudgetAnimatedGradientMeshCard(
+        budgetColor = budgetColor,
         modifier = modifier
             .then(sharedModifier)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
         ) {
             // Header row
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -159,129 +166,238 @@ fun SharedTransitionScope.BudgetCard(
             }
             
             Spacer(modifier = Modifier.height(20.dp))
-            
-            // Spending amounts
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Column {
-                    Text(
-                        text = "Spent",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = CurrencyFormatter.formatCurrency(
-                            budgetWithSpending.currentSpending,
-                            budget.currency
-                        ),
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.ExtraBold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "of ${CurrencyFormatter.formatCurrency(budget.amount, budget.currency)}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Progress bar
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(progressBackgroundColor)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(animatedProgressState.coerceIn(0f, 1f))
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(progressColor)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Stats row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Remaining
-                Column {
-                    Text(
-                        text = "Remaining",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        shape = RoundedCornerShape(
+                            topStart = 20.dp,
+                            topEnd = 20.dp,
+                            bottomStart = 28.dp,
+                            bottomEnd = 28.dp)
                     )
-                    Text(
-                        text = if (budgetWithSpending.isOverBudget) {
-                            "-${CurrencyFormatter.formatCurrency(budgetWithSpending.remaining.abs(), budget.currency)}"
-                        } else {
-                            CurrencyFormatter.formatCurrency(budgetWithSpending.remaining, budget.currency)
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (budgetWithSpending.isOverBudget) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Spending amounts
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Column {
+                            Text(
+                                text = "Spent",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = CurrencyFormatter.formatCurrency(
+                                    budgetWithSpending.currentSpending,
+                                    budget.currency
+                                ),
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontSize = 26.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                    )
-                }
-                
-                // Daily average
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Per day avg",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = CurrencyFormatter.formatCurrency(
-                            budgetWithSpending.spendingPerDay,
-                            budget.currency
-                        ),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                
-                // Recommended daily
-                if (!budgetWithSpending.isOverBudget && budgetWithSpending.daysRemaining > 0) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "Can spend/day",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "of ${
+                                    CurrencyFormatter.formatCurrency(
+                                        budget.amount,
+                                        budget.currency
+                                    )
+                                }",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Progress bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(progressBackgroundColor)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(animatedProgressState.coerceIn(0f, 1f))
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(progressColor)
                         )
-                        Text(
-                            text = CurrencyFormatter.formatCurrency(
-                                budgetWithSpending.recommendedDailySpending,
-                                budget.currency
-                            ),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = progressColor
-                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Stats row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Remaining
+                        Column {
+                            Text(
+                                text = "Remaining",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = if (budgetWithSpending.isOverBudget) {
+                                    "-${
+                                        CurrencyFormatter.formatCurrency(
+                                            budgetWithSpending.remaining.abs(),
+                                            budget.currency
+                                        )
+                                    }"
+                                } else {
+                                    CurrencyFormatter.formatCurrency(
+                                        budgetWithSpending.remaining,
+                                        budget.currency
+                                    )
+                                },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (budgetWithSpending.isOverBudget) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                        }
+
+                        // Daily average
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "Per day avg",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = CurrencyFormatter.formatCurrency(
+                                    budgetWithSpending.spendingPerDay,
+                                    budget.currency
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        // Recommended daily
+                        if (!budgetWithSpending.isOverBudget && budgetWithSpending.daysRemaining > 0) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "Can spend/day",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = CurrencyFormatter.formatCurrency(
+                                        budgetWithSpending.recommendedDailySpending,
+                                        budget.currency
+                                    ),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = progressColor
+                                )
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+internal fun BudgetAnimatedGradientMeshCard(
+    budgetColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "BudgetGradient")
+    val animatedColor by infiniteTransition.animateColor(
+        initialValue = budgetColor.copy(alpha = 0.6f),
+        targetValue = Color.White.copy(alpha = 0.4f),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "PrimaryColor"
+    )
+    val reverseAnimatedColor by infiniteTransition.animateColor(
+        initialValue = Color.White.copy(alpha = 0.4f),
+        targetValue = budgetColor.copy(alpha = 0.6f),
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = "SecondaryColor"
+    )
+
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainerLow
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp)),
+        shape = RoundedCornerShape(28.dp),
+        border = BorderStroke(1.dp, animatedColor.copy(alpha = 0.1f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Canvas(
+                modifier = Modifier
+                    .matchParentSize()
+                    .blur(60.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+            ) {
+                val canvasWidth = size.width
+                val canvasHeight = size.height
+
+                val gradientBrush = Brush.linearGradient(
+                    colors = listOf(reverseAnimatedColor, animatedColor, surfaceColor.copy(alpha = 0.5f)),
+                    start = Offset(0f, 0f),
+                    end = Offset(canvasWidth, canvasHeight),
+                    tileMode = TileMode.Mirror
+                )
+
+                drawRect(
+                    brush = gradientBrush,
+                    topLeft = Offset(0f, 0f),
+                    size = size
+                )
+            }
+
+            // Soft overlay to ensure readability
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                surfaceColor.copy(alpha = 0.2f),
+                                surfaceColor.copy(alpha = 0.6f),
+                                surfaceColor
+                            )
+                        )
+                    )
+            )
+
+            content()
         }
     }
 }
@@ -314,10 +430,16 @@ fun SharedTransitionScope.BudgetCardCompact(
     }
     
     // Determine colors based on spending status
+    val budgetColor = try {
+        Color(budget.color.toColorInt())
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
+
     val progressColor = when {
         budgetWithSpending.isOverBudget -> MaterialTheme.colorScheme.error
         budgetWithSpending.percentUsed > 0.8f -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.primary
+        else -> budgetColor
     }
     
     val progressBackgroundColor = progressColor.copy(alpha = 0.15f)
@@ -341,23 +463,20 @@ fun SharedTransitionScope.BudgetCardCompact(
         Modifier
     }
 
-    Surface(
+    BudgetAnimatedGradientMeshCard(
+        budgetColor = budgetColor,
         modifier = modifier
             .then(sharedModifier)
             .width(260.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
         ) {
             // Header
             Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -393,64 +512,98 @@ fun SharedTransitionScope.BudgetCardCompact(
             }
             
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Amounts
-            Text(
-                text = CurrencyFormatter.formatCurrency(budgetWithSpending.currentSpending, budget.currency),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold
-            )
-            Text(
-                text = "of ${CurrencyFormatter.formatCurrency(budget.amount, budget.currency)}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Progress bar
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(progressBackgroundColor)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        shape = RoundedCornerShape(
+                            topStart = 18.dp,
+                            topEnd = 18.dp,
+                            bottomStart = 28.dp,
+                            bottomEnd = 28.dp)
+                    )
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(animatedProgressState.coerceIn(0f, 1f))
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(progressColor)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Remaining
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Remaining",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = if (budgetWithSpending.isOverBudget) {
-                        "-${CurrencyFormatter.formatCurrency(budgetWithSpending.remaining.abs(), budget.currency)}"
-                    } else {
-                        CurrencyFormatter.formatCurrency(budgetWithSpending.remaining, budget.currency)
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (budgetWithSpending.isOverBudget) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        progressColor
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Amounts
+                    Text(
+                        text = CurrencyFormatter.formatCurrency(
+                            budgetWithSpending.currentSpending,
+                            budget.currency
+                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "of ${
+                            CurrencyFormatter.formatCurrency(
+                                budget.amount,
+                                budget.currency
+                            )
+                        }",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Progress bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(progressBackgroundColor)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(animatedProgressState.coerceIn(0f, 1f))
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(progressColor)
+                        )
                     }
-                )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Remaining
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Remaining",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = if (budgetWithSpending.isOverBudget) {
+                                "-${
+                                    CurrencyFormatter.formatCurrency(
+                                        budgetWithSpending.remaining.abs(),
+                                        budget.currency
+                                    )
+                                }"
+                            } else {
+                                CurrencyFormatter.formatCurrency(
+                                    budgetWithSpending.remaining,
+                                    budget.currency
+                                )
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (budgetWithSpending.isOverBudget) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                progressColor
+                            }
+                        )
+                    }
+                }
             }
         }
     }

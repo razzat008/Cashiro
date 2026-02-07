@@ -59,6 +59,7 @@ import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsScreen
 import com.ritesh.cashiro.presentation.ui.features.add.AddScreen
 import com.ritesh.cashiro.presentation.ui.features.analytics.AnalyticsScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetsScreen
+import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetDetailScreen
 import com.ritesh.cashiro.presentation.navigation.safeNavigate
 import com.ritesh.cashiro.presentation.navigation.safePopBackStack
 import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesScreen
@@ -169,8 +170,7 @@ fun CashiroNavHost(
                     )
                 }
 
-                // ===== BOTTOM NAV SCREENS =====
-
+                /* BOTTOM NAV SCREENS ---- */
                 // Home Screen
                 composable<Home>(
                     enterTransition = CashiroTransitions.verticalSlideEnter,
@@ -188,7 +188,11 @@ fun CashiroNavHost(
                         },
                         onNavigateToSubscriptions = { navController.safeNavigate(Subscriptions) },
                         onNavigateToBudgets = { id ->
-                            navController.safeNavigate(Budgets(sharedElementPrefix = id))
+                            if (id != null) {
+                                navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = "budget_card_$id"))
+                            } else {
+                                navController.safeNavigate(Budgets())
+                            }
                         },
                         onTransactionClick = { transactionId, key ->
                             navController.safeNavigate(TransactionDetail(transactionId, key))
@@ -234,8 +238,7 @@ fun CashiroNavHost(
                     )
                 }
 
-                // ===== SETTINGS & SUB-SCREENS =====
-
+                /* SETTINGS & SUB-SCREENS ---- */
                 composable<Settings>(
                     enterTransition = CashiroTransitions.horizontalSlideEnter,
                     exitTransition = CashiroTransitions.horizontalSlideExit,
@@ -398,8 +401,7 @@ fun CashiroNavHost(
                     )
                 }
 
-                // ===== DETAIL SCREENS (with shared transitions) =====
-
+                /* DETAIL SCREENS (with shared transitions) ---- */
                 composable<TransactionDetail>(
                     enterTransition = CashiroTransitions.noneEnter,
                     exitTransition = CashiroTransitions.noneExit,
@@ -488,11 +490,6 @@ fun CashiroNavHost(
                 }
 
                 composable<Budgets>(
-//                    enterTransition = CashiroTransitions.noneEnter,
-//                    exitTransition = CashiroTransitions.noneExit,
-//                    popEnterTransition = CashiroTransitions.noneEnter,
-//                    popExitTransition = CashiroTransitions.noneExit
-
                     enterTransition = CashiroTransitions.horizontalSlideEnter,
                     exitTransition = CashiroTransitions.horizontalSlideExit,
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
@@ -501,8 +498,30 @@ fun CashiroNavHost(
                     val budgets = backStackEntry.toRoute<Budgets>()
                     BudgetsScreen(
                         onNavigateBack = { navController.safePopBackStack() },
+                        onBudgetClick = { id, key ->
+                            navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = key))
+                        },
                         animatedContentScope = this@composable,
                         sharedElementPrefix = budgets.sharedElementPrefix
+                    )
+                }
+
+                composable<BudgetDetail>(
+                    enterTransition = CashiroTransitions.horizontalSlideEnter,
+                    exitTransition = CashiroTransitions.horizontalSlideExit,
+                    popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
+                    popExitTransition = CashiroTransitions.horizontalSlidePopExit
+                ) { backStackEntry ->
+                    val budgetDetail = backStackEntry.toRoute<BudgetDetail>()
+                    BudgetDetailScreen(
+                        budgetId = budgetDetail.budgetId,
+                        onNavigateBack = { navController.safePopBackStack() },
+                        onAddTransaction = { navController.safeNavigate(AddTransaction()) },
+                        onTransactionClick = { transactionId, key ->
+                            navController.safeNavigate(TransactionDetail(transactionId, key))
+                        },
+                        animatedContentScope = this@composable,
+                        sharedElementKey = budgetDetail.sharedElementKey
                     )
                 }
             }

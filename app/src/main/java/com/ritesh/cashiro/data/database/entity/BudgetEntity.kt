@@ -38,5 +38,45 @@ data class BudgetEntity(
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @ColumnInfo(name = "updated_at")
-    val updatedAt: LocalDateTime = LocalDateTime.now()
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    // --- New Fields ---
+    @ColumnInfo(name = "start_date", defaultValue = "")
+    val startDate: LocalDateTime = LocalDateTime.now(),
+
+    @ColumnInfo(name = "end_date", defaultValue = "")
+    val endDate: LocalDateTime = LocalDateTime.now().plusMonths(1),
+
+    @ColumnInfo(name = "period_type", defaultValue = "MONTHLY")
+    val periodType: BudgetPeriod = BudgetPeriod.MONTHLY,
+
+    @ColumnInfo(name = "track_type", defaultValue = "ALL_TRANSACTIONS")
+    val trackType: BudgetTrackType = BudgetTrackType.ALL_TRANSACTIONS,
+
+    @ColumnInfo(name = "budget_type", defaultValue = "EXPENSE")
+    val budgetType: BudgetType = BudgetType.EXPENSE,
+
+    @ColumnInfo(name = "account_ids", defaultValue = "")
+    val accountIds: List<String> = emptyList(), // List of "BankName:Last4"
+
+    @ColumnInfo(name = "color", defaultValue = "#4CAF50") // Default Green
+    val color: String = "#4CAF50"
 )
+
+enum class BudgetPeriod {
+    CUSTOM,
+    DAILY,
+    WEEKLY,
+    MONTHLY,
+    YEARLY
+}
+
+enum class BudgetTrackType {
+    ADDED_ONLY,
+    ALL_TRANSACTIONS
+}
+
+enum class BudgetType {
+    EXPENSE,
+    SAVINGS
+}
