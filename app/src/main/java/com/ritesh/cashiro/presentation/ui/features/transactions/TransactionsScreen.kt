@@ -253,7 +253,7 @@ fun SharedTransitionScope.TransactionsScreen(
                         animatedVisibilityScope = animatedContentScope,
                         boundsTransform = { _, _ ->
                             spring(
-                                stiffness = 600f,
+                                stiffness = Spring.StiffnessLow,
                                 dampingRatio = Spring.DampingRatioLowBouncy
                             )
                         },

@@ -258,11 +258,12 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     animatedVisibilityScope = animatedContentScope,
                     boundsTransform = { _, _ ->
                         spring(
-                            stiffness = 600f,
-                            dampingRatio = Spring.DampingRatioNoBouncy
+                            stiffness =  Spring.StiffnessLow,
+                            dampingRatio = Spring.DampingRatioLowBouncy
                         )
                     },
-                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
+                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Inside, Alignment.Center),
+                    clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(Spacing.xxl))
                 ).skipToLookaheadSize()
             } else {Modifier}
         ),

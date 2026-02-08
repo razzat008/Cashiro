@@ -107,11 +107,12 @@ fun SharedTransitionScope.TransactionItem(
                 animatedVisibilityScope = animatedContentScope,
                 boundsTransform = { _, _ ->
                     spring(
-                        stiffness = 600f,
+                        stiffness =  Spring.StiffnessLow,
                         dampingRatio = Spring.DampingRatioNoBouncy
                     )
                 },
-                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center)
+                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center),
+                clipInOverlayDuringTransition = OverlayClip(shape)
             )
                 .skipToLookaheadSize()
         } else Modifier

@@ -140,10 +140,12 @@ fun SubscriptionsScreen(
                         boundsTransform = { _, _ ->
                             spring(
                                 stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioNoBouncy
+                                dampingRatio = Spring.DampingRatioLowBouncy
                             )
                         },
-                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
+                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
+                            contentScale = ContentScale.Fit
+                        )
                     )
                     .skipToLookaheadSize()
                 }
