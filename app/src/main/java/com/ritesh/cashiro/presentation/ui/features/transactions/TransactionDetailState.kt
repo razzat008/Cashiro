@@ -22,12 +22,3 @@ data class TransactionDetailUiState(
     val subscription: SubscriptionEntity? = null
 )
 
-data class AccountInfo(
-    val id: Long,
-    val bankName: String,
-    val accountLast4: String,
-    val displayName: String,
-    val isCreditCard: Boolean,
-    val iconResId: Int,
-    val currency: String
-)

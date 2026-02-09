@@ -69,6 +69,7 @@ import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -161,6 +162,8 @@ import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
 import com.ritesh.cashiro.presentation.ui.features.add.AmountInput
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.formatAmount
 import dev.chrisbanes.haze.HazeState
@@ -349,6 +352,8 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                 )
                             }
                         }
+                    } else{
+                        Box(modifier = Modifier.size(32.dp)) //for edit transaction title alignment
                     }
                 }
             )
@@ -653,7 +658,7 @@ private fun TransactionDetailContent(
     showBillingCycleMenu: Boolean,
     onBillingCycleMenuChange: (Boolean) -> Unit,
     paddingValues: PaddingValues,
-    availableAccounts: List<AccountInfo>,
+    availableAccounts: List<AccountBalanceEntity>,
     categories: List<CategoryEntity>,
     subcategoriesMap: Map<Long, List<SubcategoryEntity>>,
     linkedSubscription: SubscriptionEntity? = null,
@@ -1009,7 +1014,7 @@ private fun EditableExtractedInfoCard(
                             verticalArrangement = Arrangement.spacedBy(1.5.dp)
                         ) {
                             // Source Account Card
-                            OutlinedCard(
+                            Card(
                                 onClick = onAccountClick,
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(
@@ -1017,7 +1022,7 @@ private fun EditableExtractedInfoCard(
                                     topEnd = 16.dp,
                                     bottomStart = 4.dp,
                                     bottomEnd = 4.dp),
-                                colors = CardDefaults.outlinedCardColors(
+                                colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                                 ),
                                 border = BorderStroke(0.dp, Color.Transparent)
@@ -1055,7 +1060,7 @@ private fun EditableExtractedInfoCard(
                                         )
                                         if (selectedAccount != null) {
                                             Text(
-                                                text = "••${selectedAccount?.accountLast4}",
+                                                text = if (selectedAccount?.accountLast4 == "wallet") "${selectedAccount?.accountLast4}" else "••${selectedAccount?.accountLast4}",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -1071,7 +1076,7 @@ private fun EditableExtractedInfoCard(
                             }
 
                             // Target Account Card
-                            OutlinedCard(
+                            Card(
                                 onClick = onTargetAccountClick,
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(
@@ -1079,7 +1084,7 @@ private fun EditableExtractedInfoCard(
                                     topEnd = 4.dp,
                                     bottomStart = 16.dp,
                                     bottomEnd = 16.dp),
-                                colors = CardDefaults.outlinedCardColors(
+                                colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                                 ),
                                 border = BorderStroke(0.dp, Color.Transparent)
@@ -1117,7 +1122,7 @@ private fun EditableExtractedInfoCard(
                                         )
                                         if (targetAccount != null) {
                                             Text(
-                                                text = "••${targetAccount?.accountLast4}",
+                                                text = if (targetAccount?.accountLast4 == "wallet") "${targetAccount?.accountLast4}" else "••${targetAccount?.accountLast4}",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -1177,7 +1182,7 @@ private fun EditableExtractedInfoCard(
                     modifier = Modifier.animateContentSize().fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
-                    OutlinedCard(
+                    Card(
                         onClick = onAccountClick,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(
@@ -1186,7 +1191,7 @@ private fun EditableExtractedInfoCard(
                             bottomStart = 4.dp,
                             bottomEnd = 4.dp
                         ),
-                        colors = CardDefaults.outlinedCardColors(
+                        colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                         ),
                         border = BorderStroke(0.dp, Color.Transparent)
@@ -1222,7 +1227,7 @@ private fun EditableExtractedInfoCard(
                                 )
                                 if (selectedAccount != null) {
                                     Text(
-                                        text = "••${selectedAccount?.accountLast4}",
+                                        text = if (selectedAccount?.accountLast4 == "wallet") "${selectedAccount?.accountLast4}" else "••${selectedAccount?.accountLast4}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -1699,138 +1704,13 @@ private fun DateTimeField(
 }
 
 
-@Composable
-private fun AccountSelectionSheet(
-    accounts: List<AccountInfo>,
-    selectedAccount: AccountInfo?,
-    title: String = "Select Account",
-    onAccountSelected: (AccountInfo?) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-        )
-
-        if (accounts.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No accounts found",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item {
-                    // Option to deselect/None
-                    Surface(
-                        onClick = { onAccountSelected(null) },
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (selectedAccount == null) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surface,
-                        border = if (selectedAccount == null) null
-                        else BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "None (Manual Entry)",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-
-                items(accounts) { account ->
-                    val isSelected = selectedAccount?.id == account.id
-                    Surface(
-                        onClick = { onAccountSelected(account) },
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surface,
-                        border = if (isSelected) null
-                        else BorderStroke(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            if (account.iconResId != 0) {
-                                Icon(
-                                    painter = painterResource(id = account.iconResId),
-                                    contentDescription = null,
-                                    tint = Color.Unspecified,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AccountBalance,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = account.bankName,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "••${account.accountLast4}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-                
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun TransactionReceipt(
     transaction: TransactionEntity,
     primaryCurrency: String,
     convertedAmount: BigDecimal?,
-    availableAccounts: List<AccountInfo>,
+    availableAccounts: List<AccountBalanceEntity>,
     categories: List<CategoryEntity>,
     subcategoriesMap: Map<Long, List<SubcategoryEntity>>,
     linkedSubscription: SubscriptionEntity? = null,

@@ -76,15 +76,11 @@ fun CustomTitleTopAppBar(
 private fun Modifier.animatedOffsetModifier(
     hasBackButton: Boolean,
     hasActionButton: Boolean = false,
-    isTransactionScreen : Boolean = false,
-    isEditTransactionScreen: Boolean = false,
     isHomeScreen: Boolean = false,
 ): Modifier {
     // Define the target offset based on conditions
     val targetOffsetX = when {
         hasBackButton && hasActionButton-> 0.dp
-        isEditTransactionScreen -> (-28).dp
-        isTransactionScreen -> (-28).dp
         isHomeScreen-> (0).dp
         hasBackButton -> (-26).dp
         else -> (-10).dp
@@ -271,8 +267,6 @@ private fun RegularTopAppBar(
         exit = fadeOut()
     ) {
         val isHomeScreen = title == "Cashiro"
-        val isTransactionScreen = title == "Transactions"
-        val isEditTransactionScreen = title == "Edit Transaction"
 
         TopAppBar(
             title = {
@@ -284,8 +278,6 @@ private fun RegularTopAppBar(
                     modifier = Modifier.animatedOffsetModifier(
                         hasBackButton = hasBackButton,
                         hasActionButton = hasActionButton,
-                        isTransactionScreen = isTransactionScreen,
-                        isEditTransactionScreen = isEditTransactionScreen,
                         isHomeScreen = title == "Cashiro",
                     )
                 )

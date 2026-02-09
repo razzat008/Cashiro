@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import com.ritesh.cashiro.presentation.ui.components.AccountCard
+import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.theme.*
@@ -292,7 +293,7 @@ fun TransactionTabContent(
                             verticalArrangement = Arrangement.spacedBy(1.5.dp)
                         ) {
                             // Source Account Card
-                            OutlinedCard(
+                            Card(
                                 onClick = { showAccountSheet = true },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(
@@ -300,7 +301,7 @@ fun TransactionTabContent(
                                     topEnd = 16.dp,
                                     bottomStart = 4.dp,
                                     bottomEnd = 4.dp),
-                                colors = CardDefaults.outlinedCardColors(
+                                colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                                 ),
                                 border = BorderStroke(0.dp, Color.Transparent)
@@ -338,7 +339,7 @@ fun TransactionTabContent(
                                         )
                                         if (uiState.selectedAccount != null) {
                                             Text(
-                                                text = "••${uiState.selectedAccount?.accountLast4}",
+                                                text = if (uiState.selectedAccount?.accountLast4 == "wallet") "${uiState.selectedAccount?.accountLast4}" else "••${uiState.selectedAccount?.accountLast4}",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -354,7 +355,7 @@ fun TransactionTabContent(
                             }
 
                             // Target Account Card
-                            OutlinedCard(
+                            Card(
                                 onClick = { showTargetAccountSheet = true },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(
@@ -362,7 +363,7 @@ fun TransactionTabContent(
                                     topEnd = 4.dp,
                                     bottomStart = 16.dp,
                                     bottomEnd = 16.dp),
-                                colors = CardDefaults.outlinedCardColors(
+                                colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                                 ),
                                 border = BorderStroke(0.dp, Color.Transparent)
@@ -400,7 +401,7 @@ fun TransactionTabContent(
                                         )
                                         if (uiState.targetAccount != null) {
                                             Text(
-                                                text = "••${uiState.targetAccount?.accountLast4}",
+                                                text = if (uiState.targetAccount?.accountLast4 == "wallet") "${uiState.targetAccount?.accountLast4}" else "••${uiState.targetAccount?.accountLast4}",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -503,7 +504,7 @@ fun TransactionTabContent(
                     modifier = Modifier.animateContentSize().fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
-                    OutlinedCard(
+                    Card(
                         onClick = { showAccountSheet = true },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(
@@ -512,7 +513,7 @@ fun TransactionTabContent(
                             bottomStart = 4.dp,
                             bottomEnd = 4.dp
                         ),
-                        colors = CardDefaults.outlinedCardColors(
+                        colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                         ),
                         border = BorderStroke(0.dp, Color.Transparent)
@@ -548,7 +549,7 @@ fun TransactionTabContent(
                                 )
                                 if (uiState.selectedAccount != null) {
                                     Text(
-                                        text = "••${uiState.selectedAccount?.accountLast4}",
+                                        text = if (uiState.selectedAccount?.accountLast4 == "wallet") "${uiState.selectedAccount?.accountLast4}" else "••${uiState.selectedAccount?.accountLast4}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -751,84 +752,15 @@ fun TransactionTabContent(
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "Select Account",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-                        )
-
-                        if (accounts.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No accounts found",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                userScrollEnabled = !isTransitioning
-                            ) {
-                                item {
-                                    // Option to deselect/None
-                                    Surface(
-                                        onClick = {
-                                            viewModel.updateTransactionAccount(null)
-                                            showAccountSheet = false },
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = if (uiState.selectedAccount == null) MaterialTheme.colorScheme.primaryContainer
-                                        else MaterialTheme.colorScheme.surface,
-                                        border = if (uiState.selectedAccount == null) null
-                                        else BorderStroke(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.outlineVariant
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(16.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                text = "None (Manual Entry)",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                    }
-                                }
-
-                                items(accounts) { account ->
-                                    val isSelected = uiState.selectedAccount?.id == account.id
-                                    Surface(
-                                        shape = CardDefaults.shape,
-                                        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
-                                        color = Color.Transparent,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        AccountCard(
-                                            account = account,
-                                            showMoreOptions = false,
-                                            onClick = {
-                                                viewModel.updateTransactionAccount(account)
-                                                showAccountSheet = false
-                                            }
-                                        )
-                                    }
-                                }
-                                item{
-                                    Spacer(modifier = Modifier.height(64.dp))
-                                }
-                            }
-                        }
-                    }
+                    AccountSelectionSheet(
+                        accounts = accounts,
+                        selectedAccount = uiState.selectedAccount,
+                        onAccountSelected = {
+                            viewModel.updateTransactionAccount(it)
+                            showAccountSheet = false
+                        },
+                        isTransitioning = isTransitioning
+                    )
                 }
             }
 
@@ -839,56 +771,18 @@ fun TransactionTabContent(
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "Select Target Account",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-                        )
-
-                        if (accounts.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No accounts found",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // Filter out the source account from target selection
-                                val availableAccounts = accounts.filter { it.id != uiState.selectedAccount?.id }
-                                
-                                items(availableAccounts) { account ->
-                                    val isSelected = uiState.targetAccount?.id == account.id
-                                    Surface(
-                                        shape = CardDefaults.shape,
-                                        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
-                                        color = Color.Transparent,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        AccountCard(
-                                            account = account,
-                                            showMoreOptions = false,
-                                            onClick = {
-                                                viewModel.updateTransactionTargetAccount(account)
-                                                showTargetAccountSheet = false
-                                            }
-                                        )
-                                    }
-                                }
-                                item{
-                                    Spacer(modifier = Modifier.height(64.dp))
-                                }
-                            }
-                        }
-                    }
+                    // Filter out the source account from target selection
+                    val availableTargetAccounts = accounts.filter { it.id != uiState.selectedAccount?.id }
+                    AccountSelectionSheet(
+                        accounts = availableTargetAccounts,
+                        selectedAccount = uiState.targetAccount,
+                        title = "Select Target Account",
+                        onAccountSelected = {
+                            viewModel.updateTransactionTargetAccount(it)
+                            showTargetAccountSheet = false
+                        },
+                        isTransitioning = isTransitioning
+                    )
                 }
             }
 

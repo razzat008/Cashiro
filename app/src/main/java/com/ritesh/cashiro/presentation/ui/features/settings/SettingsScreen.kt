@@ -331,14 +331,14 @@ fun SettingsScreen(
                     ListItem(
                         headline = {
                             Text(
-                                text = "Manage Accounts",
+                                text = "Accounts",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
                         },
                         supporting = {
                             Text(
-                                text = "Add manual accounts and update balances",
+                                text = "Add accounts and update balances",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

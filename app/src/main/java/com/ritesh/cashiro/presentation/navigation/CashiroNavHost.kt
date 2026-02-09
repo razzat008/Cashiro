@@ -370,7 +370,6 @@ fun CashiroNavHost(
                 ) {
                     ManageAccountsScreen(
                         onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToAddAccount = { navController.safeNavigate(AddAccount) },
                         onNavigateToAccountDetail = { bankName, last4 ->
                             navController.safeNavigate(AccountDetail(bankName, last4))
                         }

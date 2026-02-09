@@ -70,7 +70,7 @@ class TransactionDetailViewModel @Inject constructor(
     private val sharedPrefs =
         context.getSharedPreferences("account_prefs", Context.MODE_PRIVATE)
 
-    val availableAccounts = accountBalanceRepository.getAllLatestBalances()
+    val availableAccounts: StateFlow<List<AccountBalanceEntity>> = accountBalanceRepository.getAllLatestBalances()
         .map { balances ->
             val hiddenAccounts =
                 sharedPrefs.getStringSet("hidden_accounts", emptySet()) ?: emptySet()
@@ -78,17 +78,6 @@ class TransactionDetailViewModel @Inject constructor(
                 .filter { balance ->
                     val key = "${balance.bankName}_${balance.accountLast4}"
                     !hiddenAccounts.contains(key)
-                }
-                .map { balance ->
-                    AccountInfo(
-                        id = balance.id,
-                        bankName = balance.bankName,
-                        accountLast4 = balance.accountLast4,
-                        displayName = "${balance.bankName} ••••${balance.accountLast4}",
-                        isCreditCard = balance.isCreditCard,
-                        iconResId = balance.iconResId,
-                        currency = balance.currency
-                    )
                 }
                 .distinctBy { "${it.bankName}_${it.accountLast4}" }
         }
@@ -98,7 +87,7 @@ class TransactionDetailViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    val selectedAccount: StateFlow<AccountInfo?> = _uiState.map { state ->
+    val selectedAccount: StateFlow<AccountBalanceEntity?> = _uiState.map { state ->
         val transaction = state.editableTransaction
         if (transaction == null) return@map null
         availableAccounts.value.find {
@@ -106,7 +95,7 @@ class TransactionDetailViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val targetAccount: StateFlow<AccountInfo?> = _uiState.map { state ->
+    val targetAccount: StateFlow<AccountBalanceEntity?> = _uiState.map { state ->
         val transaction = state.editableTransaction
         if (transaction == null) return@map null
         availableAccounts.value.find { it.accountLast4 == transaction.toAccount }
@@ -307,7 +296,7 @@ class TransactionDetailViewModel @Inject constructor(
         _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(accountNumber = if (accountNumber.isNullOrEmpty()) null else accountNumber)) }
     }
 
-    fun updateTransactionAccount(account: AccountInfo?) {
+    fun updateTransactionAccount(account: AccountBalanceEntity?) {
         _uiState.update { state ->
             val current = state.editableTransaction
             state.copy(
@@ -320,7 +309,7 @@ class TransactionDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateTransactionTargetAccount(account: AccountInfo?) {
+    fun updateTransactionTargetAccount(account: AccountBalanceEntity?) {
         _uiState.update { it.copy(editableTransaction = it.editableTransaction?.copy(toAccount = account?.accountLast4)) }
 
         // Update category if type is TRANSFER

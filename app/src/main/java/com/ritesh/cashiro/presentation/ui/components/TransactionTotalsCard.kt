@@ -34,6 +34,7 @@ import java.math.BigDecimal
 
 @Composable
 fun TransactionTotalsCard(
+    modifier: Modifier = Modifier,
     income: BigDecimal,
     expenses: BigDecimal,
     netBalance: BigDecimal,
@@ -43,7 +44,6 @@ fun TransactionTotalsCard(
     availableCurrenciesCount: Int = 0,
     onCurrencyClick: () -> Unit = {},
     isLoading: Boolean = false,
-    modifier: Modifier = Modifier
 ) {
     val incomeAlpha by animateFloatAsState(
         targetValue = if (isLoading) 0.5f else 1f,
@@ -68,7 +68,7 @@ fun TransactionTotalsCard(
         contentAlignment = Alignment.BottomEnd
     ) {
         CashiroCard(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = Spacing.lg),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),

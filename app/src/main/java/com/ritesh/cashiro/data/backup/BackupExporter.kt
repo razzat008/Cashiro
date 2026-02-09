@@ -105,9 +105,6 @@ class BackupExporter @Inject constructor(
     /**
      * Create backup data structure
      */
-    /**
-     * Create backup data structure
-     */
     private suspend fun createBackup(config: BackupConfiguration): CashiroBackup {
         // Get all database data
         val transactions = if (config.includeTransactionalData) database.transactionDao().getAllTransactions().first() else emptyList()

@@ -53,7 +53,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun ManageAccountsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToAddAccount: () -> Unit,
     onNavigateToAccountDetail: (String, String) -> Unit,
     manageAccountsViewModel: ManageAccountsViewModel = hiltViewModel()
 ) {
@@ -114,7 +113,7 @@ fun ManageAccountsScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CustomTitleTopAppBar(
-                title = "Manage Accounts",
+                title = "Accounts",
                 scrollBehaviorSmall = scrollBehaviorSmall,
                 scrollBehaviorLarge = scrollBehavior,
                 hazeState = hazeState,
