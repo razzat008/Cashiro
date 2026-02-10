@@ -231,10 +231,9 @@ class BackupImporter @Inject constructor(
         return database.withTransaction {
             try {
                 // Get existing data for duplicate checking
-                val existingTransactionHashes = database.transactionDao()
+                val existingTransactionsMap = database.transactionDao()
                     .getAllTransactions().first()
-                    .map { it.transactionHash }
-                    .toSet()
+                    .associateBy { it.transactionHash }
                 
                 val existingCategories = database.categoryDao()
                     .getAllCategories().first()
@@ -251,22 +250,47 @@ class BackupImporter @Inject constructor(
                     }
                 }
                 
-                // Import transactions (skip duplicates by hash)
-                backup.database.transactions.forEach { transaction ->
-                    if (!existingTransactionHashes.contains(transaction.transactionHash)) {
-                        // Generate new ID for imported transaction
-                        val newTransaction = transaction.copy(id = 0)
+                // Import transactions (merge by hash)
+                backup.database.transactions.forEach { backupTxn ->
+                    val existingTxn = existingTransactionsMap[backupTxn.transactionHash]
+                    if (existingTxn == null) {
+                        // New transaction, insert it
+                        val newTransaction = backupTxn.copy(id = 0)
                         database.transactionDao().insertTransaction(newTransaction)
                         importedTransactions++
                     } else {
-                        skippedDuplicates++
+                        // Transaction exists locally. Should we update it with backup data?
+                        // If backupTxn has a newer updatedAt or different fields, update local
+                        
+                        // Heuristic: Update if backup version is "better"
+                        // 1. User edits have updatedAt > dateTime
+                        // 2. Local unedited SMS scans have updatedAt == dateTime (due to our change in Mapper)
+                        
+                        val shouldUpdate = when {
+                            // Case 1: Backup has a newer edit than local
+                            backupTxn.updatedAt.isAfter(existingTxn.updatedAt) -> true
+                            
+                            // Case 2: Local is just a fresh scan (identical updatedAt/dateTime) 
+                            // but backup has an actual edit (updatedAt > dateTime)
+                            backupTxn.updatedAt.isAfter(backupTxn.dateTime) && 
+                                    !existingTxn.updatedAt.isAfter(existingTxn.dateTime) -> true
+                            
+                            // Otherwise, keep local
+                            else -> false
+                        }
+
+                        if (shouldUpdate) {
+                            val updatedTxn = backupTxn.copy(id = existingTxn.id)
+                            database.transactionDao().updateTransaction(updatedTxn)
+                            importedTransactions++
+                        } else {
+                            skippedDuplicates++
+                        }
                     }
                 }
                 
                 // Import other entities with duplicate checking
                 importCardsWithMerge(backup.database.cards)
-                importAccountBalancesWithMerge(backup.database.accountBalances)
-                importSubscriptionsWithMerge(backup.database.subscriptions)
                 importAccountBalancesWithMerge(backup.database.accountBalances)
                 importSubscriptionsWithMerge(backup.database.subscriptions)
                 importMerchantMappingsWithMerge(backup.database.merchantMappings)

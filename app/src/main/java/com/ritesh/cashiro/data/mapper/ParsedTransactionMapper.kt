@@ -45,7 +45,7 @@ fun ParsedTransaction.toEntity(): TransactionEntity {
         transactionHash = transactionHash?.takeIf { it.isNotBlank() } ?: generateTransactionId(),
         isRecurring = false, // Will be determined later
         createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
+        updatedAt = dateTime,
         currency = currency,
         fromAccount = fromAccount,
         toAccount = toAccount
