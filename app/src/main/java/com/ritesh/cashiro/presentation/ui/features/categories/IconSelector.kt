@@ -465,6 +465,12 @@ private fun getAllIcons(): List<IconItem> {
     addIcon("Money Bag Wings", "Finance", R.drawable.type_finance_money_with_wings)
     addIcon("Pound", "Finance", R.drawable.type_finance_pound_banknote)
     addIcon("Yen", "Finance", R.drawable.type_finance_yen_banknote)
+    addIcon("Crypto", "Finance", R.drawable.type_finance_crypto)
+    addIcon("Credit Card", "Finance", R.drawable.type_finance_credit_card)
+    addIcon("Deposit", "Finance", R.drawable.type_finance_deposit)
+    addIcon("Insurance", "Finance", R.drawable.type_finance_insurance)
+    addIcon("Tip", "Finance", R.drawable.type_finance_tip)
+    addIcon("Tax", "Finance", R.drawable.type_finance_tax_due)
 
     // Travel
     addIcon("Airplane", "Travel", R.drawable.type_travel_transport_airplane)
@@ -507,6 +513,7 @@ private fun getAllIcons(): List<IconItem> {
     addIcon("Small Airplane", "Travel", R.drawable.type_travel_transport_small_airplane)
     addIcon("Speedboat", "Travel", R.drawable.type_travel_transport_speedboat)
     addIcon("Tickets", "Travel", R.drawable.type_travel_transport_ticket)
+    addIcon("Inventory", "Travel", R.drawable.type_travel_transport_inventory)
 
 
     // Health
@@ -524,6 +531,7 @@ private fun getAllIcons(): List<IconItem> {
     addIcon("Syringe", "Health", R.drawable.type_health_syringe)
     addIcon("Thermometer", "Health", R.drawable.type_health_thermometer)
     addIcon("X-ray", "Health", R.drawable.type_health_x_ray)
+    addIcon("Vet", "Health", R.drawable.type_health_vet)
 
     // Tools
     addIcon("Game", "Tools", R.drawable.type_tool_electronic_video_game)
@@ -587,6 +595,7 @@ private fun getAllIcons(): List<IconItem> {
     addIcon("Cassette", "Tools", R.drawable.type_tool_electronic_videocassette)
     addIcon("Watch", "Tools", R.drawable.type_tool_electronic_watch)
     addIcon("Wrench", "Tools", R.drawable.type_tool_electronic_wrench)
+    addIcon("Software", "Tools", R.drawable.type_tool_electronic_software)
 
 
     // Vegetables
@@ -721,6 +730,8 @@ private fun getAllIcons(): List<IconItem> {
     addIcon("Ribbon", "Stationery", R.drawable.type_stationary_ribbon)
     addIcon("Wrapped Gift", "Stationery", R.drawable.type_stationary_wrapped_gift)
     addIcon("Writing hand", "Stationery", R.drawable.type_stationary_writing_hand_light)
+    addIcon("Toys", "Stationery", R.drawable.type_stationary_toys)
+    addIcon("Gift Card", "Stationery", R.drawable.type_stationary_gift_card)
 
     // Musical Instruments
     addIcon("Guitar", "Musical Instruments", R.drawable.type_musical_instrument_guitar)
@@ -802,6 +813,21 @@ private fun getAllIcons(): List<IconItem> {
     addIcon("Post Office", "Events & Places", R.drawable.type_event_and_place_post_office)
     addIcon("Snowman", "Events & Places", R.drawable.type_event_and_place_snowman)
     addIcon("Snowman without snow", "Events & Places", R.drawable.type_event_and_place_snowman_without_snow)
+
+    // Human
+    addIcon("Baby", "Human", R.drawable.type_human_baby)
+    addIcon("Parents", "Human", R.drawable.type_human_parents)
+    addIcon("GrandParents", "Human", R.drawable.type_human_grandparents)
+    addIcon("Woman", "Human", R.drawable.type_human_woman)
+    addIcon("Woman Blonde", "Human", R.drawable.type_human_woman_blonde)
+    addIcon("Old Woman", "Human", R.drawable.type_human_old_woman)
+    addIcon("Man", "Human", R.drawable.type_human_man)
+    addIcon("Man Bald", "Human", R.drawable.type_human_man_bald)
+    addIcon("Man Beard", "Human", R.drawable.type_human_man_beard)
+    addIcon("Man Blonde", "Human", R.drawable.type_human_man_blonde)
+    addIcon("Man Curly Hair", "Human", R.drawable.type_human_man_curly_hair)
+    addIcon("Old Man", "Human", R.drawable.type_human_old_man)
+    addIcon("Older Person", "Human", R.drawable.type_human_older_person)
 
     // Brands
     addIcon("1mg", "Brand", R.drawable.ic_brand_1mg)

@@ -994,8 +994,8 @@ object CategoryMapping {
         ),
         "Subscription" to CategoryInfo(
             displayName = "Subscription",
-            iconResId = R.drawable.type_logo_spotify,
-            color = Color(0xFF5CCC4D),
+            iconResId = R.drawable.type_tool_electronic_clapper_board,
+            color = Color(0xFF3F51B5),
         ),
         "EMI" to CategoryInfo(
             displayName = "EMI",

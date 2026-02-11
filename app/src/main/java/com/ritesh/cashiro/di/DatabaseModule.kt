@@ -712,8 +712,8 @@ class DatabaseCallback : RoomDatabase.Callback() {
             SubcategoryData("Commute", R.drawable.type_event_and_place_couch_and_lamp, "#FF5722"),
             SubcategoryData("Visa fees", R.drawable.type_travel_transport_ticket, "#993414"),
             SubcategoryData("Hostel", R.drawable.type_finance_classical_building, "#FF5722"),
-            SubcategoryData("Airbnb", R.drawable.type_event_and_place_house, "#FF0041"),
-            SubcategoryData("Oyo", R.drawable.type_event_and_place_love_hotel, "#9C27B0"),
+            SubcategoryData("Airbnb", R.drawable.ic_brand_airbnb, "#FF0041"),
+            SubcategoryData("Oyo", R.drawable.ic_brand_oyo, "#9C27B0"),
         )
         travelSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -825,25 +825,27 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // subscription subcategories
         val subscriptionSubcategories = listOf(
-            SubcategoryData("Software", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("News", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Netflix", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Prime", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Youtube", R.drawable.type_tool_electronic_video_game, "#993414"),
-            SubcategoryData("Spotify", R.drawable.type_stationary_blue_book, "#FF5722"),
-            SubcategoryData("Google", R.drawable.type_flower_and_tree_potted_plant, "#FF0041"),
-            SubcategoryData("Learning", R.drawable.type_shopping_gem_stone, "#9C27B0"),
-            SubcategoryData("Apple", R.drawable.type_event_and_place_hut, "#FF9800"),
-            SubcategoryData("Bumble", R.drawable.type_tool_electronic_television, "#995B00"),
-            SubcategoryData("JioCinema", R.drawable.type_tool_electronic_hammer_and_wrench, "#FF5722"),
-            SubcategoryData("Google Play", R.drawable.type_travel_transport_automobile, "#FF5722"),
-            SubcategoryData("Xbox", R.drawable.type_shopping_nail_polish, "#66483D"),
-            SubcategoryData("PlayStation", R.drawable.type_shopping_top_hat, "#66483D"),
-            SubcategoryData("Disney Plus", R.drawable.type_stationary_artist_palette, "#66483D"),
-            SubcategoryData("Zee5", R.drawable.type_shopping_glasses, "#66483D"),
-            SubcategoryData("ChatGPT", R.drawable.type_shopping_top_hat, "#66483D"),
-            SubcategoryData("Claude", R.drawable.type_stationary_artist_palette, "#66483D"),
-            SubcategoryData("Grok", R.drawable.type_shopping_glasses, "#66483D"),
+            SubcategoryData("Software", R.drawable.type_tool_electronic_laptop, "#423D3A"),
+            SubcategoryData("News", R.drawable.type_stationary_newspaper, "#423D3A"),
+            SubcategoryData("Netflix", R.drawable.ic_brand_netflix, "#B75300"),
+            SubcategoryData("Prime", R.drawable.ic_brand_amazon_prime, "#FF5722"),
+            SubcategoryData("Youtube", R.drawable.ic_brand_youtube, "#993414"),
+            SubcategoryData("Youtube Music", R.drawable.ic_brand_youtube_music, "#FF9800"),
+            SubcategoryData("Spotify", R.drawable.ic_brand_spotify, "#FF5722"),
+            SubcategoryData("Google", R.drawable.ic_brand_google, "#FF0041"),
+            SubcategoryData("Learning", R.drawable.type_stationary_writing_hand_light, "#9C27B0"),
+            SubcategoryData("Apple Tv", R.drawable.ic_brand_apple_tv, "#FF9800"),
+            SubcategoryData("Apple Music", R.drawable.ic_brand_apple_music, "#FF9800"),
+            SubcategoryData("Bumble", R.drawable.ic_brand_bumble, "#995B00"),
+            SubcategoryData("JioCinema", R.drawable.ic_brand_jiocinema, "#FF5722"),
+            SubcategoryData("Google Play", R.drawable.ic_brand_google_play, "#FF5722"),
+            SubcategoryData("Xbox", R.drawable.ic_brand_xbox, "#66483D"),
+            SubcategoryData("PlayStation", R.drawable.ic_brand_playstation, "#66483D"),
+            SubcategoryData("Disney Plus", R.drawable.ic_brand_disney_plus, "#66483D"),
+            SubcategoryData("Zee5", R.drawable.ic_brand_zee5, "#66483D"),
+            SubcategoryData("ChatGPT", R.drawable.ic_brand_chatgpt, "#66483D"),
+            SubcategoryData("Claude", R.drawable.ic_brand_claude, "#66483D"),
+            SubcategoryData("Grok", R.drawable.ic_brand_grok, "#66483D"),
         )
         subscriptionSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -855,10 +857,10 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // emi subcategories
         val emiSubcategories = listOf(
-            SubcategoryData("Electronics", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("House", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Vehicle", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Education", R.drawable.type_event_and_place_firecracker, "#FF5722"),
+            SubcategoryData("Electronics", R.drawable.type_tool_electronic_software, "#423D3A"),
+            SubcategoryData("House", R.drawable.type_event_and_place_house, "#423D3A"),
+            SubcategoryData("Vehicle", R.drawable.type_travel_transport_automobile, "#B75300"),
+            SubcategoryData("Education", R.drawable.type_stationary_writing_hand_light, "#FF5722"),
         )
         emiSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -870,11 +872,11 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // creditBill subcategories
         val creditBillSubcategories = listOf(
-            SubcategoryData("Credit Card", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Simpl", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Slice", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("lazypay", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Amazon Pay", R.drawable.type_tool_electronic_video_game, "#993414"),
+            SubcategoryData("Credit Card", R.drawable.type_finance_credit_card, "#423D3A"),
+            SubcategoryData("Simpl", R.drawable.ic_brand_simpl, "#423D3A"),
+            SubcategoryData("Slice", R.drawable.ic_brand_slice, "#B75300"),
+            SubcategoryData("lazypay", R.drawable.ic_brand_lazypay, "#FF5722"),
+            SubcategoryData("Amazon Pay", R.drawable.ic_brand_amazon, "#993414"),
         )
         creditBillSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -886,16 +888,15 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // investment subcategories
         val investmentSubcategories = listOf(
-            SubcategoryData("Mutual Funds", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Stocks", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("IPO", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("PPF", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Fixed Deposit", R.drawable.type_tool_electronic_video_game, "#993414"),
-            SubcategoryData("Recurring Deposit", R.drawable.type_stationary_blue_book, "#FF5722"),
-            SubcategoryData("Assets", R.drawable.type_flower_and_tree_potted_plant, "#FF0041"),
-            SubcategoryData("Crypto", R.drawable.type_shopping_gem_stone, "#9C27B0"),
-            SubcategoryData("Gold", R.drawable.type_event_and_place_hut, "#FF9800"),
-            SubcategoryData("SSY", R.drawable.type_tool_electronic_television, "#995B00"),
+            SubcategoryData("Mutual Funds", R.drawable.type_flower_and_tree_herb, "#423D3A"),
+            SubcategoryData("Stocks", R.drawable.type_finance_chart_increasing, "#423D3A"),
+            SubcategoryData("IPO", R.drawable.type_finance_bar_chart, "#B75300"),
+            SubcategoryData("PPF", R.drawable.type_finance_dollar_banknote, "#FF5722"),
+            SubcategoryData("Fixed Deposit", R.drawable.type_finance_deposit, "#993414"),
+            SubcategoryData("Recurring Deposit", R.drawable.type_finance_tip, "#FF5722"),
+            SubcategoryData("Assets", R.drawable.type_finance_classical_building, "#FF0041"),
+            SubcategoryData("Crypto", R.drawable.type_finance_crypto, "#9C27B0"),
+            SubcategoryData("Gold", R.drawable.type_finance_coin, "#FF9800"),
         )
         investmentSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -907,11 +908,11 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // support subcategories
         val supportSubcategories = listOf(
-            SubcategoryData("Parents", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Spouse", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Mom", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Dad", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Pocket Money", R.drawable.type_tool_electronic_video_game, "#993414"),
+            SubcategoryData("Parents", R.drawable.type_human_parents, "#423D3A"),
+            SubcategoryData("Spouse", R.drawable.type_human_woman, "#423D3A"),
+            SubcategoryData("Mom", R.drawable.type_human_old_woman, "#B75300"),
+            SubcategoryData("Dad", R.drawable.type_human_older_person, "#FF5722"),
+            SubcategoryData("Pocket Money", R.drawable.type_finance_money_bag, "#993414"),
         )
         supportSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -923,10 +924,10 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // insurance subcategories
         val insuranceSubcategories = listOf(
-            SubcategoryData("Health", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Vehicle", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Life", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Electronics", R.drawable.type_event_and_place_firecracker, "#FF5722"),
+            SubcategoryData("Health", R.drawable.type_health_drop_of_blood, "#423D3A"),
+            SubcategoryData("Vehicle", R.drawable.type_travel_transport_automobile, "#423D3A"),
+            SubcategoryData("Life", R.drawable.type_health_mending_heart, "#B75300"),
+            SubcategoryData("Electronics", R.drawable.type_tool_electronic_mobile_phone, "#FF5722"),
         )
         insuranceSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -938,9 +939,9 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // tax subcategories
         val taxSubcategories = listOf(
-            SubcategoryData("Income Tax", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("GST", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Property Tax", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
+            SubcategoryData("Income Tax", R.drawable.type_finance_chart_increasing, "#423D3A"),
+            SubcategoryData("GST", R.drawable.type_finance_tax_due, "#423D3A"),
+            SubcategoryData("Property Tax", R.drawable.type_finance_classical_building, "#B75300"),
         )
         taxSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -952,11 +953,11 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // topUp subcategories
         val topUpSubcategories = listOf(
-            SubcategoryData("UPI Lite", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Paytm", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Amazon", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("PhonePe", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Google pay", R.drawable.type_tool_electronic_video_game, "#993414"),
+            SubcategoryData("UPI Lite", R.drawable.type_finance_bank, "#423D3A"),
+            SubcategoryData("Paytm", R.drawable.ic_brand_paytm, "#423D3A"),
+            SubcategoryData("Amazon", R.drawable.ic_brand_amazon, "#B75300"),
+            SubcategoryData("PhonePe", R.drawable.ic_brand_phonepe, "#FF5722"),
+            SubcategoryData("Google pay", R.drawable.ic_brand_google_pay, "#993414"),
         )
         topUpSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -968,15 +969,15 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // children subcategories
         val childrenSubcategories = listOf(
-            SubcategoryData("Nutrition", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Necessities", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Toys", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Medical", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Care", R.drawable.type_tool_electronic_video_game, "#993414"),
-            SubcategoryData("Tuition Fee", R.drawable.type_stationary_blue_book, "#FF5722"),
-            SubcategoryData("Classes Fee", R.drawable.type_flower_and_tree_potted_plant, "#FF0041"),
-            SubcategoryData("School Fee", R.drawable.type_shopping_gem_stone, "#9C27B0"),
-            SubcategoryData("College Fee", R.drawable.type_event_and_place_hut, "#FF9800"),
+            SubcategoryData("Nutrition", R.drawable.type_vegetable_pea_pod, "#423D3A"),
+            SubcategoryData("Necessities", R.drawable.type_stationary_pencil, "#423D3A"),
+            SubcategoryData("Toys", R.drawable.type_stationary_toys, "#B75300"),
+            SubcategoryData("Medical", R.drawable.type_health_pill, "#FF5722"),
+            SubcategoryData("Care", R.drawable.type_health_adhesive_bandage, "#993414"),
+            SubcategoryData("Tuition Fee", R.drawable.type_finance_money_bag, "#FF5722"),
+            SubcategoryData("Classes Fee", R.drawable.type_stationary_books, "#FF0041"),
+            SubcategoryData("School Fee", R.drawable.type_stationary_open_book, "#9C27B0"),
+            SubcategoryData("College Fee", R.drawable.type_finance_classical_building, "#FF9800"),
         )
         childrenSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -988,10 +989,10 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // petCare subcategories
         val petCareSubcategories = listOf(
-            SubcategoryData("Food", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Toys", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Grooming", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Vet", R.drawable.type_event_and_place_firecracker, "#FF5722"),
+            SubcategoryData("Food", R.drawable.type_vegetable_beans, "#423D3A"),
+            SubcategoryData("Toys", R.drawable.type_stationary_toys, "#423D3A"),
+            SubcategoryData("Grooming", R.drawable.type_tool_electronic_scissors, "#B75300"),
+            SubcategoryData("Vet", R.drawable.type_health_vet, "#FF5722"),
         )
         petCareSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -1003,15 +1004,15 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // business subcategories
         val businessSubcategories = listOf(
-            SubcategoryData("Salary", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Inventory", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Rent", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Logistics", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Software", R.drawable.type_tool_electronic_video_game, "#993414"),
-            SubcategoryData("Marketing", R.drawable.type_stationary_blue_book, "#FF5722"),
-            SubcategoryData("Tax", R.drawable.type_flower_and_tree_potted_plant, "#FF0041"),
-            SubcategoryData("Insurance", R.drawable.type_shopping_gem_stone, "#9C27B0"),
-            SubcategoryData("Service", R.drawable.type_event_and_place_hut, "#FF9800"),
+            SubcategoryData("Salary", R.drawable.type_finance_money_with_wings, "#423D3A"),
+            SubcategoryData("Inventory", R.drawable.type_travel_transport_inventory, "#423D3A"),
+            SubcategoryData("Rent", R.drawable.type_event_and_place_house, "#B75300"),
+            SubcategoryData("Logistics", R.drawable.type_travel_transport_delivery_truck, "#FF5722"),
+            SubcategoryData("Software", R.drawable.type_tool_electronic_software, "#993414"),
+            SubcategoryData("Marketing", R.drawable.type_finance_bar_chart, "#FF5722"),
+            SubcategoryData("Tax", R.drawable.type_finance_tax_due, "#FF0041"),
+            SubcategoryData("Insurance", R.drawable.type_finance_insurance, "#9C27B0"),
+            SubcategoryData("Service", R.drawable.type_tool_electronic_light_bulb, "#FF9800"),
         )
         businessSubcategories.forEach { subcategory ->
             insertSubcategory(
@@ -1023,11 +1024,11 @@ class DatabaseCallback : RoomDatabase.Callback() {
 
         // subscription subcategories
         val miscellaneousSubcategories = listOf(
-            SubcategoryData("Tip", R.drawable.type_shopping_necktie, "#423D3A"),
-            SubcategoryData("Verification", R.drawable.type_shopping_mans_shoe, "#423D3A"),
-            SubcategoryData("Forex", R.drawable.type_tool_electronic_desktop_computer, "#B75300"),
-            SubcategoryData("Deposit", R.drawable.type_event_and_place_firecracker, "#FF5722"),
-            SubcategoryData("Gift Cards", R.drawable.type_tool_electronic_video_game, "#993414"),
+            SubcategoryData("Tip", R.drawable.type_finance_tip, "#423D3A"),
+            SubcategoryData("Verification", R.drawable.type_tool_electronic_magnifying_glass_tilted_left, "#423D3A"),
+            SubcategoryData("Forex", R.drawable.type_finance_currency_exchange, "#B75300"),
+            SubcategoryData("Deposit", R.drawable.type_finance_deposit, "#FF5722"),
+            SubcategoryData("Gift Cards", R.drawable.type_stationary_gift_card, "#993414"),
         )
         miscellaneousSubcategories.forEach { subcategory ->
             insertSubcategory(

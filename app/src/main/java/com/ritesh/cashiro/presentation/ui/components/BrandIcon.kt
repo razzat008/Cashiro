@@ -67,7 +67,7 @@ fun BrandIcon(
                                 Color(colorHex.toColorInt()).copy(alpha = alpha)
                             } ?: generateColorFromString(merchantName)
                         )
-                        .padding(8.dp)
+                        .padding(if (iconResource is IconResource.DrawableResource) 0.dp else 8.dp)
                 } else {
                     Modifier
                 }
