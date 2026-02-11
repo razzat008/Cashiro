@@ -54,6 +54,10 @@ class AccountBalanceRepository @Inject constructor(
         accountBalanceDao.updateBalance(balance)
     }
     
+    fun getAllBalances(): Flow<List<AccountBalanceEntity>> {
+        return accountBalanceDao.getAllBalances()
+    }
+
     suspend fun deleteBalance(balance: AccountBalanceEntity) {
         accountBalanceDao.deleteBalance(balance)
     }

@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.ui.graphics.Path
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,8 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.*
+import androidx.compose.animation.core.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
@@ -47,7 +54,15 @@ fun BalanceChart(
     
     val lineColor = MaterialTheme.colorScheme.primary
     val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
-    val backgroundColor = MaterialTheme.colorScheme.surface
+    val backgroundColor = MaterialTheme.colorScheme.surfaceContainerLow
+
+    val animationProgress = remember { Animatable(0f) }
+    LaunchedEffect(balanceHistory) {
+        animationProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 1500, easing = CubicBezierEasing(0.4f, 0.0f, 0.2f, 1f))
+        )
+    }
     
     // Calculate min and max for scaling using smoothed data
     val maxBalance = smoothedHistory.maxOf { it.balance }
@@ -66,12 +81,10 @@ fun BalanceChart(
         color = backgroundColor,
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(Spacing.md)
-        ) {
+        Column{
             // Y-axis labels (max and min balance)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.xs),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -90,6 +103,7 @@ fun BalanceChart(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = Spacing.xs)
                     .weight(1f)
             ) {
                 Canvas(
@@ -106,6 +120,19 @@ fun BalanceChart(
                             color = gridColor,
                             start = Offset(0f, y),
                             end = Offset(canvasWidth, y),
+                            strokeWidth = 1.dp.toPx(),
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                        )
+                    }
+
+                    // Draw vertical grid lines
+                    val verticalGridLines = 5
+                    for (i in 0..verticalGridLines) {
+                        val x = canvasWidth * (i.toFloat() / verticalGridLines)
+                        drawLine(
+                            color = gridColor,
+                            start = Offset(x, 0f),
+                            end = Offset(x, canvasHeight),
                             strokeWidth = 1.dp.toPx(),
                             pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                         )
@@ -139,50 +166,56 @@ fun BalanceChart(
                             }
                         }
                         
-                        // Draw gradient fill under the line
-                        val fillPath = Path().apply {
-                            addPath(path)
-                            lineTo(canvasWidth, canvasHeight)
-                            lineTo(0f, canvasHeight)
-                            close()
-                        }
-                        
-                        drawPath(
-                            path = fillPath,
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    lineColor.copy(alpha = 0.3f),
-                                    lineColor.copy(alpha = 0.05f)
-                                ),
-                                startY = 0f,
-                                endY = canvasHeight
+                        // Draw the line and fill with animation
+                        clipRect(right = canvasWidth * animationProgress.value) {
+                            // Draw gradient fill under the line
+                            val fillPath = Path().apply {
+                                addPath(path)
+                                lineTo(canvasWidth, canvasHeight)
+                                lineTo(0f, canvasHeight)
+                                close()
+                            }
+
+                            drawPath(
+                                path = fillPath,
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        lineColor.copy(alpha = 0.3f),
+                                        lineColor.copy(alpha = 0.05f)
+                                    ),
+                                    startY = 0f,
+                                    endY = canvasHeight
+                                )
                             )
-                        )
-                        
-                        // Draw the line
-                        drawPath(
-                            path = path,
-                            color = lineColor,
-                            style = Stroke(
-                                width = 2.dp.toPx(),
-                                cap = StrokeCap.Round,
-                                join = StrokeJoin.Round
-                            )
-                        )
-                        
-                        // Draw points
-                        points.forEach { point ->
-                            drawCircle(
-                                color = backgroundColor,
-                                radius = 4.dp.toPx(),
-                                center = point
-                            )
-                            drawCircle(
+
+                            // Draw the line
+                            drawPath(
+                                path = path,
                                 color = lineColor,
-                                radius = 4.dp.toPx(),
-                                center = point,
-                                style = Stroke(width = 2.dp.toPx())
+                                style = Stroke(
+                                    width = 2.dp.toPx(),
+                                    cap = StrokeCap.Round,
+                                    join = StrokeJoin.Round
+                                )
                             )
+                        }
+
+                        // Draw points
+                        points.forEachIndexed { index, point ->
+                            val pointProgress = (animationProgress.value * points.size - index).coerceIn(0f, 1f)
+                            if (pointProgress > 0f) {
+                                drawCircle(
+                                    color = lineColor,
+                                    radius = 4.dp.toPx() * pointProgress,
+                                    center = point
+                                )
+                                drawCircle(
+                                    color = backgroundColor,
+                                    radius = 4.dp.toPx() * pointProgress,
+                                    center = point,
+                                    style = Stroke(width = 2.dp.toPx())
+                                )
+                            }
                         }
                     }
                 }
@@ -190,7 +223,7 @@ fun BalanceChart(
             
             // X-axis labels (dates) - oldest on left, newest on right
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = Spacing.xs ),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 if (smoothedHistory.isNotEmpty()) {
@@ -222,6 +255,7 @@ fun BalanceChart(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(Spacing.xs))
         }
     }
 }

@@ -30,6 +30,7 @@ import com.ritesh.cashiro.data.repository.BudgetWithSpending
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.worker.OptimizedSmsReaderWorker
 import androidx.compose.ui.graphics.Color
+import java.time.LocalDateTime
 import java.time.YearMonth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -47,6 +48,7 @@ import androidx.core.net.toUri
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
+import java.util.TreeMap
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -275,6 +277,53 @@ class HomeViewModel @Inject constructor(
                     )
                 }
         }
+
+        viewModelScope.launch {
+            // Load portfolio balance history for the last 180 days
+            val endDate = LocalDateTime.now()
+            val startDate = endDate.minusDays(180)
+            
+            accountBalanceRepository.getAllBalances().collect { allBalances ->
+                val selectedCurrency = _uiState.value.selectedCurrency
+                
+                // Group balances by date to calculate daily totals
+                val dailyPortfolioHistory = allBalances
+                    .filter { it.timestamp.isAfter(startDate) && !it.isCreditCard }
+                    .groupBy { it.timestamp.toLocalDate() }
+                    .mapValues { (_, balances) ->
+                        // For each day, keep only the latest balance for each unique account
+                        val latestBalancesPerAccount = balances
+                            .groupBy { "${it.bankName}_${it.accountLast4}" }
+                            .mapValues { (_, accountBalances) ->
+                                accountBalances.maxByOrNull { it.timestamp }
+                            }
+                        
+                        latestBalancesPerAccount.values.filterNotNull().sumOf { account ->
+                            if (account.currency == selectedCurrency) {
+                                account.balance
+                            } else {
+                                currencyConversionService.convertAmount(
+                                    amount = account.balance,
+                                    fromCurrency = account.currency,
+                                    toCurrency = selectedCurrency
+                                ) ?: account.balance
+                            }
+                        }
+                    }
+                    .toSortedMap()
+                    .map { (date, total) ->
+                        com.ritesh.cashiro.presentation.ui.components.BalancePoint(
+                            timestamp = date.atStartOfDay(),
+                            balance = total,
+                            currency = selectedCurrency
+                        )
+                    }
+
+                _uiState.value = _uiState.value.copy(
+                    balanceHistory = dailyPortfolioHistory
+                )
+            }
+        }
     }
 
     private fun calculateMonthlyChange() {
@@ -287,9 +336,17 @@ class HomeViewModel @Inject constructor(
         val expenseChange = currentExpenses - lastExpenses
         val totalChange = currentTotal - lastTotal
 
+        val monthlyChangePercent = if (lastTotal != BigDecimal.ZERO) {
+            ((totalChange.toDouble() / lastTotal.toDouble()) * 100).toInt()
+        } else if (totalChange != BigDecimal.ZERO) {
+            100 // Assume 100% growth if starting from zero
+        } else {
+            0
+        }
+
         _uiState.value = _uiState.value.copy(
             monthlyChange = totalChange,
-            monthlyChangePercent = 0 // We're not using percentage anymore
+            monthlyChangePercent = monthlyChangePercent
         )
     }
 

@@ -81,7 +81,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -134,6 +133,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -384,7 +384,7 @@ fun SharedTransitionScope.HomeScreen(
             ) {
                 // Transaction Summary Cards
                 item {
-                    TransactionSummaryCards(
+                    NetworthSummaryCards(
                         uiState = uiState,
                         onCurrencySelected = {
                             homeViewModel.selectCurrency(it)
@@ -980,7 +980,7 @@ private fun UpcomingSubscriptionsCard(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun TransactionSummaryCards(
+private fun NetworthSummaryCards(
     uiState: HomeUiState,
     onCurrencySelected: (String) -> Unit = {},
 ) {
@@ -1029,30 +1029,46 @@ private fun TransactionSummaryCards(
         )
     }
 
+    val abbreviatedName = remember(uiState.userName) {
+        if (uiState.userName.contains(" ")) {
+            uiState.userName.split(" ")
+                .filter { it.isNotBlank() }
+                .take(2)
+                .map { it[0] }
+                .joinToString("")
+                .uppercase()
+        } else if (uiState.userName.length > 4) {
+            uiState.userName.filter { it !in "aeiouAEIOU" }.take(4).uppercase().ifEmpty { 
+                uiState.userName.take(4).uppercase() 
+            }
+        } else {
+            uiState.userName.uppercase()
+        }
+    }
+
+    val dateRangeLabel = remember(uiState.balanceHistory) {
+        if (uiState.balanceHistory.size < 2) ""
+        else {
+            val start = uiState.balanceHistory.first().timestamp.toLocalDate()
+            val end = uiState.balanceHistory.last().timestamp.toLocalDate()
+            val days = ChronoUnit.DAYS.between(start, end)
+            "Last $days days"
+        }
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {
 
         BalanceCard(
             totalBalance = uiState.totalBalance,
             monthlyChange = uiState.monthlyChange,
+            monthlyChangePercent = uiState.monthlyChangePercent,
             currency = uiState.selectedCurrency,
-            subtitle = comparisonMessage,
-            transfersAmount = CurrencyFormatter.formatCurrency(
-                uiState.currentMonthTransfer,
-                uiState.selectedCurrency
-            ),
-            investmentsAmount = CurrencyFormatter.formatCurrency(
-                uiState.currentMonthInvestment,
-                uiState.selectedCurrency
-            ),
-            onTransfersClick = {
-//                navController.navigate("transactions?type=TRANSFER")
-                /* Show Breakdown or something else */
-            },
-            onInvestmentsClick = {
-//                navController.navigate("transactions?type=INVESTMENT")
-                /* Show Breakdown or something else */
-            },
-            onHandleClick = { /* Show Breakdown or something else */ },
+            abbreviatedName = abbreviatedName,
+            userName = uiState.userName,
+            balanceHistory = uiState.balanceHistory,
+            dateRangeLabel = dateRangeLabel,
+            thisMonthValue = CurrencyFormatter.formatCurrency(uiState.currentMonthExpenses, uiState.selectedCurrency),
+            thisYearValue = CurrencyFormatter.formatCurrency(uiState.currentMonthExpenses, uiState.selectedCurrency),
             availableCurrenciesCount = uiState.availableCurrencies.size,
             onCurrencyClick = { showCurrencySheet = true },
             modifier = Modifier.padding(

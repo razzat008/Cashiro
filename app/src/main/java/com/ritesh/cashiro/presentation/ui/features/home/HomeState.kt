@@ -6,6 +6,7 @@ import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
+import com.ritesh.cashiro.presentation.ui.components.BalancePoint
 import java.math.BigDecimal
 
 data class HomeUiState(
@@ -39,5 +40,6 @@ data class HomeUiState(
     val unreadUpdatesCount: Int = 0,
     val bannerImageUri: Uri? = null,
     val showBannerImage: Boolean = false,
-    val activeBudgets: List<BudgetWithSpending> = emptyList()
+    val activeBudgets: List<BudgetWithSpending> = emptyList(),
+    val balanceHistory: List<BalancePoint> = emptyList(),
 )
