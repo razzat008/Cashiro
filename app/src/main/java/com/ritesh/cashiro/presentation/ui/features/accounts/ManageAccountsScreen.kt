@@ -920,8 +920,9 @@ private fun AccountItem(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = Spacing.xs),
-                            color = MaterialTheme.colorScheme.surfaceContainerLow,
-                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = MaterialTheme.shapes.medium,
+                            tonalElevation = 2.dp,
                             shadowElevation = 2.dp
                         ) {
                             Row(

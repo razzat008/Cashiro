@@ -50,15 +50,35 @@ fun CategorySelectionSheet(
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     
     // Filter categories based on search
-    val filteredCategories = remember(categories, searchQuery.text) {
+    val filteredCategories = remember(categories, subcategoriesMap, searchQuery.text) {
         if (searchQuery.text.isBlank()) {
             categories
         } else {
-            categories.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
+            categories.filter { category ->
+                val categoryMatches = category.name.contains(searchQuery.text, ignoreCase = true)
+                val subcategoriesMatch = subcategoriesMap[category.id]?.any {
+                    it.name.contains(searchQuery.text, ignoreCase = true)
+                } == true
+                categoryMatches || subcategoriesMatch
+            }
         }
     }
 
     val expandedStates = remember { mutableStateMapOf<Long, Boolean>() }
+
+    // Auto-expand categories that have matching subcategories when searching
+    LaunchedEffect(searchQuery.text) {
+        if (searchQuery.text.isNotBlank()) {
+            filteredCategories.forEach { category ->
+                val hasMatchingSubcategory = subcategoriesMap[category.id]?.any {
+                    it.name.contains(searchQuery.text, ignoreCase = true)
+                } == true
+                if (hasMatchingSubcategory) {
+                    expandedStates[category.id] = true
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -140,7 +160,19 @@ fun CategorySelectionSheet(
                     
                     val isExpanded = expandedStates[category.id] == true
                     
-                    val displayedSubcategories = if (isExpanded) subs else emptyList()
+                    val displayedSubcategories = if (searchQuery.text.isNotBlank()) {
+                        // When searching, show only matching subcategories OR all if category matches
+                        val categoryMatches = category.name.contains(searchQuery.text, ignoreCase = true)
+                        if (categoryMatches) {
+                            subs
+                        } else {
+                            subs.filter { it.name.contains(searchQuery.text, ignoreCase = true) }
+                        }
+                    } else if (isExpanded) {
+                        subs
+                    } else {
+                        emptyList()
+                    }
 
                     AnimatedContent(
                         targetState = category,

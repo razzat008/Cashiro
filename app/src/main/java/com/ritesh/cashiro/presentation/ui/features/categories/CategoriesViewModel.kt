@@ -6,6 +6,7 @@ import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.repository.CategoryRepository
 import com.ritesh.cashiro.data.repository.SubcategoryRepository
+import com.ritesh.cashiro.data.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.*
@@ -16,7 +17,8 @@ class CategoriesViewModel
 @Inject
 constructor(
         private val categoryRepository: CategoryRepository,
-        private val subcategoryRepository: SubcategoryRepository
+        private val subcategoryRepository: SubcategoryRepository,
+        private val transactionRepository: TransactionRepository
 ) : ViewModel() {
 
     // UI State
@@ -30,14 +32,22 @@ constructor(
     val subcategories: StateFlow<Map<Long, List<SubcategoryEntity>>> = 
         subcategoryRepository.subcategoriesMap
 
-    init {
-        // No longer need to launch separate collections for each category
-        // or initialize defaults here as it's done in DatabaseModule
-    }
-
     // Search Query
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    // Deletion Flow State
+    private val _showDeleteConfirmation = MutableStateFlow(false)
+    val showDeleteConfirmation: StateFlow<Boolean> = _showDeleteConfirmation.asStateFlow()
+
+    private val _categoryToDelete = MutableStateFlow<CategoryEntity?>(null)
+    val categoryToDelete: StateFlow<CategoryEntity?> = _categoryToDelete.asStateFlow()
+
+    private val _hasTransactions = MutableStateFlow(false)
+    val hasTransactions: StateFlow<Boolean> = _hasTransactions.asStateFlow()
+
+    private val _showMigrationSheet = MutableStateFlow(false)
+    val showMigrationSheet: StateFlow<Boolean> = _showMigrationSheet.asStateFlow()
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
@@ -182,16 +192,82 @@ constructor(
 
         viewModelScope.launch {
             try {
-                val deleted = categoryRepository.deleteCategory(category.id)
-                if (deleted) {
-                    _snackbarMessage.value = "Category deleted successfully"
-                } else {
-                    _snackbarMessage.value = "Cannot delete this category"
-                }
+                _categoryToDelete.value = category
+                val count = transactionRepository.getTransactionCountByCategory(category.name)
+                _hasTransactions.value = count > 0
+                _showDeleteConfirmation.value = true
             } catch (e: Exception) {
-                _snackbarMessage.value = "Error deleting category: ${e.message}"
+                _snackbarMessage.value = "Error checking transactions: ${e.message}"
             }
         }
+    }
+
+    fun dismissDeleteConfirmation() {
+        _showDeleteConfirmation.value = false
+        _categoryToDelete.value = null
+        _hasTransactions.value = false
+    }
+
+    fun showMigrationSheet() {
+        _showDeleteConfirmation.value = false
+        _showMigrationSheet.value = true
+    }
+
+    fun hideMigrationSheet() {
+        _showMigrationSheet.value = false
+        _categoryToDelete.value = null
+        _hasTransactions.value = false
+    }
+
+    fun confirmDelete(moveToMiscellaneous: Boolean = true) {
+        val category = _categoryToDelete.value ?: return
+        
+        viewModelScope.launch {
+            try {
+                if (moveToMiscellaneous && _hasTransactions.value) {
+                    // Move transactions to "Miscellaneous"
+                    transactionRepository.updateTransactionsCategory(
+                        oldCategory = category.name,
+                        newCategory = "Miscellaneous",
+                        newSubcategory = null
+                    )
+                }
+                performDelete(category)
+            } catch (e: Exception) {
+                _snackbarMessage.value = "Error during deletion: ${e.message}"
+            }
+        }
+    }
+
+    fun confirmMigrationToCategory(newCategory: CategoryEntity, newSubcategory: SubcategoryEntity?) {
+        val oldCategory = _categoryToDelete.value ?: return
+        
+        viewModelScope.launch {
+            try {
+                transactionRepository.updateTransactionsCategory(
+                    oldCategory = oldCategory.name,
+                    newCategory = newCategory.name,
+                    newSubcategory = newSubcategory?.name
+                )
+                performDelete(oldCategory)
+                hideMigrationSheet()
+            } catch (e: Exception) {
+                _snackbarMessage.value = "Error during migration: ${e.message}"
+                hideMigrationSheet()
+            }
+        }
+    }
+
+    private suspend fun performDelete(category: CategoryEntity) {
+        val deleted = categoryRepository.deleteCategory(category.id)
+        if (deleted) {
+            _snackbarMessage.value = "Category deleted successfully"
+        } else {
+            _snackbarMessage.value = "Cannot delete this category"
+        }
+        _showDeleteConfirmation.value = false
+        _categoryToDelete.value = null
+        _hasTransactions.value = false
     }
 
     fun saveSubcategory(name: String, iconResId: Int, color: String) {

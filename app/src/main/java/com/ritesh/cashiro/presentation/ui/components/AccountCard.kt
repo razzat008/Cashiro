@@ -374,82 +374,88 @@ fun AccountCard(
                 )
 
                 // Bottom Section (Bank Info)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceContainerLow,
-                                    MaterialTheme.colorScheme.surfaceContainerLow
+                Column {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        MaterialTheme.colorScheme.surfaceContainerLow,
+                                        MaterialTheme.colorScheme.surfaceContainerLow
+                                    )
                                 )
                             )
-                        )
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(16.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = account.bankName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = if (account.isWallet) "wallet"
-                                else "**** **** **** ${account.accountLast4}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f)
-                            )
-                        }
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (isMain) {
-                                Surface(
-                                    shape = RoundedCornerShape(Spacing.xxl),
-                                    color = Color(0xFFFFD700).copy(alpha = 0.15f),
-                                    border = BorderStroke(
-                                        1.dp,
-                                        Color(0xFFFFD700).copy(alpha = 0.3f)
-                                    )
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(
-                                            horizontal = 6.dp,
-                                            vertical = 2.dp
-                                        ),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Star,
-                                            contentDescription = null,
-                                            tint = Color(0xFFFFD700),
-                                            modifier = Modifier.size(12.dp)
+                            Column {
+                                Text(
+                                    text = account.bankName,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (account.isWallet) "wallet"
+                                    else "**** **** **** ${account.accountLast4}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.6f)
+                                )
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                            ) {
+                                if (isMain) {
+                                    Surface(
+                                        shape = RoundedCornerShape(Spacing.xxl),
+                                        color = Color(0xFFFFD700).copy(alpha = 0.15f),
+                                        border = BorderStroke(
+                                            1.dp,
+                                            Color(0xFFFFD700).copy(alpha = 0.3f)
                                         )
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(4.dp,),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Star,
+                                                contentDescription = null,
+                                                tint = Color(0xFFFFD700),
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
                                     }
                                 }
+
+                                BrandIcon(
+                                    merchantName = account.bankName,
+                                    size = 48.dp,
+                                    showBackground = true,
+                                    accountIconResId = account.iconResId,
+                                    accountColorHex = account.color
+                                )
                             }
-
-                            BrandIcon(
-                                merchantName = account.bankName,
-                                size = 48.dp,
-                                showBackground = true,
-                                accountIconResId = account.iconResId,
-                                accountColorHex = account.color
-                            )
                         }
-                    }
 
+                    }
+                    // Extra content (e.g., Credit Card stats, Linked Cards)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = MaterialTheme.colorScheme.surfaceContainerLow)
+                    ) {
+                        content()
+                    }
                 }
-                // Extra content (e.g., Credit Card stats, Linked Cards)
-                content()
             }
         }
     }

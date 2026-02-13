@@ -145,7 +145,7 @@ class AiContextRepository @Inject constructor(
         transactions
             .filter { it.transactionType == TransactionType.EXPENSE }
             .forEach { transaction ->
-                val category = transaction.category ?: "Others"
+                val category = transaction.category ?: "Miscellaneous"
                 categoryMap.getOrPut(category) { mutableListOf() }.add(transaction.amount)
                 totalExpense = totalExpense.add(transaction.amount)
             }
@@ -198,7 +198,7 @@ class AiContextRepository @Inject constructor(
             TransactionSummary(
                 merchantName = transaction.merchantName,
                 amount = transaction.amount,
-                category = transaction.category ?: "Others",
+                category = transaction.category ?: "Miscellaneous",
                 daysAgo = daysAgo
             )
         }

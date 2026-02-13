@@ -811,7 +811,7 @@ private fun EmptyTransactionsState(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Dimensions.Padding.empty),
+                    .padding(Dimensions.Padding.content),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(

@@ -224,4 +224,10 @@ interface TransactionDao {
             newBankName: String,
             newAccountNumber: String
     )
+
+    @Query("UPDATE transactions SET category = :newCategory, subcategory = :newSubcategory WHERE category = :oldCategory")
+    suspend fun updateTransactionsCategory(oldCategory: String, newCategory: String, newSubcategory: String?)
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE is_deleted = 0 AND category = :category")
+    suspend fun getTransactionCountByCategory(category: String): Int
 }

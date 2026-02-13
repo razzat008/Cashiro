@@ -28,6 +28,7 @@ import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
 import com.ritesh.cashiro.presentation.ui.components.AccountCard
 import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
+import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -139,9 +140,6 @@ fun SubscriptionTabContent(
                 }
             }
 
-
-            // Amount Input
-            val amountInteractionSource = remember { MutableInteractionSource() }
             // Amount Input
             AmountInput(
                 amount = uiState.amount.ifEmpty { "0" },
@@ -171,7 +169,7 @@ fun SubscriptionTabContent(
                         value = uiState.billingCycle,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Billing Cycle *") },
+                        label = { Text("Billing Cycle") },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.EventRepeat,
@@ -447,89 +445,15 @@ fun SubscriptionTabContent(
                     containerColor = MaterialTheme.colorScheme.surface,
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                        Text(
-                            text = "Select Account",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-                        )
-
-                        if (accounts.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "No accounts found",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).padding(horizontal = 16.dp).clip(RoundedCornerShape(16.dp)),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                userScrollEnabled = !isTransitioning
-                            ) {
-                                item {
-                                    // Option to deselect/None
-                                    Surface(
-                                        onClick = {
-                                            viewModel.updateSubscriptionAccount(null)
-                                            showAccountSheet = false
-                                        },
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = if (uiState.selectedAccount == null) MaterialTheme.colorScheme.primaryContainer
-                                        else MaterialTheme.colorScheme.surface,
-                                        border = if (uiState.selectedAccount == null) null
-                                        else BorderStroke(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.outlineVariant
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(16.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                text = "None (Manual Entry)",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                    }
-                                }
-
-                                items(accounts) { account ->
-                                    val isSelected = uiState.selectedAccount?.id == account.id
-                                    Surface(
-                                        shape = CardDefaults.shape,
-                                        border = if (isSelected) BorderStroke(
-                                            2.dp,
-                                            MaterialTheme.colorScheme.primary
-                                        ) else null,
-                                        color = Color.Transparent,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        AccountCard(
-                                            account = account,
-                                            showMoreOptions = false,
-                                            onClick = {
-                                                viewModel.updateSubscriptionAccount(account)
-                                                showAccountSheet = false
-                                            }
-                                        )
-                                    }
-                                }
-
-                                item{
-                                    Spacer(modifier = Modifier.height(64.dp))
-                                }
-                            }
-                        }
-                    }
+                    AccountSelectionSheet(
+                        accounts = accounts,
+                        selectedAccount = uiState.selectedAccount,
+                        onAccountSelected = { account ->
+                            viewModel.updateSubscriptionAccount(account)
+                            showAccountSheet = false
+                        },
+                        isTransitioning = isTransitioning
+                    )
                 }
             }
 

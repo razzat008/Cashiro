@@ -29,7 +29,13 @@ fun CategoryItem(
 ) {
     val showAddButton = showAddSubcategoryButton && subcategories.isEmpty()
 
-    CashiroCard(modifier = modifier.animateContentSize().fillMaxWidth(), onClick = onClick) {
+    CashiroCard(
+        modifier = modifier
+            .animateContentSize()
+            .fillMaxWidth(),
+        onClick = onClick,
+        contentPadding = 0.dp
+    ) {
         Column(modifier = Modifier.animateContentSize().fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(Dimensions.Padding.content),

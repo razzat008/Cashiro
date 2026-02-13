@@ -70,7 +70,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -373,13 +372,13 @@ fun SharedTransitionScope.AnalyticsScreen(
                                 ) {
                                     CashiroCard(
                                         modifier = Modifier.fillMaxWidth(),
-                                        containerColor = CardDefaults.cardColors(
+                                        colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surface.copy(
                                                 alpha = 0.9f
                                             )
                                         )
                                     ) {
-                                        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+                                        Column{
                                             ChartType.entries.forEach { type ->
                                                 Row(
                                                     modifier = Modifier
@@ -435,7 +434,7 @@ fun SharedTransitionScope.AnalyticsScreen(
                                 )
                                 .animateContentSize()
                         ) {
-                            Column(modifier = Modifier.padding(Spacing.md)) {
+                            Column{
 
                                 when (selectedChartType) {
 
@@ -535,7 +534,7 @@ fun SharedTransitionScope.AnalyticsScreen(
                                         .animateContentSize()
                                         .fillMaxWidth()
                                 ) {
-                                    Column(modifier = Modifier.padding(Spacing.md)) {
+                                    Column{
                                         CategoryPieChart(
                                             categories = uiState.categoryBreakdown,
                                             currency = uiState.currency
@@ -803,7 +802,7 @@ private fun EmptyAnalyticsState(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Dimensions.Padding.empty),
+                    .padding(Dimensions.Padding.content),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(

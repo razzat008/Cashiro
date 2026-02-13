@@ -317,4 +317,12 @@ class TransactionRepository @Inject constructor(private val transactionDao: Tran
                 newAccountNumber
         )
     }
+
+    suspend fun updateTransactionsCategory(oldCategory: String, newCategory: String, newSubcategory: String?) {
+        transactionDao.updateTransactionsCategory(oldCategory, newCategory, newSubcategory)
+    }
+
+    suspend fun getTransactionCountByCategory(category: String): Int {
+        return transactionDao.getTransactionCountByCategory(category)
+    }
 }

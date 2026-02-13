@@ -108,7 +108,10 @@ fun AppearanceScreen(
                     modifier = Modifier.padding(start = Spacing.md)
                 )
 
-                CashiroCard(modifier = Modifier.fillMaxWidth()) {
+                CashiroCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = 0.dp
+                ) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
@@ -261,7 +264,6 @@ fun AppearanceScreen(
 
                 CashiroCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier.padding(Spacing.md),
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         Row(
@@ -357,7 +359,6 @@ fun AppearanceScreen(
 
                 CashiroCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier.padding(Spacing.md),
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         Row(

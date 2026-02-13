@@ -3,12 +3,14 @@ package com.ritesh.cashiro.presentation.ui.components
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
@@ -19,28 +21,38 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 @Composable
 fun CashiroCard(
     modifier: Modifier = Modifier,
-    containerColor: CardColors = CardDefaults.cardColors(
+    colors: CardColors = CardDefaults.cardColors(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     ),
     onClick: (() -> Unit)? = null,
+    shape: CornerBasedShape = MaterialTheme.shapes.large,
+    contentPadding: Dp = Spacing.md,
     content: @Composable ColumnScope.() -> Unit
 ) {
     if (onClick != null) {
         Card(
             modifier = modifier,
             onClick = onClick,
-            colors = containerColor,
-            shape = MaterialTheme.shapes.large
+            colors = colors,
+            shape = shape
         ) {
-            content()
+            Column(
+                modifier = Modifier.padding(contentPadding)
+            ) {
+                content()
+            }
         }
     } else {
         Card(
             modifier = modifier,
-            colors = containerColor,
-            shape = MaterialTheme.shapes.large
+            colors = colors,
+            shape = shape
         ) {
-            content()
+            Column(
+                modifier = Modifier.padding(contentPadding)
+            ) {
+                content()
+            }
         }
     }
 }
@@ -63,7 +75,7 @@ fun SummaryCard(
 ) {
     CashiroCard(
         modifier = modifier.fillMaxWidth(),
-        containerColor = containerColor,
+        colors = containerColor,
         onClick = onClick
     ) {
         Column(

@@ -35,8 +35,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,7 +49,6 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Delete
@@ -88,7 +85,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -765,12 +761,11 @@ private fun TransactionDetailContent(
 @Composable
 private fun SmsBodyCard(smsBody: String) {
     CashiroCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = 0.dp
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.Padding.content)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -819,13 +814,13 @@ private fun EditableTransactionHeader(
 ) {
     CashiroCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = CardDefaults.cardColors(
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
-        )
+        ),
+        contentPadding = 0.dp
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Amount Input
@@ -988,9 +983,10 @@ private fun EditableExtractedInfoCard(
 
     CashiroCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = CardDefaults.cardColors(
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
-        )
+        ),
+        contentPadding = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -1743,6 +1739,11 @@ private fun TransactionReceipt(
                     .padding(vertical = 24.dp), // Extra top padding for badge clearance
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val categoryEntity = categories.find { it.name == transaction.category }
+                val subcategoryEntity = if (categoryEntity != null && transaction.subcategory != null) {
+                    subcategoriesMap[categoryEntity.id]?.find { it.name == transaction.subcategory }
+                } else null
+
                 //pill shape merchant
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
@@ -1753,10 +1754,6 @@ private fun TransactionReceipt(
                         modifier = Modifier.weight(1f),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                     )
-                    val categoryEntity = categories.find { it.name == transaction.category }
-                    val subcategoryEntity = if (categoryEntity != null && transaction.subcategory != null) {
-                        subcategoriesMap[categoryEntity.id]?.find { it.name == transaction.subcategory }
-                    } else null
 
                     ReceiptBadge(
                         merchantName = transaction.merchantName,
@@ -1885,45 +1882,21 @@ private fun TransactionReceipt(
                             CategoryIcon(
                                 category = transaction.category,
                                 size = 20.dp,
-                                tint = null // Original colors
+                                tint = null, // Original colors
+                                iconResId = categoryEntity?.iconResId ?: 0
                             )
                         },
                         subIcon = {
                             if(transaction.subcategory != null) {
-                                // Find subcategory entity for color/icon
-                                val categoryEntity = categories.find { it.name == transaction.category }
-                                val subcategoryEntity = if (categoryEntity != null) {
-                                    subcategoriesMap[categoryEntity.id]?.find { it.name == transaction.subcategory }
-                                } else null
-                                
-                                if (subcategoryEntity != null && subcategoryEntity.iconResId != 0) {
-                                     val iconColor = try {
-                                         Color(subcategoryEntity.color.toColorInt())
-                                     } catch (_: Exception) {
-                                         Color.Unspecified
-                                     }
-                                     
-                                     Icon(
-                                         painter = painterResource(id = subcategoryEntity.iconResId),
-                                         contentDescription = transaction.subcategory,
-                                         tint = Color.Unspecified,
-                                         modifier = Modifier.size(20.dp)
-                                     )
-                                } else {
-                                    CategoryIcon(
-                                        category = transaction.subcategory,
-                                        size = 20.dp,
-                                        tint = null // Original colors
-                                    )
-                                }
+                                CategoryIcon(
+                                    category = transaction.subcategory,
+                                    size = 20.dp,
+                                    tint = null, // Original colors
+                                    iconResId = subcategoryEntity?.iconResId ?: 0
+                                )
                             }
                         },
                         subcategoryColor = run {
-                             val categoryEntity = categories.find { it.name == transaction.category }
-                             val subcategoryEntity = if (categoryEntity != null && transaction.subcategory != null) {
-                                 subcategoriesMap[categoryEntity.id]?.find { it.name == transaction.subcategory }
-                             } else null
-                             
                              if (subcategoryEntity != null) {
                                   try {
                                       Color(subcategoryEntity.color.toColorInt()).copy(alpha = 0.2f)
@@ -1948,6 +1921,9 @@ private fun TransactionReceipt(
                         availableAccounts.find { it.accountLast4 == toAccount }?.bankName ?: toAccount
                     } else null
 
+                    val fromAccountEntity = availableAccounts.find { it.accountLast4 == fromAccount }
+                    val toAccountEntity = toAccount?.let { acc -> availableAccounts.find { it.accountLast4 == acc } }
+
                     ReceiptInfoRow(
                         label = "Account",
                         value = if (isTransfer) fromAccount ?: "Source" else transaction.bankName ?: "Account",
@@ -1959,7 +1935,9 @@ private fun TransactionReceipt(
                             BrandIcon(
                                 merchantName = fromBankName,
                                 size = 20.dp,
-                                showBackground = false
+                                showBackground = false,
+                                accountIconResId = fromAccountEntity?.iconResId ?: 0,
+                                accountColorHex = fromAccountEntity?.color
                             )
                         },
                         subIcon = {
@@ -1967,7 +1945,9 @@ private fun TransactionReceipt(
                                 BrandIcon(
                                     merchantName = toBankName,
                                     size = 20.dp,
-                                    showBackground = false
+                                    showBackground = false,
+                                    accountIconResId = toAccountEntity?.iconResId ?: 0,
+                                    accountColorHex = toAccountEntity?.color
                                 )
                             }
                         }

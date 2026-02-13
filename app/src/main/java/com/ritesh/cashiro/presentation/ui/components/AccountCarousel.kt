@@ -14,6 +14,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -148,7 +149,8 @@ fun SharedTransitionScope.AccountCarouselCard(
             ),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+//        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)),
+        shadowElevation = 2.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             val iconResource = remember(bankName, iconResId) {
@@ -162,6 +164,21 @@ fun SharedTransitionScope.AccountCarouselCard(
                 iconResource = iconResource,
                 opacity = 0.05f,
                 iconSize = 56.dp
+            )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .height(110.dp)
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                MaterialTheme.colorScheme.surfaceContainerLow,
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        )
+                    )
             )
 
             Column(

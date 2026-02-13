@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.success_dark
@@ -74,7 +75,7 @@ fun BalanceCard(
             modifier = modifier
                 .fillMaxWidth()
                 .animateContentSize(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(Spacing.lg),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
@@ -88,7 +89,7 @@ fun BalanceCard(
                 if (!isExpanded) {
                     // Collapsed View
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = Spacing.sm),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -145,7 +146,7 @@ fun BalanceCard(
                                 )
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                                 ) {
                                     Text(
                                         text = userName,
@@ -168,14 +169,18 @@ fun BalanceCard(
                                 }
 
                             }
-                            Column(horizontalAlignment = Alignment.End) {
+                            Column(
+                                verticalArrangement = Arrangement.Top,
+                                horizontalAlignment = Alignment.End
+                            ) {
                                 Text(
                                     text = CurrencyFormatter.formatCurrency(totalBalance, currency),
                                     style = MaterialTheme.typography.headlineSmall,
+                                    lineHeight = 24.sp,
                                     fontWeight = FontWeight.Bold,
                                 )
-                                // Currency Selector Button in Top Right
-                                if (availableCurrenciesCount > 1) {
+                                // Currency Selector
+                                BlurredAnimatedVisibility(availableCurrenciesCount > 1) {
                                     Surface(
                                         onClick = onCurrencyClick,
                                         modifier = Modifier

@@ -10,6 +10,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -286,12 +287,13 @@ private fun ExpandableBalanceChart(
     CashiroCard(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { isExpanded = !isExpanded }
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ){ isExpanded = !isExpanded }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.Padding.content)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -395,7 +397,7 @@ private fun EmptyTransactionsState(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.Padding.empty),
+                .padding(Dimensions.Padding.content),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(

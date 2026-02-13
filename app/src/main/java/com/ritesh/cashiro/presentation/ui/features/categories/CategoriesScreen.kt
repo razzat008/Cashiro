@@ -48,6 +48,7 @@ import com.ritesh.cashiro.presentation.ui.components.SearchBarBox
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
@@ -83,6 +84,11 @@ fun CategoriesScreen(
     val subcategories by categoriesViewModel.subcategories.collectAsStateWithLifecycle()
     val showSubcategoryDialog by categoriesViewModel.showSubcategoryDialog.collectAsStateWithLifecycle()
     val editingSubcategory by categoriesViewModel.editingSubcategory.collectAsStateWithLifecycle()
+
+    val showDeleteConfirmation by categoriesViewModel.showDeleteConfirmation.collectAsStateWithLifecycle()
+    val categoryToDelete by categoriesViewModel.categoryToDelete.collectAsStateWithLifecycle()
+    val hasTransactions by categoriesViewModel.hasTransactions.collectAsStateWithLifecycle()
+    val showMigrationSheet by categoriesViewModel.showMigrationSheet.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -263,9 +269,17 @@ fun CategoriesScreen(
                             },
                             label = "CategoryItemAnimation"
                         ) { animatedCategory ->
+                            val categorySubcategories = subcategories[animatedCategory.id] ?: emptyList()
+                            val displayedSubs = if (searchQuery.isNotBlank()) {
+                                val catMatches = animatedCategory.name.contains(searchQuery, ignoreCase = true)
+                                if (catMatches) categorySubcategories
+                                else categorySubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                            } else {
+                                categorySubcategories
+                            }
                             SwipeableCategoryItem(
                                 category = animatedCategory,
-                                subcategories = subcategories[animatedCategory.id] ?: emptyList(),
+                                subcategories = displayedSubs,
                                 onEdit = { categoriesViewModel.showEditDialog(animatedCategory) },
                                 onDelete = { categoriesViewModel.deleteCategory(animatedCategory) },
                                 onAddSubcategory = {
@@ -290,10 +304,17 @@ fun CategoriesScreen(
                         items(
                             items = dispExpenseCategories,
                             key = { "expense-${it.id}" }) { category ->
+                            val categorySubcategories = subcategories[category.id] ?: emptyList()
+                            val displayedSubs = if (searchQuery.isNotBlank()) {
+                                val catMatches = category.name.contains(searchQuery, ignoreCase = true)
+                                if (catMatches) categorySubcategories
+                                else categorySubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                            } else {
+                                categorySubcategories
+                            }
                             SwipeableCategoryItem(
                                 category = category,
-                                subcategories = subcategories[category.id]
-                                    ?: emptyList(),
+                                subcategories = displayedSubs,
                                 onEdit = { categoriesViewModel.showEditDialog(category) },
                                 onDelete = { categoriesViewModel.deleteCategory(category) },
                                 onAddSubcategory = {
@@ -319,10 +340,17 @@ fun CategoriesScreen(
                         items(
                             items = dispIncomeCategories,
                             key = { "income-${it.id}" }) { category ->
+                            val categorySubcategories = subcategories[category.id] ?: emptyList()
+                            val displayedSubs = if (searchQuery.isNotBlank()) {
+                                val catMatches = category.name.contains(searchQuery, ignoreCase = true)
+                                if (catMatches) categorySubcategories
+                                else categorySubcategories.filter { it.name.contains(searchQuery, ignoreCase = true) }
+                            } else {
+                                categorySubcategories
+                            }
                             SwipeableCategoryItem(
                                 category = category,
-                                subcategories = subcategories[category.id]
-                                    ?: emptyList(),
+                                subcategories = displayedSubs,
                                 onEdit = { categoriesViewModel.showEditDialog(category) },
                                 onDelete = { categoriesViewModel.deleteCategory(category) },
                                 onAddSubcategory = {
@@ -393,6 +421,88 @@ fun CategoriesScreen(
             )
         }
     }
+
+    // Deletion Confirmation Dialog
+    if (showDeleteConfirmation && categoryToDelete != null) {
+        val categoryName = categoryToDelete?.name ?: "this category"
+        if (hasTransactions) {
+            AlertDialog(
+                onDismissRequest = { categoriesViewModel.dismissDeleteConfirmation() },
+                title = { Text("Delete Category") },
+                text = { 
+                    Text(
+                        "This action cannot be undone. All transactions under '$categoryName' must be moved to another category."
+                    ) 
+                },
+                confirmButton = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+                    ) {
+                        TextButton(
+                            onClick = { categoriesViewModel.showMigrationSheet() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Move to Different Category")
+                        }
+                        TextButton(
+                            onClick = { categoriesViewModel.confirmDelete(moveToMiscellaneous = true) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Move to Miscellaneous")
+                        }
+                        TextButton(
+                            onClick = { categoriesViewModel.dismissDeleteConfirmation() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
+                }
+            )
+        } else {
+            AlertDialog(
+                onDismissRequest = { categoriesViewModel.dismissDeleteConfirmation() },
+                title = { Text("Delete Category") },
+                text = { Text("Are you sure you want to delete '$categoryName'?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = { categoriesViewModel.confirmDelete() }
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { categoriesViewModel.dismissDeleteConfirmation() }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+    }
+
+    // Category Migration Bottom Sheet
+    if (showMigrationSheet && categoryToDelete != null) {
+        ModalBottomSheet(
+            onDismissRequest = { categoriesViewModel.hideMigrationSheet() },
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp
+        ) {
+            Box(modifier = Modifier.padding(bottom = Spacing.xxl)) {
+                CategorySelectionSheet(
+                    categories = categories.filter { it.id != (categoryToDelete?.id ?: -1) },
+                    subcategoriesMap = subcategories,
+                    onSelectionComplete = { newCategory, newSubcategory ->
+                        categoriesViewModel.confirmMigrationToCategory(newCategory, newSubcategory)
+                    },
+                    onDismiss = { categoriesViewModel.hideMigrationSheet() }
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -410,10 +520,8 @@ private fun SwipeableCategoryItem(
             when (dismissValue) {SwipeToDismissBoxValue.EndToStart -> {
                 if (!category.isSystem) {
                     onDelete()
-                    true
-                } else {
-                    false // Don't allow swipe for system categories
                 }
+                false // Don't dismiss until confirmed
             }
                 else -> false
             }
