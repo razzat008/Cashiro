@@ -42,6 +42,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -59,6 +60,7 @@ import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
     ExperimentalMaterial3ExpressiveApi::class
@@ -78,9 +80,12 @@ fun SharedTransitionScope.BudgetsScreen(
     val subcategories by categoriesViewModel.subcategories.collectAsStateWithLifecycle()
     
     var showEditSheet by remember { mutableStateOf(false) }
+    var showTypeWizard by remember { mutableStateOf(false) }
+    var showTrackWizard by remember { mutableStateOf(false) }
     var editingBudgetId by remember { mutableStateOf<Long?>(null) }
     
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     
     // Edit budget sheet
     if (showEditSheet) {
@@ -141,6 +146,52 @@ fun SharedTransitionScope.BudgetsScreen(
             )
         }
     }
+
+    // Budget Type Wizard
+    if (showTypeWizard) {
+        ModalBottomSheet(
+            onDismissRequest = { showTypeWizard = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            BudgetTypeSelectionSheet(
+                onTypeSelected = { type ->
+                    scope.launch {
+                        sheetState.hide()
+                        budgetViewModel.initNewBudget()
+                        budgetViewModel.updateBudgetType(type)
+                        showTypeWizard = false
+                        showTrackWizard = true
+                    }
+                },
+                onDismiss = { showTypeWizard = false }
+            )
+        }
+    }
+
+    // Budget Track Type Wizard
+    if (showTrackWizard) {
+        ModalBottomSheet(
+            onDismissRequest = { showTrackWizard = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            BudgetTrackTypeSelectionSheet(
+                onTrackTypeSelected = { trackType ->
+                    scope.launch {
+                        sheetState.hide()
+                        budgetViewModel.updateTrackType(trackType)
+                        showTrackWizard = false
+                        editingBudgetId = null
+                        showEditSheet = true
+                    }
+                },
+                onDismiss = { showTrackWizard = false }
+            )
+        }
+    }
     
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
@@ -195,9 +246,7 @@ fun SharedTransitionScope.BudgetsScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    budgetViewModel.initNewBudget()
-                    editingBudgetId = null
-                    showEditSheet = true
+                    showTypeWizard = true
                 },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("New Budget") },
@@ -222,9 +271,7 @@ fun SharedTransitionScope.BudgetsScreen(
                 uiState.budgets.isEmpty() -> {
                     EmptyBudgetsContent(
                         onCreateBudget = {
-                            budgetViewModel.initNewBudget()
-                            editingBudgetId = null
-                            showEditSheet = true
+                            showTypeWizard = true
                         }
                     )
                 }

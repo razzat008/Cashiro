@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.PieChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
@@ -61,6 +62,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,6 +93,7 @@ import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
 import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDateTime
@@ -129,8 +132,11 @@ fun EditBudgetSheet(
     var showColorPicker by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var pendingCategoryName by remember { mutableStateOf<String?>(null) }
+    var showTypeInfoSheet by remember { mutableStateOf(false) }
+    var showTrackInfoSheet by remember { mutableStateOf(false) }
     
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     // Date Picker Dialogs
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -308,6 +314,46 @@ fun EditBudgetSheet(
             )
         }
     }
+
+    if (showTypeInfoSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showTypeInfoSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            BudgetTypeSelectionSheet(
+                onTypeSelected = {
+                    scope.launch {
+                        sheetState.hide()
+                        onBudgetTypeChange(it)
+                        showTypeInfoSheet = false
+                    }
+                },
+                onDismiss = { showTypeInfoSheet = false }
+            )
+        }
+    }
+
+    if (showTrackInfoSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showTrackInfoSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            BudgetTrackTypeSelectionSheet(
+                onTrackTypeSelected = {
+                    scope.launch {
+                        sheetState.hide()
+                        onTrackTypeChange(it)
+                        showTrackInfoSheet = false
+                    }
+                },
+                onDismiss = { showTrackInfoSheet = false }
+            )
+        }
+    }
     
     Box(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -438,7 +484,26 @@ fun EditBudgetSheet(
             ) {
                 // Tracking Mode
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Track", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "Track",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Rounded.Info,
+                            contentDescription = "Track Info",
+                            modifier = Modifier
+                                .size(14.dp)
+                                .clickable { showTrackInfoSheet = true },
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                        )
+                    }
                     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                         SegmentedButton(
                             selected = budgetState.trackType == BudgetTrackType.ADDED_ONLY,
@@ -469,7 +534,26 @@ fun EditBudgetSheet(
 
                 // Budget Type
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Type", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(bottom = 8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = "Type",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            imageVector = Icons.Rounded.Info,
+                            contentDescription = "Type Info",
+                            modifier = Modifier
+                                .size(14.dp)
+                                .clickable { showTypeInfoSheet = true },
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                        )
+                    }
                     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                         SegmentedButton(
                             selected = budgetState.budgetType == BudgetType.EXPENSE,
