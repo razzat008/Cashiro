@@ -742,17 +742,19 @@ private fun TransactionDetailContent(
                 subcategoriesMap[categoryEntity.id]?.find { it.name == transaction.subcategory }
             } else null
 
-            TransactionReceipt(
-                transaction,
-                accountPrimaryCurrency,
-                convertedAmount,
-                availableAccounts,
-                categories,
-                subcategoriesMap,
-                linkedSubscription,
-                viewModel.attachmentService
-            )
-            Spacer(modifier = Modifier.height(300.dp)) // for better scroll
+            Column {
+                TransactionReceipt(
+                    transaction,
+                    accountPrimaryCurrency,
+                    convertedAmount,
+                    availableAccounts,
+                    categories,
+                    subcategoriesMap,
+                    linkedSubscription,
+                    viewModel.attachmentService
+                )
+                Spacer(modifier = Modifier.height(300.dp)) // for better scroll
+            }
         }
     }
 }
@@ -768,6 +770,7 @@ private fun SmsBodyCard(smsBody: String) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
+                modifier = Modifier.padding(horizontal = Spacing.md, vertical =  Spacing.sm),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -780,11 +783,9 @@ private fun SmsBodyCard(smsBody: String) {
                 Text(
                     text = "Original SMS",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
-
-            Spacer(modifier = Modifier.height(Spacing.sm))
 
             // SMS text in monospace font
             Surface(
@@ -1532,7 +1533,7 @@ private fun DateTimeField(
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     shape = RoundedCornerShape(Dimensions.Radius.md)
                 )
-                .padding(8.dp)
+                .padding(4.dp)
                 .clickable(
                     onClick = { showDatePicker = true },
                     indication = null,
@@ -2172,7 +2173,7 @@ private fun TransactionReceipt(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = Spacing.md),
+                            .padding(Spacing.md),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         AttachmentSection(

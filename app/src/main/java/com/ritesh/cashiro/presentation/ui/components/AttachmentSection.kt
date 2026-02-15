@@ -143,8 +143,7 @@ fun AttachmentSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(itemHeight)
-                        .padding(horizontal = Spacing.md),
+                        .height(itemHeight),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
                     attachments.forEach { attachment ->
@@ -167,6 +166,7 @@ fun AttachmentSection(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
                     contentPadding = PaddingValues(horizontal = Spacing.md)
                 ) {
+
                     items(attachments) { attachment ->
                         AttachmentPreviewItem(
                             attachmentPath = attachment,
