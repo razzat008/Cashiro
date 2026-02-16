@@ -242,6 +242,21 @@ class HomeViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            // Load heatmap data (last 26 weeks)
+            val endOfHeatmap = LocalDate.now()
+            val startOfHeatmap = endOfHeatmap.minusWeeks(26).with(java.time.DayOfWeek.MONDAY)
+            
+            transactionRepository.getTransactionsBetweenDates(
+                startDate = startOfHeatmap,
+                endDate = endOfHeatmap
+            ).collect { transactions ->
+                val heatmap = transactions.groupBy { it.dateTime.toLocalDate() }
+                    .mapValues { it.value.size }
+                _uiState.value = _uiState.value.copy(transactionHeatmap = heatmap)
+            }
+        }
+
+        viewModelScope.launch {
             // Load last month breakdown by currency
             transactionRepository.getLastMonthBreakdownByCurrency().collect { breakdownByCurrency ->
                 updateBreakdownForSelectedCurrency(breakdownByCurrency, isCurrentMonth = false)

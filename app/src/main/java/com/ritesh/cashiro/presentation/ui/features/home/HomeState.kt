@@ -42,4 +42,5 @@ data class HomeUiState(
     val showBannerImage: Boolean = false,
     val activeBudgets: List<BudgetWithSpending> = emptyList(),
     val balanceHistory: List<BalancePoint> = emptyList(),
+    val transactionHeatmap: Map<java.time.LocalDate, Int> = emptyMap(),
 )

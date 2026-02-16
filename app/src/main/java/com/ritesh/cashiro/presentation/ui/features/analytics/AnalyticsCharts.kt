@@ -7,7 +7,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
@@ -16,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,6 +57,8 @@ import ir.ehsannarmani.compose_charts.models.ZeroLineProperties
 import com.ritesh.cashiro.presentation.common.TransactionTypeFilter
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import kotlin.math.abs
 
 @Composable
@@ -474,47 +479,111 @@ fun SpendingHeatmap(
 ) {
     if (data.isEmpty()) return
 
-    val maxAmount = remember(data) { data.maxOfOrNull { it.balance.toDouble() } ?: 100.0 }
+    val maxAmount = remember(data) { data.maxOfOrNull { it.balance.toDouble() } ?: 1.0 }
+    val groupedData = remember(data) {
+        data.associate { it.timestamp.toLocalDate() to it.balance.toDouble() }
+    }
     
-    // Animation state
-    var animationPlayed by remember { mutableStateOf(false) }
-    val animationProgress by animateFloatAsState(
-        targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
-        label = "HeatMap Animation"
-    )
+    val sortedDates = remember(data) { data.map { it.timestamp.toLocalDate() }.distinct().sorted() }
+    val startDate = sortedDates.first().with(java.time.DayOfWeek.MONDAY)
+    val endDate = sortedDates.last()
+    
+    val totalWeeks = ChronoUnit.WEEKS.between(startDate, endDate.plusDays(1)).toInt() + 1
+    
+    val monthLabels = remember(startDate, endDate) {
+        val allMonthStarts = mutableListOf<Pair<Int, String>>()
+        var current = startDate
+        var lastMonth = -1
+        var weekIndex = 0
+        
+        while (current <= endDate) {
+            if (current.monthValue != lastMonth) {
+                val formatter = DateTimeFormatter.ofPattern("MMM")
+                allMonthStarts.add(weekIndex to current.format(formatter))
+                lastMonth = current.monthValue
+            }
+            current = current.plusWeeks(1)
+            weekIndex++
+        }
 
-    LaunchedEffect(data) {
-        animationPlayed = true
+        val filteredLabels = mutableListOf<Pair<Int, String>>()
+        for (i in allMonthStarts.indices) {
+            val (week, label) = allMonthStarts[i]
+            
+            if (i == 0 && allMonthStarts.size > 1) {
+                val nextWeek = allMonthStarts[1].first
+                if (nextWeek - week < 4) continue
+            }
+            
+            if (filteredLabels.isEmpty()) {
+                filteredLabels.add(week to label)
+            } else {
+                val lastAddedWeek = filteredLabels.last().first
+                if (week - lastAddedWeek >= 4) {
+                    filteredLabels.add(week to label)
+                }
+            }
+        }
+        filteredLabels
     }
 
-    Column(modifier = modifier.padding(Spacing.md)) {
-        Text(
-            text = "Activity Heatmap",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(Spacing.sm))
+    val scrollState = rememberScrollState()
+    LaunchedEffect(data) {
+        scrollState.scrollTo(scrollState.maxValue)
+    }
 
-        Box(modifier = Modifier.fillMaxWidth().height(160.dp)) {
-            val rows = 7
-            LazyHorizontalGrid(
-                rows = GridCells.Fixed(rows),
-                modifier = Modifier.fillMaxSize(),
+    Surface(
+        modifier = modifier
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(0.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier.horizontalScroll(scrollState)
+        ) {
+            // Heatmap Grid
+            Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.padding(bottom = 8.dp)
             ) {
-                items(data) { point ->
-                    val intensity = (point.balance.toDouble() / maxAmount).toFloat().coerceIn(0f, 1f)
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(
-                                MaterialTheme.colorScheme.primary.copy(
-                                    alpha = (0.1f + (intensity * 0.9f)) * animationProgress
-                                )
+                for (w in 0 until totalWeeks) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        for (d in 0 until 7) {
+                            val date = startDate.plusWeeks(w.toLong()).plusDays(d.toLong())
+                            val amount = groupedData[date] ?: 0.0
+                            val intensity = if (maxAmount > 0) (amount / maxAmount).toFloat().coerceIn(0f, 1f) else 0f
+                            
+                            val primary = MaterialTheme.colorScheme.primary
+                            val color = when {
+                                date > endDate -> MaterialTheme.colorScheme.surfaceContainerHigh
+                                amount == 0.0 -> MaterialTheme.colorScheme.surfaceContainerHigh
+                                intensity < 0.25f -> primary.copy(alpha = 0.25f)
+                                intensity < 0.5f -> primary.copy(alpha = 0.5f)
+                                intensity < 0.75f -> primary.copy(alpha = 0.75f)
+                                else -> primary
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(color)
                             )
+                        }
+                    }
+                }
+            }
+
+            // Labels
+            Box(modifier = Modifier.fillMaxWidth()) {
+                monthLabels.forEach { (weekIndex, label) ->
+                    val xOffset = (weekIndex * 20).dp // 16.dp size + 4.dp space
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        fontSize = 11.sp,
+                        modifier = Modifier.offset(x = xOffset)
                     )
                 }
             }

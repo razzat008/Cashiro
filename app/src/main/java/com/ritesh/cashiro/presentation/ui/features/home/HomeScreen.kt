@@ -116,6 +116,7 @@ import com.ritesh.cashiro.presentation.ui.components.BudgetCarousel
 import com.ritesh.cashiro.presentation.ui.components.CurrencySelectionBottomSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.GreetingCard
+import com.ritesh.cashiro.presentation.ui.components.HeatmapWidget
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
@@ -395,6 +396,13 @@ fun SharedTransitionScope.HomeScreen(
                                         onCurrencySelected = {
                                             homeViewModel.selectCurrency(it)
                                         },
+                                    )
+                                }
+                            }
+                            HomeWidget.TRANSACTION_HEATMAP -> {
+                                item(key = "transaction_heatmap") {
+                                    HeatmapWidget(
+                                        data = uiState.transactionHeatmap
                                     )
                                 }
                             }
