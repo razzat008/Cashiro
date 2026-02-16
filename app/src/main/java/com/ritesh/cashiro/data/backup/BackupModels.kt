@@ -133,7 +133,21 @@ data class PreferencesSnapshot(
     val app: AppPreferences,
 
     @SerializedName("profile")
-    val profile: ProfilePreferences? = null
+    val profile: ProfilePreferences? = null,
+
+    @SerializedName("home_widgets")
+    val homeWidgets: HomeWidgetPreferences? = null
+)
+
+/**
+ * Home widget preferences
+ */
+data class HomeWidgetPreferences(
+    @SerializedName("order")
+    val order: List<String>,
+
+    @SerializedName("hidden")
+    val hidden: List<String>
 )
 
 /**

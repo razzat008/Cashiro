@@ -208,7 +208,15 @@ class BackupExporter @Inject constructor(
                     profileBackgroundColor = prefs.profileBackgroundColor,
                     bannerImageUri = if (prefs.bannerImageUri != null) "profile/banner_image" else null,
                     showBannerImage = prefs.showBannerImage
-                ) else null
+                ) else null,
+                homeWidgets = if (config.includeAppPreferences) {
+                    val order = userPreferencesRepository.homeWidgetsOrder.first()
+                    val hidden = userPreferencesRepository.hiddenHomeWidgets.first()
+                    HomeWidgetPreferences(
+                        order = order.map { it.name },
+                        hidden = hidden.map { it.name }
+                    )
+                } else null
             )
         )
     }
