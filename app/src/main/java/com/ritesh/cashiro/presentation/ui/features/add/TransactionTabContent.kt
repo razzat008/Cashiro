@@ -148,7 +148,18 @@ fun TransactionTabContent(
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }
-                                } else null
+                                } else null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                                labelColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                borderWidth = 0.dp,
+                                selected = uiState.transactionType == type,
+                                enabled = true
+                            ),
                         )
                     }
                 }

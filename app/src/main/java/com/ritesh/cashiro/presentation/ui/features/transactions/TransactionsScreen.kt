@@ -472,8 +472,19 @@ fun SharedTransitionScope.TransactionsScreen(
                         },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                            labelColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderWidth = 0.dp,
+                            selected = if (period == TimePeriod.CUSTOM) {
+                                selectedPeriod == period && customDateRange != null
+                            } else {
+                                selectedPeriod == period
+                            },
+                            enabled = true
+                        ),
                     )
                 }
             }
@@ -576,8 +587,15 @@ fun SharedTransitionScope.TransactionsScreen(
                             } else null,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
+                                selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                                labelColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                borderWidth = 0.dp,
+                                selected = transactionTypeFilter == typeFilter,
+                                enabled = true
+                            ),
                         )
                     }
                 }
@@ -663,7 +681,9 @@ fun SharedTransitionScope.TransactionsScreen(
                                             },
                                             colors = FilterChipDefaults.filterChipColors(
                                                 selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                                                labelColor = MaterialTheme.colorScheme.onSurface
                                             ),
                                             modifier = Modifier
                                         )

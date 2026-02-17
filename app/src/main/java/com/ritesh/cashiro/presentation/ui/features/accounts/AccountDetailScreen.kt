@@ -376,8 +376,15 @@ private fun DateRangeFilter(
                 label = { Text(range.label) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                    labelColor = MaterialTheme.colorScheme.onSurface
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    borderWidth = 0.dp,
+                    selected = selectedRange == range,
+                    enabled = true
+                ),
             )
         }
         item{

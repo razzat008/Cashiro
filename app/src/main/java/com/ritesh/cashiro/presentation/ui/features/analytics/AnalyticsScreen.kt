@@ -213,8 +213,19 @@ fun SharedTransitionScope.AnalyticsScreen(
                                     },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                                        labelColor = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        borderWidth = 0.dp,
+                                        selected = if (period == TimePeriod.CUSTOM) {
+                                            selectedPeriod == period && customDateRange != null
+                                        } else {
+                                            selectedPeriod == period
+                                        },
+                                        enabled = true
+                                    ),
                                 )
                             }
                             item{
@@ -249,8 +260,15 @@ fun SharedTransitionScope.AnalyticsScreen(
                                         } else null,
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                            selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                        )
+                                            selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                                            labelColor = MaterialTheme.colorScheme.onSurface
+                                        ),
+                                        border = FilterChipDefaults.filterChipBorder(
+                                            borderWidth = 0.dp,
+                                            selected = transactionTypeFilter == typeFilter,
+                                            enabled = true
+                                        ),
                                     )
                                 }
                                 item{
@@ -334,7 +352,6 @@ fun SharedTransitionScope.AnalyticsScreen(
                                             Icon(
                                                 imageVector = selectedChartType.icon,
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurface,
                                                 modifier = Modifier.size(14.dp)
                                             )
                                             Spacer(modifier = Modifier.width(Spacing.sm))
@@ -342,7 +359,6 @@ fun SharedTransitionScope.AnalyticsScreen(
                                                 text = "${selectedChartType.label} Chart",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 fontWeight = FontWeight.Medium,
-                                                color = MaterialTheme.colorScheme.onSurface,
                                             )
                                         }
                                     }
@@ -634,12 +650,7 @@ fun SharedTransitionScope.AnalyticsScreen(
                 // Empty State
                 if (uiState.topMerchants.isEmpty() && uiState.categoryBreakdown.isEmpty() && !uiState.isLoading) {
                     item {
-                        EmptyAnalyticsState(
-                            modifier = Modifier.padding(
-                                start = Dimensions.Padding.content,
-                                end = Dimensions.Padding.content,
-                            )
-                        )
+                        EmptyAnalyticsState()
                     }
                 }
 
@@ -801,8 +812,7 @@ private fun EmptyAnalyticsState(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.Padding.content),
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
@@ -849,8 +859,15 @@ private fun CurrencyFilterRow(
                 label = { Text(currency) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f),
+                    labelColor = MaterialTheme.colorScheme.onSurface
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    borderWidth = 0.dp,
+                    selected = selectedCurrency == currency,
+                    enabled = true
+                ),
             )
         }
         item{

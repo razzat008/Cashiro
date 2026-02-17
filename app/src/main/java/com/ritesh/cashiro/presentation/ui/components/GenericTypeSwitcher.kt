@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 
 @Composable
 fun GenericTypeSwitcher(
@@ -30,9 +31,9 @@ fun GenericTypeSwitcher(
     BoxWithConstraints(
         modifier = modifier
             .height(48.dp)
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(Dimensions.Radius.md))
             .background(themeColors.surfaceVariant.copy(alpha = 0.5f))
-            .padding(4.dp)
+            .padding(6.dp)
     ) {
         val maxWidth = maxWidth
         val indicatorWidth = maxWidth / options.size
@@ -48,9 +49,9 @@ fun GenericTypeSwitcher(
                 .offset(x = indicatorOffset)
                 .width(indicatorWidth)
                 .fillMaxHeight()
-                .shadow(2.dp, RoundedCornerShape(18.dp))
-                .clip(RoundedCornerShape(18.dp))
-                .background(themeColors.primary)
+                .shadow(2.dp, RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(12.dp))
+                .background(themeColors.surfaceContainerLow)
         )
 
         Row(modifier = Modifier.fillMaxSize()) {
@@ -85,10 +86,10 @@ private fun TypeButton(
     ) {
         Text(
             text = text,
-            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+            color = if (isSelected) MaterialTheme.colorScheme.inverseSurface
             else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp
+            fontSize = 14.sp
         )
     }
 }

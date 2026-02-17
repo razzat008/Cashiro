@@ -39,6 +39,8 @@ constructor(@ApplicationContext private val context: Context) {
 
         // Theme preferences
         val IS_AMOLED_MODE = booleanPreferencesKey("is_amoled_mode")
+        val THEME_STYLE = stringPreferencesKey("theme_style")
+        val ACCENT_COLOR = stringPreferencesKey("accent_color")
 
         // App Lock preferences
         val APP_LOCK_ENABLED = booleanPreferencesKey("app_lock_enabled")
@@ -72,56 +74,71 @@ constructor(@ApplicationContext private val context: Context) {
     }
 
     val userPreferences: Flow<UserPreferences> =
-            context.dataStore.data.map { preferences ->
-                UserPreferences(
-                        isDarkThemeEnabled = preferences[PreferencesKeys.DARK_THEME_ENABLED],
-                        isDynamicColorEnabled = preferences[PreferencesKeys.DYNAMIC_COLOR_ENABLED]
-                                        ?: true,
-                        hasSkippedSmsPermission =
-                                preferences[PreferencesKeys.HAS_SKIPPED_SMS_PERMISSION] ?: false,
-                        isDeveloperModeEnabled = preferences[PreferencesKeys.DEVELOPER_MODE_ENABLED]
-                                        ?: false,
-                        hasShownScanTutorial = preferences[PreferencesKeys.HAS_SHOWN_SCAN_TUTORIAL]
-                                        ?: false,
-                        smsScanMonths = preferences[PreferencesKeys.SMS_SCAN_MONTHS]
-                                        ?: 3, // Default to 3 months
-                        smsScanAllTime = preferences[PreferencesKeys.SMS_SCAN_ALL_TIME]
-                                        ?: false, // Default to false
-                        baseCurrency = preferences[PreferencesKeys.BASE_CURRENCY]
-                                        ?: "INR", // Default to INR
-                        isAmoledMode = preferences[PreferencesKeys.IS_AMOLED_MODE] ?: false,
-                        userName = preferences[PreferencesKeys.USER_NAME] ?: "User",
-                        profileImageUri = preferences[PreferencesKeys.PROFILE_IMAGE_URI],
-                        profileBackgroundColor =
-                                preferences[PreferencesKeys.PROFILE_BACKGROUND_COLOR] ?: 0,
-                        bannerImageUri = preferences[PreferencesKeys.BANNER_IMAGE_URI],
-                        showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: false,
-                        navigationBarStyle = try {
-                            NavigationBarStyle.valueOf(
-                                preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] ?: NavigationBarStyle.FLOATING.name
-                            )
-                        } catch (e: Exception) {
-                            NavigationBarStyle.FLOATING
-                        },
-                        appFont = try {
-                            AppFont.valueOf(
-                                preferences[PreferencesKeys.APP_FONT] ?: AppFont.SYSTEM.name
-                            )
-                        } catch (e: Exception) {
-                            AppFont.SYSTEM
-                        }
-                )
-            }
+        context.dataStore.data.map { preferences ->
+            UserPreferences(
+                isDarkThemeEnabled = preferences[PreferencesKeys.DARK_THEME_ENABLED],
+                isDynamicColorEnabled = preferences[PreferencesKeys.DYNAMIC_COLOR_ENABLED]
+                    ?: true,
+                hasSkippedSmsPermission =
+                    preferences[PreferencesKeys.HAS_SKIPPED_SMS_PERMISSION] ?: false,
+                isDeveloperModeEnabled = preferences[PreferencesKeys.DEVELOPER_MODE_ENABLED]
+                    ?: false,
+                hasShownScanTutorial = preferences[PreferencesKeys.HAS_SHOWN_SCAN_TUTORIAL]
+                    ?: false,
+                smsScanMonths = preferences[PreferencesKeys.SMS_SCAN_MONTHS]
+                    ?: 3,
+                smsScanAllTime = preferences[PreferencesKeys.SMS_SCAN_ALL_TIME]
+                    ?: false,
+                baseCurrency = preferences[PreferencesKeys.BASE_CURRENCY]
+                    ?: "INR",
+                isAmoledMode = preferences[PreferencesKeys.IS_AMOLED_MODE] ?: false,
+                userName = preferences[PreferencesKeys.USER_NAME] ?: "User",
+                profileImageUri = preferences[PreferencesKeys.PROFILE_IMAGE_URI],
+                profileBackgroundColor =
+                    preferences[PreferencesKeys.PROFILE_BACKGROUND_COLOR] ?: 0,
+                bannerImageUri = preferences[PreferencesKeys.BANNER_IMAGE_URI],
+                showBannerImage = preferences[PreferencesKeys.SHOW_BANNER_IMAGE] ?: false,
+                navigationBarStyle = try {
+                    NavigationBarStyle.valueOf(
+                        preferences[PreferencesKeys.NAVIGATION_BAR_STYLE] ?: NavigationBarStyle.FLOATING.name
+                    )
+                } catch (e: Exception) {
+                    NavigationBarStyle.FLOATING
+                },
+                appFont = try {
+                    AppFont.valueOf(
+                        preferences[PreferencesKeys.APP_FONT] ?: AppFont.SYSTEM.name
+                    )
+                } catch (e: Exception) {
+                    AppFont.SYSTEM
+
+                },
+                themeStyle = try {
+                    ThemeStyle.valueOf(
+                        preferences[PreferencesKeys.THEME_STYLE] ?: ThemeStyle.DYNAMIC.name
+                    )
+                } catch (e: Exception) {
+                    ThemeStyle.DYNAMIC
+                },
+                accentColor = try {
+                    AccentColor.valueOf(
+                        preferences[PreferencesKeys.ACCENT_COLOR] ?: AccentColor.BLUE.name
+                    )
+                } catch (e: Exception) {
+                    AccentColor.BLUE
+                }
+            )
+        }
 
     val baseCurrency: Flow<String> =
-            context.dataStore.data.map { preferences ->
-                preferences[PreferencesKeys.BASE_CURRENCY] ?: "INR"
-            }
+        context.dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.BASE_CURRENCY] ?: "INR"
+        }
 
     val isDeveloperModeEnabled: Flow<Boolean> =
-            context.dataStore.data.map { preferences ->
-                preferences[PreferencesKeys.DEVELOPER_MODE_ENABLED] ?: false
-            }
+        context.dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.DEVELOPER_MODE_ENABLED] ?: false
+        }
 
     suspend fun updateDarkThemeEnabled(enabled: Boolean?) {
         context.dataStore.edit { preferences ->
@@ -142,6 +159,18 @@ constructor(@ApplicationContext private val context: Context) {
     suspend fun updateAmoledMode(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_AMOLED_MODE] = enabled
+        }
+    }
+
+    suspend fun updateThemeStyle(style: ThemeStyle) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.THEME_STYLE] = style.name
+        }
+    }
+
+    suspend fun updateAccentColor(color: AccentColor) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ACCENT_COLOR] = color.name
         }
     }
 
@@ -555,7 +584,7 @@ data class UserPreferences(
         val isDeveloperModeEnabled: Boolean = false,
         val hasShownScanTutorial: Boolean = false,
         val smsScanMonths: Int = 3, // Default to 3 months
-        val smsScanAllTime: Boolean = false, // Default to false
+        val smsScanAllTime: Boolean = false,
         val baseCurrency: String = "INR", // Default to INR
         val isAmoledMode: Boolean = false,
         val userName: String = "User",
@@ -564,5 +593,7 @@ data class UserPreferences(
         val bannerImageUri: String? = null,
         val showBannerImage: Boolean = false,
         val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING,
-        val appFont: AppFont = AppFont.SYSTEM
+        val appFont: AppFont = AppFont.SYSTEM,
+        val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
+        val accentColor: AccentColor = AccentColor.BLUE
 )

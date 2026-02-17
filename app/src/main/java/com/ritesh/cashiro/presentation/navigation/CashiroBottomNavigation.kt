@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingToolbarColors
+import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +24,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TonalToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -87,7 +90,7 @@ fun CashiroBottomNavigation(
                             Icon(
                                 imageVector = item.icon,
                                 contentDescription = item.title,
-                                tint = if (selected) MaterialTheme.colorScheme.primary 
+                                tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
                                        else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
@@ -137,6 +140,9 @@ fun CashiroBottomNavigation(
                             shape = MaterialTheme.shapes.extraLarge
                         )
                         .zIndex(1000f),
+                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+                        toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    ),
                     expanded = true,
                 ) {
                     navigationItems.forEach { item ->
@@ -155,6 +161,14 @@ fun CashiroBottomNavigation(
                                     restoreState = true
                                 }
                             },
+                            colors = ToggleButtonDefaults.toggleButtonColors(
+                                containerColor =MaterialTheme.colorScheme.surfaceBright,
+                                contentColor = MaterialTheme.colorScheme.inverseSurface,
+                                disabledContainerColor = MaterialTheme.colorScheme.surfaceBright.copy(0.7f),
+                                disabledContentColor = MaterialTheme.colorScheme.inverseSurface.copy(0.5f),
+                                checkedContainerColor =  MaterialTheme.colorScheme.tertiaryContainer.copy(0.6f),
+                                checkedContentColor =  MaterialTheme.colorScheme.onTertiaryContainer,
+                            ),
                             modifier = Modifier.padding(horizontal = 4.dp)
                         ) {
                             Icon(imageVector = item.icon, contentDescription = item.title)

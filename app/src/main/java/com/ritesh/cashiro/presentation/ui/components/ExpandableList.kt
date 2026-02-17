@@ -1,11 +1,17 @@
 package com.ritesh.cashiro.presentation.ui.components
 
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 
 /**
@@ -21,6 +27,7 @@ fun <T> ExpandableList(
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     val displayItems = if (isExpanded) items else items.take(visibleItemCount)
+
     
     Column(modifier = modifier) {
         // Display items
@@ -30,21 +37,31 @@ fun <T> ExpandableList(
         
         // View All / View Less button
         if (items.size > visibleItemCount) {
-            Spacer(Modifier.size(Spacing.md))
-            TextButton(
-                onClick = { isExpanded = !isExpanded },
-                modifier = Modifier.fillMaxWidth()
+            Spacer(modifier = Modifier.height(Spacing.sm))
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = if (isExpanded) {
-                        "View Less"
-                    } else {
-                        "View All (${items.size - visibleItemCount} more)"
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                TextButton(
+                    onClick = { isExpanded = !isExpanded },
+                    modifier = Modifier.height(26.dp),
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = if (isExpanded) {
+                            "View Less"
+                        } else {
+                            "View ${items.size - visibleItemCount} more"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
+                        modifier = Modifier.padding(horizontal = Spacing.md)
+                    )
+                }
             }
         }
     }

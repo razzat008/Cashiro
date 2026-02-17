@@ -87,7 +87,7 @@ fun AnalyticsSummaryCard(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
                             shape = RoundedCornerShape(Spacing.sm))
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {

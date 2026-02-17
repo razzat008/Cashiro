@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.data.preferences.AppFont
+import com.ritesh.cashiro.data.preferences.ThemeStyle
+import com.ritesh.cashiro.data.preferences.AccentColor
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,7 +28,9 @@ class ThemeViewModel @Inject constructor(
                 hasSkippedSmsPermission = preferences.hasSkippedSmsPermission,
                 isAmoledMode = preferences.isAmoledMode,
                 navigationBarStyle = preferences.navigationBarStyle,
-                appFont = preferences.appFont
+                appFont = preferences.appFont,
+                themeStyle = preferences.themeStyle,
+                accentColor = preferences.accentColor
             )
         }
         .stateIn(
@@ -64,6 +68,18 @@ class ThemeViewModel @Inject constructor(
             userPreferencesRepository.updateAppFont(font)
         }
     }
+
+    fun updateThemeStyle(style: ThemeStyle) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateThemeStyle(style)
+        }
+    }
+
+    fun updateAccentColor(color: AccentColor) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateAccentColor(color)
+        }
+    }
 }
 
 data class ThemeUiState(
@@ -72,5 +88,7 @@ data class ThemeUiState(
     val hasSkippedSmsPermission: Boolean = false,
     val isAmoledMode: Boolean = false,
     val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING,
-    val appFont: AppFont = AppFont.SYSTEM
+    val appFont: AppFont = AppFont.SYSTEM,
+    val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
+    val accentColor: AccentColor = AccentColor.BLUE
 )

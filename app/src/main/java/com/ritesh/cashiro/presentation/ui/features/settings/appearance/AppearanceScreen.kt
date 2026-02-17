@@ -1,7 +1,14 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.appearance
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,14 +21,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.MotionPhotosAuto
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -36,25 +45,100 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ritesh.cashiro.data.preferences.AccentColor
+import com.ritesh.cashiro.data.preferences.AppFont
 import com.ritesh.cashiro.data.preferences.NavigationBarStyle
-import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
-import com.ritesh.cashiro.presentation.ui.components.CashiroCard
+import com.ritesh.cashiro.data.preferences.ThemeStyle
+import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
+import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
+import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
-import com.ritesh.cashiro.presentation.ui.theme.Spacing
-import com.ritesh.cashiro.data.preferences.AppFont
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Blue
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Blue_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Blue_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Flamingo
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Flamingo_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Flamingo_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Green
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Green_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Green_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Lavender
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Lavender_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Lavender_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Mauve
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Mauve_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Mauve_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Peach
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Peach_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Peach_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Pink
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Pink_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Pink_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Red
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Red_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Red_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Rosewater
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Rosewater_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Rosewater_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Sapphire
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Sapphire_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Sapphire_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Teal
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Teal_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Teal_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Yellow
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Yellow_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Latte_Yellow_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Blue_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Blue_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Blue_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Flamingo_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Flamingo_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Flamingo_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Green_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Green_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Green_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Lavender_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Lavender_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Lavender_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Mauve_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Mauve_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Mauve_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Peach_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Peach_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Peach_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Pink_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Pink_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Pink_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Red_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Red_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Red_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Rosewater_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Rosewater_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Rosewater_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Sapphire_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Sapphire_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Sapphire_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Teal_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Teal_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Teal_dim_tertiary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Yellow_dim
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Yellow_dim_secondary
+import com.ritesh.cashiro.presentation.ui.theme.Macchiato_Yellow_dim_tertiary
 import com.ritesh.cashiro.presentation.ui.theme.SNProFontFamily
-import androidx.compose.ui.text.font.FontFamily
+import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
@@ -95,293 +179,216 @@ fun AppearanceScreen(
                     .overScrollVertical()
                     .verticalScroll(rememberScrollState())
                     .padding(
-                        start = Dimensions.Padding.content,
-                        end = Dimensions.Padding.content,
                         top = Dimensions.Padding.content + paddingValues.calculateTopPadding()
                     ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
-                
-                // Theme Mode Section
-                SectionHeader(
-                    title = "Theme Mode",
-                    modifier = Modifier.padding(start = Spacing.md)
-                )
-
-                CashiroCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = 0.dp
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.md),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(Spacing.md),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .size(64.dp)
-                                    .shadow(
-                                        elevation = 4.dp,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = Dimensions.Radius.md,
+                                        topEnd = Dimensions.Radius.xs,
+                                        bottomStart = Dimensions.Radius.md,
+                                        bottomEnd = Dimensions.Radius.xs
                                     )
-                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
-                                    .background(
-                                        color = if(themeUiState.isDarkTheme == null) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
+                                )
+                                .background(
+                                    color = if(themeUiState.isDarkTheme == null) {
+                                        MaterialTheme.colorScheme.secondary.copy(0.5f)
+                                    } else MaterialTheme.colorScheme.surfaceContainerLow,
+                                    shape = RoundedCornerShape(
+                                        topStart = Dimensions.Radius.md,
+                                        topEnd = Dimensions.Radius.xs,
+                                        bottomStart = Dimensions.Radius.md,
+                                        bottomEnd = Dimensions.Radius.xs
                                     )
-                                    .clickable{
-                                        themeViewModel.updateDarkTheme(null)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ){
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.MotionPhotosAuto,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Text(
-                                        text = "System",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(Spacing.sm))
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .size(64.dp)
-                                    .shadow(
-                                        elevation = 4.dp,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
-                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
-                                    .background(
-                                        color = if(themeUiState.isDarkTheme == false) MaterialTheme.colorScheme.surfaceContainerLowest else MaterialTheme.colorScheme.surfaceVariant,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
-                                    .clickable{
-                                        themeViewModel.updateDarkTheme(false)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ){
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.LightMode,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Text(
-                                        text = "Light",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(Spacing.sm))
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .size(64.dp)
-                                    .shadow(
-                                        elevation = 4.dp,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
-                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
-                                    .background(
-                                        color = if(themeUiState.isDarkTheme == true) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
-                                    .clickable{
-                                        themeViewModel.updateDarkTheme(true)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ){
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.DarkMode,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Text(
-                                        text = "Dark",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                }
+                                )
+                                .padding(horizontal = Spacing.xs, vertical = Spacing.md)
+                                .clickable(
+                                    onClick = {themeViewModel.updateDarkTheme(null)},
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ),
+                            contentAlignment = Alignment.Center
+                        ){
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.AutoAwesome,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "System",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Center,
+                                )
                             }
                         }
 
-                        if (themeUiState.isDarkTheme != false) {
-                            PreferenceSwitch(
-                                title = "Amoled Black",
-                                subtitle = "Use pure black background for deeper contrast",
-                                checked = themeUiState.isAmoledMode,
-                                onCheckedChange = { themeViewModel.updateAmoledMode(it) },
-                                leadingIcon = {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .background(
-                                                color = if (themeUiState.isAmoledMode) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                                shape = CircleShape
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            Icons.Default.DarkMode,
-                                            contentDescription = null,
-                                            tint = if (themeUiState.isAmoledMode) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                },
-                                padding = PaddingValues(0.dp),
-                                isSingle = true
-                            )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = Dimensions.Radius.xs,
+                                        topEnd = Dimensions.Radius.xs,
+                                        bottomStart = Dimensions.Radius.xs,
+                                        bottomEnd = Dimensions.Radius.xs
+                                    )
+                                )
+                                .background(
+                                    color = if(themeUiState.isDarkTheme == false) {
+                                        MaterialTheme.colorScheme.secondary.copy(0.5f)
+                                    } else MaterialTheme.colorScheme.surfaceContainerLow,
+                                    shape = RoundedCornerShape(
+                                        topStart = Dimensions.Radius.xs,
+                                        topEnd = Dimensions.Radius.xs,
+                                        bottomStart = Dimensions.Radius.xs,
+                                        bottomEnd = Dimensions.Radius.xs
+                                    )
+                                )
+                                .padding(horizontal = Spacing.xs, vertical = Spacing.md)
+                                .clickable(
+                                    onClick = {themeViewModel.updateDarkTheme(false)},
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ),
+                            contentAlignment = Alignment.Center
+                        ){
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.LightMode,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "Light",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(
+                                    RoundedCornerShape(
+                                        topStart = Dimensions.Radius.xs,
+                                        topEnd = Dimensions.Radius.md,
+                                        bottomStart = Dimensions.Radius.xs,
+                                        bottomEnd = Dimensions.Radius.md
+                                    )
+                                )
+                                .background(
+                                    color = if(themeUiState.isDarkTheme == true) {
+                                        MaterialTheme.colorScheme.secondary.copy(0.5f)
+                                    } else MaterialTheme.colorScheme.surfaceContainerLow,
+                                    shape = RoundedCornerShape(
+                                        topStart = Dimensions.Radius.xs,
+                                        topEnd = Dimensions.Radius.md,
+                                        bottomStart = Dimensions.Radius.xs,
+                                        bottomEnd = Dimensions.Radius.md
+                                    )
+                                )
+                                .padding(horizontal = Spacing.xs, vertical = Spacing.md)
+                                .clickable(
+                                    onClick = {themeViewModel.updateDarkTheme(true)},
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ),
+                            contentAlignment = Alignment.Center
+                        ){
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.DarkMode,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "Dark",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
                         }
                     }
-                }
 
-                // Navigation Style Section
-                SectionHeader(
-                    title = "Navigation Style",
-                    modifier = Modifier.padding(start = Spacing.md)
-                )
-
-                CashiroCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.md),
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                         ) {
-                            // Floating Option
+                            // Dynamic Option
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(80.dp)
-                                    .shadow(
-                                        elevation = 4.dp,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
                                     .clip(RoundedCornerShape(Dimensions.Radius.md))
                                     .background(
-                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING) 
-                                            MaterialTheme.colorScheme.primaryContainer 
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    .clickable {
-                                        themeViewModel.updateNavigationBarStyle(NavigationBarStyle.FLOATING)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = "Floating",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "Modern & Sleek",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
-                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                    )
-                                }
-                            }
-
-                            // Normal Option
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(80.dp)
-                                    .shadow(
-                                        elevation = 4.dp,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
-                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
-                                    .background(
-                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL) 
-                                            MaterialTheme.colorScheme.primaryContainer 
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    .clickable {
-                                        themeViewModel.updateNavigationBarStyle(NavigationBarStyle.NORMAL)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = "Normal",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "Standard M3",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
-                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                // Font Family Section
-                SectionHeader(
-                    title = "Font Family",
-                    modifier = Modifier.padding(start = Spacing.md)
-                )
-
-                CashiroCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-                        ) {
-                            // System Default Option
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(80.dp)
-                                    .shadow(
-                                        elevation = 4.dp,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
-                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
-                                    .background(
-                                        color = if (themeUiState.appFont == AppFont.SYSTEM)
+                                        color = if (themeUiState.themeStyle == ThemeStyle.DYNAMIC)
                                             MaterialTheme.colorScheme.primaryContainer
-                                        else MaterialTheme.colorScheme.surfaceVariant
+                                        else MaterialTheme.colorScheme.surfaceContainerLow
                                     )
                                     .clickable {
-                                        themeViewModel.updateAppFont(AppFont.SYSTEM)
+                                        themeViewModel.updateThemeStyle(ThemeStyle.DYNAMIC)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "Dynamic",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (themeUiState.themeStyle == ThemeStyle.DYNAMIC)
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = "Wallpaper Colors",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (themeUiState.themeStyle == ThemeStyle.DYNAMIC)
+                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+
+                            // Default Option
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(80.dp)
+                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
+                                    .background(
+                                        color = if (themeUiState.themeStyle == ThemeStyle.DEFAULT)
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        else MaterialTheme.colorScheme.surfaceContainerLow
+                                    )
+                                    .clickable {
+                                        themeViewModel.updateThemeStyle(ThemeStyle.DEFAULT)
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -390,57 +397,14 @@ fun AppearanceScreen(
                                         text = "Default",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
-                                        fontFamily = FontFamily.Default,
-                                        color = if (themeUiState.appFont == AppFont.SYSTEM)
+                                        color = if (themeUiState.themeStyle == ThemeStyle.DEFAULT)
                                             MaterialTheme.colorScheme.onPrimaryContainer
                                         else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Text(
-                                        text = "System",
+                                        text = "Default Colors",
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontFamily = FontFamily.Default,
-                                        color = if (themeUiState.appFont == AppFont.SYSTEM)
-                                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                    )
-                                }
-                            }
-
-                            // SN Pro Option
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(80.dp)
-                                    .shadow(
-                                        elevation = 4.dp,
-                                        shape = RoundedCornerShape(Dimensions.Radius.md)
-                                    )
-                                    .clip(RoundedCornerShape(Dimensions.Radius.md))
-                                    .background(
-                                        color = if (themeUiState.appFont == AppFont.SN_PRO)
-                                            MaterialTheme.colorScheme.primaryContainer
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                    .clickable {
-                                        themeViewModel.updateAppFont(AppFont.SN_PRO)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = "SN Pro",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = SNProFontFamily,
-                                        color = if (themeUiState.appFont == AppFont.SN_PRO)
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "Modern Mono",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontFamily = SNProFontFamily,
-                                        color = if (themeUiState.appFont == AppFont.SN_PRO)
+                                        color = if (themeUiState.themeStyle == ThemeStyle.DEFAULT)
                                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                                         else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                     )
@@ -448,10 +412,444 @@ fun AppearanceScreen(
                             }
                         }
                     }
+
+                    BlurredAnimatedVisibility(
+                        visible = themeUiState.themeStyle == ThemeStyle.DEFAULT,
+                        enter = fadeIn() + slideInVertically{-it},
+                        exit = fadeOut() + slideOutVertically{-it},
+                        modifier = Modifier.zIndex(-1f)
+                    ) {
+                        val isDark = themeUiState.isDarkTheme ?: isSystemInDarkTheme()
+
+                        LazyRow(
+                            contentPadding = PaddingValues(Spacing.md),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+                        ) {
+                            items(AccentColor.entries) { accent ->
+                                val color = getAccentColorForDisplay(accent, isDark)
+                                val secondary = getSecondaryColorForDisplay(accent, isDark)
+                                val tertiary = getTertiaryColorForDisplay(accent, isDark)
+                                val isSelected = themeUiState.accentColor == accent
+
+                                ColorSchemeBox(
+                                    accent = color,
+                                    secondary = secondary,
+                                    tertiary = tertiary,
+                                    onClick = { themeViewModel.updateAccentColor(accent) },
+                                    isSelected = isSelected
+                                )
+                            }
+                        }
+                    }
+
+                    if (themeUiState.isDarkTheme != false) {
+                        PreferenceSwitch(
+                            title = "Amoled Black",
+                            subtitle = "Use pure black background for deeper contrast",
+                            checked = themeUiState.isAmoledMode,
+                            onCheckedChange = { themeViewModel.updateAmoledMode(it) },
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .background(
+                                            color = if (themeUiState.isAmoledMode) {
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            } else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                            shape = CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.DarkMode,
+                                        contentDescription = null,
+                                        tint = if (themeUiState.isAmoledMode) {
+                                            MaterialTheme.colorScheme.onPrimaryContainer
+                                        } else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            },
+                            padding = PaddingValues(horizontal = Spacing.md),
+                            isSingle = true
+                        )
+                    }
+                }
+
+                // Navigation Style Section
+                SectionHeader(
+                    title = "Navigation",
+                    modifier = Modifier.padding(start = Spacing.xl, top = Spacing.md)
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                    ) {
+                        // Floating Option
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(80.dp)
+                                .clip(RoundedCornerShape(
+                                    topStart = Dimensions.Radius.md,
+                                    topEnd = Dimensions.Radius.xs,
+                                    bottomStart = Dimensions.Radius.md,
+                                    bottomEnd = Dimensions.Radius.xs
+                                ))
+                                .background(
+                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
+                                        MaterialTheme.colorScheme.tertiaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainerLow
+                                )
+                                .clickable {
+                                    themeViewModel.updateNavigationBarStyle(NavigationBarStyle.FLOATING)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Floating",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
+                                        MaterialTheme.colorScheme.onTertiaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Modern & Sleek",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.FLOATING)
+                                        MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+
+                        // Normal Option
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(80.dp)
+                                .clip(RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xs,
+                                    topEnd = Dimensions.Radius.md,
+                                    bottomStart = Dimensions.Radius.xs,
+                                    bottomEnd = Dimensions.Radius.md
+                                ))
+                                .background(
+                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
+                                        MaterialTheme.colorScheme.secondaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainerLow
+                                )
+                                .clickable {
+                                    themeViewModel.updateNavigationBarStyle(NavigationBarStyle.NORMAL)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Normal",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
+                                        MaterialTheme.colorScheme.onSecondaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Standard M3",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL)
+                                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                // Font Family Section
+                SectionHeader(
+                    title = "Fonts",
+                    modifier = Modifier.padding(start = Spacing.xl)
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.md),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                    ) {
+                        // System Default Option
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(80.dp)
+                                .clip(RoundedCornerShape(
+                                    topStart = Dimensions.Radius.md,
+                                    topEnd = Dimensions.Radius.xs,
+                                    bottomStart = Dimensions.Radius.md,
+                                    bottomEnd = Dimensions.Radius.xs
+                                ))
+                                .background(
+                                    color = if (themeUiState.appFont == AppFont.SYSTEM)
+                                        MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainerLow
+                                )
+                                .clickable {
+                                    themeViewModel.updateAppFont(AppFont.SYSTEM)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Default",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Default,
+                                    color = if (themeUiState.appFont == AppFont.SYSTEM)
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "System",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = FontFamily.Default,
+                                    color = if (themeUiState.appFont == AppFont.SYSTEM)
+                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+
+                        // SN Pro Option
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(80.dp)
+
+                                .clip(RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xs,
+                                    topEnd = Dimensions.Radius.md,
+                                    bottomStart = Dimensions.Radius.xs,
+                                    bottomEnd = Dimensions.Radius.md
+                                ))
+                                .background(
+                                    color = if (themeUiState.appFont == AppFont.SN_PRO)
+                                        MaterialTheme.colorScheme.tertiaryContainer
+                                    else MaterialTheme.colorScheme.surfaceContainerLow
+                                )
+                                .clickable {
+                                    themeViewModel.updateAppFont(AppFont.SN_PRO)
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "SN Pro",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = SNProFontFamily,
+                                    color = if (themeUiState.appFont == AppFont.SN_PRO)
+                                        MaterialTheme.colorScheme.onTertiaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "Modern Mono",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = SNProFontFamily,
+                                    color = if (themeUiState.appFont == AppFont.SN_PRO)
+                                        MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(Spacing.xl))
             }
+        }
+    }
+}
+
+@Composable
+fun getAccentColorForDisplay(accent: AccentColor, isDark: Boolean): Color {
+    return if (isDark) {
+        when (accent) {
+            AccentColor.ROSEWATER -> Macchiato_Rosewater_dim
+            AccentColor.FLAMINGO -> Macchiato_Flamingo_dim
+            AccentColor.PINK -> Macchiato_Pink_dim
+            AccentColor.MAUVE -> Macchiato_Mauve_dim
+            AccentColor.RED -> Macchiato_Red_dim
+            AccentColor.PEACH -> Macchiato_Peach_dim
+            AccentColor.YELLOW -> Macchiato_Yellow_dim
+            AccentColor.GREEN -> Macchiato_Green_dim
+            AccentColor.TEAL -> Macchiato_Teal_dim
+            AccentColor.SAPPHIRE -> Macchiato_Sapphire_dim
+            AccentColor.BLUE -> Macchiato_Blue_dim
+            AccentColor.LAVENDER -> Macchiato_Lavender_dim
+        }
+    } else {
+        when (accent) {
+            AccentColor.ROSEWATER -> Latte_Rosewater
+            AccentColor.FLAMINGO -> Latte_Flamingo
+            AccentColor.PINK -> Latte_Pink
+            AccentColor.MAUVE -> Latte_Mauve
+            AccentColor.RED -> Latte_Red
+            AccentColor.PEACH -> Latte_Peach
+            AccentColor.YELLOW -> Latte_Yellow
+            AccentColor.GREEN -> Latte_Green
+            AccentColor.TEAL -> Latte_Teal
+            AccentColor.SAPPHIRE -> Latte_Sapphire
+            AccentColor.BLUE -> Latte_Blue
+            AccentColor.LAVENDER -> Latte_Lavender
+        }
+    }
+}
+
+@Composable
+fun getSecondaryColorForDisplay(accent: AccentColor, isDark: Boolean): Color {
+    return if (isDark) {
+        when (accent) {
+            AccentColor.ROSEWATER -> Macchiato_Rosewater_dim_secondary
+            AccentColor.FLAMINGO -> Macchiato_Flamingo_dim_secondary
+            AccentColor.PINK -> Macchiato_Pink_dim_secondary
+            AccentColor.MAUVE -> Macchiato_Mauve_dim_secondary
+            AccentColor.RED -> Macchiato_Red_dim_secondary
+            AccentColor.PEACH -> Macchiato_Peach_dim_secondary
+            AccentColor.YELLOW -> Macchiato_Yellow_dim_secondary
+            AccentColor.GREEN -> Macchiato_Green_dim_secondary
+            AccentColor.TEAL -> Macchiato_Teal_dim_secondary
+            AccentColor.SAPPHIRE -> Macchiato_Sapphire_dim_secondary
+            AccentColor.BLUE -> Macchiato_Blue_dim_secondary
+            AccentColor.LAVENDER -> Macchiato_Lavender_dim_secondary
+        }
+    } else {
+        when (accent) {
+            AccentColor.ROSEWATER -> Latte_Rosewater_secondary
+            AccentColor.FLAMINGO -> Latte_Flamingo_secondary
+            AccentColor.PINK -> Latte_Pink_secondary
+            AccentColor.MAUVE -> Latte_Mauve_secondary
+            AccentColor.RED -> Latte_Red_secondary
+            AccentColor.PEACH -> Latte_Peach_secondary
+            AccentColor.YELLOW -> Latte_Yellow_secondary
+            AccentColor.GREEN -> Latte_Green_secondary
+            AccentColor.TEAL -> Latte_Teal_secondary
+            AccentColor.SAPPHIRE -> Latte_Sapphire_secondary
+            AccentColor.BLUE -> Latte_Blue_secondary
+            AccentColor.LAVENDER -> Latte_Lavender_secondary
+        }
+    }
+}
+
+@Composable
+fun getTertiaryColorForDisplay(accent: AccentColor, isDark: Boolean): Color {
+    return if (isDark) {
+        when (accent) {
+            AccentColor.ROSEWATER -> Macchiato_Rosewater_dim_tertiary
+            AccentColor.FLAMINGO -> Macchiato_Flamingo_dim_tertiary
+            AccentColor.PINK -> Macchiato_Pink_dim_tertiary
+            AccentColor.MAUVE -> Macchiato_Mauve_dim_tertiary
+            AccentColor.RED -> Macchiato_Red_dim_tertiary
+            AccentColor.PEACH -> Macchiato_Peach_dim_tertiary
+            AccentColor.YELLOW -> Macchiato_Yellow_dim_tertiary
+            AccentColor.GREEN -> Macchiato_Green_dim_tertiary
+            AccentColor.TEAL -> Macchiato_Teal_dim_tertiary
+            AccentColor.SAPPHIRE -> Macchiato_Sapphire_dim_tertiary
+            AccentColor.BLUE -> Macchiato_Blue_dim_tertiary
+            AccentColor.LAVENDER -> Macchiato_Lavender_dim_tertiary
+        }
+    } else {
+        when (accent) {
+            AccentColor.ROSEWATER -> Latte_Rosewater_tertiary
+            AccentColor.FLAMINGO -> Latte_Flamingo_tertiary
+            AccentColor.PINK -> Latte_Pink_tertiary
+            AccentColor.MAUVE -> Latte_Mauve_tertiary
+            AccentColor.RED -> Latte_Red_tertiary
+            AccentColor.PEACH -> Latte_Peach_tertiary
+            AccentColor.YELLOW -> Latte_Yellow_tertiary
+            AccentColor.GREEN -> Latte_Green_tertiary
+            AccentColor.TEAL -> Latte_Teal_tertiary
+            AccentColor.SAPPHIRE -> Latte_Sapphire_tertiary
+            AccentColor.BLUE -> Latte_Blue_tertiary
+            AccentColor.LAVENDER -> Latte_Lavender_tertiary
+        }
+    }
+}
+
+@Composable
+fun ColorSchemeBox(
+    accent: Color,
+    secondary: Color,
+    tertiary: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    isSelected: Boolean = false
+){
+    Box(
+        modifier = modifier
+            .size(110.dp)
+            .clip(RoundedCornerShape(Spacing.md))
+            .then(
+                if (isSelected) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = accent.copy(0.7f),
+                        shape = RoundedCornerShape(Spacing.md)
+                    )
+                } else Modifier
+            )
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .clickable(
+                onClick = onClick,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
+    ){
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.sm),
+        ) {
+            Text(
+                text = "Abc",
+                style = MaterialTheme.typography.labelMedium,
+                color = accent,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Column{
+                Box(
+                    modifier = Modifier
+                        .height(16.dp)
+                        .width(27.dp)
+                        .background(
+                            color = tertiary,
+                            shape = RoundedCornerShape(Spacing.sm)
+                        )
+                )
+                Spacer(modifier = Modifier.height(Spacing.xs))
+                Box(
+                    modifier = Modifier
+                        .height(16.dp)
+                        .width(47.dp)
+                        .background(
+                            color = secondary,
+                            shape = RoundedCornerShape(Spacing.sm)
+                        )
+                )
+            }
+
+            Box(
+                modifier = Modifier.align(Alignment.End).size(20.dp).background(
+                    accent,
+                    RoundedCornerShape(Spacing.xs)
+                )
+            )
         }
     }
 }

@@ -94,8 +94,10 @@ fun CashiroApp(
 
     CashiroTheme(
         darkTheme = darkTheme,
+        themeStyle = themeUiState.themeStyle,
         dynamicColor = themeUiState.isDynamicColorEnabled,
         isAmoledMode = themeUiState.isAmoledMode,
+        accentColor = themeUiState.accentColor,
         appFont = themeUiState.appFont
     ) {
         CashiroNavHost(

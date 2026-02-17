@@ -70,7 +70,7 @@ fun TransactionTotalsCard(
         CashiroCard(
             modifier = Modifier.fillMaxWidth().padding(bottom = Spacing.lg),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             ),
             shape = RoundedCornerShape(Spacing.xxl),
             contentPadding = Spacing.sm
@@ -89,7 +89,7 @@ fun TransactionTotalsCard(
                             .fillMaxHeight()
                             .weight(1f)
                             .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                color = MaterialTheme.colorScheme.surfaceContainerLow,
                                 shape = RoundedCornerShape(
                                     topEnd = Spacing.xs,
                                     topStart = Spacing.xxl,
@@ -134,7 +134,7 @@ fun TransactionTotalsCard(
                             .fillMaxHeight()
                             .weight(1f)
                             .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                color = MaterialTheme.colorScheme.surfaceContainerLow,
                                 shape = RoundedCornerShape(
                                     topEnd = Spacing.xs,
                                     topStart = Spacing.xs,
@@ -189,7 +189,7 @@ fun TransactionTotalsCard(
                             .fillMaxHeight()
                             .weight(1f)
                             .background(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                color = MaterialTheme.colorScheme.surfaceContainerLow,
                                 shape = RoundedCornerShape(
                                     topEnd = Spacing.xxl,
                                     topStart = Spacing.xs,
