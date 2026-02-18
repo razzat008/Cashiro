@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.data.preferences
 
 import android.content.Context
+import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -71,6 +72,9 @@ constructor(@ApplicationContext private val context: Context) {
         // Home Widget Preferences
         val HOME_WIDGETS_ORDER = stringPreferencesKey("home_widgets_order")
         val HIDDEN_HOME_WIDGETS = androidx.datastore.preferences.core.stringSetPreferencesKey("hidden_home_widgets")
+        val HIDE_NAVIGATION_LABELS = booleanPreferencesKey("hide_navigation_labels")
+        val HIDE_PILL_INDICATOR = booleanPreferencesKey("hide_pill_indicator")
+        val BLUR_EFFECTS = booleanPreferencesKey("blur_effects")
     }
 
     val userPreferences: Flow<UserPreferences> =
@@ -126,7 +130,10 @@ constructor(@ApplicationContext private val context: Context) {
                     )
                 } catch (e: Exception) {
                     AccentColor.BLUE
-                }
+                },
+                hideNavigationLabels = preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] ?: false,
+                hidePillIndicator = preferences[PreferencesKeys.HIDE_PILL_INDICATOR] ?: false,
+                blurEffects = preferences[PreferencesKeys.BLUR_EFFECTS] ?: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
             )
         }
 
@@ -575,6 +582,24 @@ constructor(@ApplicationContext private val context: Context) {
             preferences[PreferencesKeys.HIDDEN_HOME_WIDGETS] = hidden.map { it.name }.toSet()
         }
     }
+
+    suspend fun updateHideNavigationLabels(hide: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HIDE_NAVIGATION_LABELS] = hide
+        }
+    }
+
+    suspend fun updateHidePillIndicator(hide: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HIDE_PILL_INDICATOR] = hide
+        }
+    }
+
+    suspend fun updateBlurEffects(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BLUR_EFFECTS] = enabled
+        }
+    }
 }
 
 data class UserPreferences(
@@ -595,5 +620,8 @@ data class UserPreferences(
         val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING,
         val appFont: AppFont = AppFont.SYSTEM,
         val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
-        val accentColor: AccentColor = AccentColor.BLUE
+        val accentColor: AccentColor = AccentColor.BLUE,
+        val hideNavigationLabels: Boolean = false,
+        val hidePillIndicator: Boolean = false,
+        val blurEffects: Boolean = true
 )

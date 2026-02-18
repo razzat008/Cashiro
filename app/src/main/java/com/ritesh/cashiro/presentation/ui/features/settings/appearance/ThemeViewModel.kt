@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.appearance
 
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ritesh.cashiro.data.preferences.NavigationBarStyle
@@ -30,7 +31,10 @@ class ThemeViewModel @Inject constructor(
                 navigationBarStyle = preferences.navigationBarStyle,
                 appFont = preferences.appFont,
                 themeStyle = preferences.themeStyle,
-                accentColor = preferences.accentColor
+                accentColor = preferences.accentColor,
+                hideNavigationLabels = preferences.hideNavigationLabels,
+                hidePillIndicator = preferences.hidePillIndicator,
+                blurEffects = preferences.blurEffects
             )
         }
         .stateIn(
@@ -80,6 +84,24 @@ class ThemeViewModel @Inject constructor(
             userPreferencesRepository.updateAccentColor(color)
         }
     }
+
+    fun updateHideNavigationLabels(hide: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateHideNavigationLabels(hide)
+        }
+    }
+
+    fun updateHidePillIndicator(hide: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateHidePillIndicator(hide)
+        }
+    }
+
+    fun updateBlurEffects(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.updateBlurEffects(enabled)
+        }
+    }
 }
 
 data class ThemeUiState(
@@ -90,5 +112,8 @@ data class ThemeUiState(
     val navigationBarStyle: NavigationBarStyle = NavigationBarStyle.FLOATING,
     val appFont: AppFont = AppFont.SYSTEM,
     val themeStyle: ThemeStyle = ThemeStyle.DYNAMIC,
-    val accentColor: AccentColor = AccentColor.BLUE
+    val accentColor: AccentColor = AccentColor.BLUE,
+    val hideNavigationLabels: Boolean = false,
+    val hidePillIndicator: Boolean = false,
+    val blurEffects: Boolean = true
 )

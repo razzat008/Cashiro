@@ -153,7 +153,8 @@ fun SharedTransitionScope.HomeScreen(
     onNavigateToBudgets: (Long?) -> Unit = {},
     onTransactionClick: (Long, String) -> Unit = { _, _ -> },
     onFullResyncClick: () -> Unit = {},
-    animatedContentScope: AnimatedContentScope? = null
+    animatedContentScope: AnimatedContentScope? = null,
+    hazeState: HazeState = remember { HazeState()}
 ) {
 
     val uiState by homeViewModel.uiState.collectAsState()
@@ -239,7 +240,6 @@ fun SharedTransitionScope.HomeScreen(
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
-    val hazeState = remember { HazeState() }
     val lazyListState = rememberLazyListState()
 
     Scaffold(
@@ -480,7 +480,8 @@ fun SharedTransitionScope.HomeScreen(
                                                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                                         contentScale = ContentScale.Fit,
                                                         alignment = Alignment.Center
-                                                    )
+                                                    ),
+                                                    renderInOverlayDuringTransition = false
                                                 )
                                                     .skipToLookaheadSize()
                                             )
@@ -531,7 +532,8 @@ fun SharedTransitionScope.HomeScreen(
                                                                             resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                                                                 contentScale = ContentScale.None,
                                                                                 alignment = Alignment.Center
-                                                                            )
+                                                                            ),
+                                                                            renderInOverlayDuringTransition = false
                                                                         )
                                                                             .skipToLookaheadSize()
                                                                     } else Modifier
@@ -642,7 +644,8 @@ fun SharedTransitionScope.HomeScreen(
                                                                 resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                                                                     contentScale = ContentScale.None,
                                                                     alignment = Alignment.Center
-                                                                )
+                                                                ),
+                                                                renderInOverlayDuringTransition = false
                                                             )
                                                                 .skipToLookaheadSize()
                                                         } else Modifier

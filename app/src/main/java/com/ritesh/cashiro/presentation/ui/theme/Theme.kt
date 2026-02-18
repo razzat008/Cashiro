@@ -20,6 +20,10 @@ import androidx.core.view.WindowCompat
 import com.ritesh.cashiro.data.preferences.AppFont
 import com.ritesh.cashiro.data.preferences.ThemeStyle
 import com.ritesh.cashiro.data.preferences.AccentColor
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+
+val LocalBlurEffects = staticCompositionLocalOf { true }
 
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -32,6 +36,7 @@ fun CashiroTheme(
     isAmoledMode: Boolean = false,
     accentColor: AccentColor = AccentColor.BLUE,
     appFont: AppFont = AppFont.SYSTEM,
+    blurEffects: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -87,12 +92,14 @@ fun CashiroTheme(
         AppFont.SN_PRO -> SNProFontFamily
     }
 
-    MaterialExpressiveTheme(
-        colorScheme = colorScheme,
-        typography = getTypography(fontFamily = fontFamily),
-        shapes = Shapes,
-        content = content
-    )
+    CompositionLocalProvider(LocalBlurEffects provides blurEffects) {
+        MaterialExpressiveTheme(
+            colorScheme = colorScheme,
+            typography = getTypography(fontFamily = fontFamily),
+            shapes = Shapes,
+            content = content
+        )
+    }
 }
 
 

@@ -112,7 +112,8 @@ fun SharedTransitionScope.TransactionItem(
                     )
                 },
                 resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Fit, Alignment.Center),
-                clipInOverlayDuringTransition = OverlayClip(shape)
+                clipInOverlayDuringTransition = OverlayClip(shape),
+                renderInOverlayDuringTransition = false
             )
                 .skipToLookaheadSize()
         } else Modifier

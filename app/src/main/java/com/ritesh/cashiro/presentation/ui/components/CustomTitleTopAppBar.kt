@@ -24,6 +24,7 @@ import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.*
 import dev.chrisbanes.haze.HazeDefaults.tint
+import com.ritesh.cashiro.presentation.ui.theme.LocalBlurEffects
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
@@ -38,6 +39,7 @@ fun CustomTitleTopAppBar(
     navigationContent: @Composable () -> Unit = {},
     extraInfoCard: @Composable () -> Unit = {},
     hazeState: HazeState = HazeState(),
+    blurEffects: Boolean = LocalBlurEffects.current
 ) {
     val collapsedFraction = scrollBehaviorLarge.state.collapsedFraction
 
@@ -52,6 +54,7 @@ fun CustomTitleTopAppBar(
             navigationContent = navigationContent,
             extraInfoCard = extraInfoCard,
             hazeState = hazeState,
+            blurEffects = blurEffects,
             themeColors = MaterialTheme.colorScheme
         )
     }
@@ -66,7 +69,8 @@ fun CustomTitleTopAppBar(
         navigationContent = navigationContent,
         collapsedFraction = if(scrollBehaviorLarge != scrollBehaviorSmall)collapsedFraction else 1f,
         modifier = modifier,
-        hazeState = hazeState
+        hazeState = hazeState,
+        blurEffects = blurEffects
     )
 
 }
@@ -129,6 +133,7 @@ private fun LargerTopAppBar(
     actionContent: @Composable () -> Unit = {},
     navigationContent: @Composable () -> Unit = {},
     hazeState: HazeState,
+    blurEffects: Boolean = true,
     themeColors: ColorScheme,
 
     ){
@@ -163,19 +168,21 @@ private fun LargerTopAppBar(
         scrollBehavior = scrollBehaviorLarge,
         modifier = Modifier
             .fillMaxWidth()
-            .hazeEffect(
-                state = hazeState,
-                block = fun HazeEffectScope.() {
-                    this.inputScale = HazeInputScale.Auto
-                    style = HazeDefaults.style(
-                        backgroundColor = Color.Transparent,
-                        tint = tint(backgroundColor),
-                        blurRadius = 10.dp,
-                        noiseFactor = -1f,
-                    )
-                    progressive =
-                        HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
-                }
+            .then(
+                if (blurEffects) Modifier.hazeEffect(
+                    state = hazeState,
+                    block = fun HazeEffectScope.() {
+                        this.inputScale = HazeInputScale.Auto
+                        style = HazeDefaults.style(
+                            backgroundColor = Color.Transparent,
+                            tint = tint(backgroundColor),
+                            blurRadius = 10.dp,
+                            noiseFactor = -1f,
+                        )
+                        progressive =
+                            HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
+                    }
+                ) else Modifier
             )
             .background(
                 Brush.verticalGradient(
@@ -260,6 +267,7 @@ private fun RegularTopAppBar(
     navigationContent: @Composable () -> Unit = {},
     collapsedFraction: Float,
     hazeState: HazeState,
+    blurEffects: Boolean = true
 ){
     BlurredAnimatedVisibility(
         visible = collapsedFraction > 0.01f,
@@ -302,17 +310,19 @@ private fun RegularTopAppBar(
             windowInsets = WindowInsets(0.dp),
             modifier = modifier
                 .fillMaxWidth()
-                .hazeEffect(
-                    state = hazeState,
-                    block = fun HazeEffectScope.() {
-                        style = HazeDefaults.style(
-                            backgroundColor = Color.Transparent,
-                            blurRadius = 10.dp,
-                            noiseFactor = -1f,
-                        )
-                        progressive =
-                            HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
-                    }
+                .then(
+                    if (blurEffects) Modifier.hazeEffect(
+                        state = hazeState,
+                        block = fun HazeEffectScope.() {
+                            style = HazeDefaults.style(
+                                backgroundColor = Color.Transparent,
+                                blurRadius = 10.dp,
+                                noiseFactor = -1f,
+                            )
+                            progressive =
+                                HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
+                        }
+                    ) else Modifier
                 )
                 .background(
                     Brush.verticalGradient(

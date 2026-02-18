@@ -86,6 +86,7 @@ import com.ritesh.cashiro.presentation.ui.features.transactions.ExportTransactio
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsScreen
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import dev.chrisbanes.haze.HazeState
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -128,6 +129,9 @@ fun CashiroNavHost(
     val isAddTransactionScreen = currentRoute?.contains(AddTransaction::class.qualifiedName ?: "") == true
     val isSubscriptionsScreen = currentRoute?.contains(Subscriptions::class.qualifiedName ?: "") == true
     val isBudgetDetailScreen = currentRoute?.contains(BudgetDetail::class.qualifiedName ?: "") == true
+
+
+    val hazeState = remember { HazeState() }
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -199,7 +203,8 @@ fun CashiroNavHost(
                             navController.safeNavigate(TransactionDetail(transactionId, key))
                         },
                         onFullResyncClick = { showFullResyncDialog = true },
-                        animatedContentScope = this@composable
+                        animatedContentScope = this@composable,
+                        hazeState = hazeState
                     )
                 }
 
@@ -221,7 +226,8 @@ fun CashiroNavHost(
                                 )
                             )
                         },
-                        animatedContentScope = this@composable
+                        animatedContentScope = this@composable,
+                        hazeState = hazeState
                     )
                 }
 
@@ -545,7 +551,7 @@ fun CashiroNavHost(
             ) {
                 val addTransaction = if (isAddTransactionScreen) {
                     try { navBackStackEntry?.toRoute<AddTransaction>() ?: AddTransaction() }
-                    catch (e: Exception) { AddTransaction() }
+                    catch (_: Exception) { AddTransaction() }
                 } else AddTransaction()
 
                 AddScreen(
@@ -579,7 +585,7 @@ fun CashiroNavHost(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
-                        // Secondary FAB (Sync or Download) - Only on Home and Transactions
+                        // Secondary FAB (Sync or Download)
                         if (isHomeScreen || isTransactionsScreen) {
                             SmallFloatingActionButton(
                                 onClick = {
@@ -720,8 +726,12 @@ fun CashiroNavHost(
             navController = navController,
             currentDestination = currentDestination,
             navigationBarStyle = themeUiState.navigationBarStyle,
+            hideLabels = themeUiState.hideNavigationLabels,
+            hidePill = themeUiState.hidePillIndicator,
+            blurEffects = themeUiState.blurEffects,
             visible = showBottomNav,
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier.align(Alignment.BottomCenter),
+            hazeState = hazeState
         )
     }
 }

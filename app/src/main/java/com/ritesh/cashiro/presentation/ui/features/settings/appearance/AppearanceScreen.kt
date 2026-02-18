@@ -1,5 +1,6 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.appearance
 
+import android.os.Build
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -203,7 +204,7 @@ fun AppearanceScreen(
                                 )
                                 .background(
                                     color = if(themeUiState.isDarkTheme == null) {
-                                        MaterialTheme.colorScheme.secondary.copy(0.5f)
+                                        MaterialTheme.colorScheme.secondary
                                     } else MaterialTheme.colorScheme.surfaceContainerLow,
                                     shape = RoundedCornerShape(
                                         topStart = Dimensions.Radius.md,
@@ -227,12 +228,18 @@ fun AppearanceScreen(
                                 Icon(
                                     Icons.Default.AutoAwesome,
                                     contentDescription = null,
+                                    tint = if(themeUiState.isDarkTheme == null)
+                                        MaterialTheme.colorScheme.onSecondary
+                                    else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Text(
                                     text = "System",
                                     style = MaterialTheme.typography.bodySmall,
                                     textAlign = TextAlign.Center,
+                                    color = if(themeUiState.isDarkTheme == null)
+                                        MaterialTheme.colorScheme.onSecondary
+                                    else MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
@@ -251,7 +258,7 @@ fun AppearanceScreen(
                                 )
                                 .background(
                                     color = if(themeUiState.isDarkTheme == false) {
-                                        MaterialTheme.colorScheme.secondary.copy(0.5f)
+                                        MaterialTheme.colorScheme.secondary
                                     } else MaterialTheme.colorScheme.surfaceContainerLow,
                                     shape = RoundedCornerShape(
                                         topStart = Dimensions.Radius.xs,
@@ -275,12 +282,18 @@ fun AppearanceScreen(
                                 Icon(
                                     Icons.Default.LightMode,
                                     contentDescription = null,
+                                    tint = if(themeUiState.isDarkTheme == false)
+                                        MaterialTheme.colorScheme.onSecondary
+                                    else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Text(
                                     text = "Light",
                                     style = MaterialTheme.typography.bodySmall,
                                     textAlign = TextAlign.Center,
+                                    color = if(themeUiState.isDarkTheme == false)
+                                        MaterialTheme.colorScheme.onSecondary
+                                    else MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
@@ -298,7 +311,7 @@ fun AppearanceScreen(
                                 )
                                 .background(
                                     color = if(themeUiState.isDarkTheme == true) {
-                                        MaterialTheme.colorScheme.secondary.copy(0.5f)
+                                        MaterialTheme.colorScheme.secondary
                                     } else MaterialTheme.colorScheme.surfaceContainerLow,
                                     shape = RoundedCornerShape(
                                         topStart = Dimensions.Radius.xs,
@@ -322,12 +335,18 @@ fun AppearanceScreen(
                                 Icon(
                                     Icons.Default.DarkMode,
                                     contentDescription = null,
+                                    tint = if(themeUiState.isDarkTheme == true)
+                                        MaterialTheme.colorScheme.onSecondary
+                                    else MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Text(
                                     text = "Dark",
                                     style = MaterialTheme.typography.bodySmall,
                                     textAlign = TextAlign.Center,
+                                    color = if(themeUiState.isDarkTheme == true)
+                                        MaterialTheme.colorScheme.onSecondary
+                                    else MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
@@ -441,37 +460,53 @@ fun AppearanceScreen(
                             }
                         }
                     }
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                    ) {
+                        if (themeUiState.isDarkTheme != false) {
+                            PreferenceSwitch(
+                                title = "Amoled Black",
+                                subtitle = "Use pure black background for deeper contrast",
+                                checked = themeUiState.isAmoledMode,
+                                onCheckedChange = { themeViewModel.updateAmoledMode(it) },
+                                leadingIcon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .background(
+                                                color = if (themeUiState.isAmoledMode) {
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                } else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                                shape = CircleShape
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.DarkMode,
+                                            contentDescription = null,
+                                            tint = if (themeUiState.isAmoledMode) {
+                                                MaterialTheme.colorScheme.onPrimaryContainer
+                                            } else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                },
+                                padding = PaddingValues(horizontal = Spacing.md),
+                                isFirst = themeUiState.isDarkTheme != false && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+                                isSingle = Build.VERSION.SDK_INT <= Build.VERSION_CODES.S
+                            )
+                        }
 
-                    if (themeUiState.isDarkTheme != false) {
-                        PreferenceSwitch(
-                            title = "Amoled Black",
-                            subtitle = "Use pure black background for deeper contrast",
-                            checked = themeUiState.isAmoledMode,
-                            onCheckedChange = { themeViewModel.updateAmoledMode(it) },
-                            leadingIcon = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .background(
-                                            color = if (themeUiState.isAmoledMode) {
-                                                MaterialTheme.colorScheme.primaryContainer
-                                            } else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.DarkMode,
-                                        contentDescription = null,
-                                        tint = if (themeUiState.isAmoledMode) {
-                                            MaterialTheme.colorScheme.onPrimaryContainer
-                                        } else MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            },
-                            padding = PaddingValues(horizontal = Spacing.md),
-                            isSingle = true
-                        )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            PreferenceSwitch(
+                                title = "Blur Effects",
+                                subtitle = "Enable glassmorphism blur effects in UI components",
+                                checked = themeUiState.blurEffects,
+                                onCheckedChange = { themeViewModel.updateBlurEffects(it) },
+                                padding = PaddingValues(horizontal = Spacing.md),
+                                isLast = themeUiState.isDarkTheme != false,
+                                isSingle = themeUiState.isDarkTheme == false
+                            )
+                        }
                     }
                 }
 
@@ -483,7 +518,7 @@ fun AppearanceScreen(
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.md),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
-                ) {
+                ){
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
@@ -566,6 +601,34 @@ fun AppearanceScreen(
                                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                                 )
                             }
+                        }
+                    }
+
+                    BlurredAnimatedVisibility(
+                        visible = themeUiState.navigationBarStyle == NavigationBarStyle.NORMAL,
+                        enter = fadeIn() + slideInVertically { -it },
+                        exit = fadeOut() + slideOutVertically { -it },
+                        modifier = Modifier.zIndex(-1f)
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(1.5.dp)
+                        ) {
+                            PreferenceSwitch(
+                                title = "Hide Navigation Labels",
+                                subtitle = "Hide labels in the navigation bar",
+                                checked = themeUiState.hideNavigationLabels,
+                                onCheckedChange = { themeViewModel.updateHideNavigationLabels(it) },
+                                padding = PaddingValues(0.dp),
+                                isFirst = true
+                            )
+                            PreferenceSwitch(
+                                title = "Hide Pill Indicator",
+                                subtitle = "Hide the selection indicator in the navigation bar",
+                                checked = themeUiState.hidePillIndicator,
+                                onCheckedChange = { themeViewModel.updateHidePillIndicator(it) },
+                                padding = PaddingValues(0.dp),
+                                isLast = true
+                            )
                         }
                     }
                 }
@@ -676,6 +739,7 @@ fun AppearanceScreen(
         }
     }
 }
+
 
 @Composable
 fun getAccentColorForDisplay(accent: AccentColor, isDark: Boolean): Color {
@@ -812,7 +876,7 @@ fun ColorSchemeBox(
             )
     ){
         Column(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(Spacing.sm),
         ) {
             Text(

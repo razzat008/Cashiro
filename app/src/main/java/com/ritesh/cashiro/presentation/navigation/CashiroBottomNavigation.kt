@@ -1,7 +1,6 @@
 package com.ritesh.cashiro.presentation.navigation
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -9,14 +8,17 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingToolbarColors
 import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +29,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TonalToggleButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -39,8 +43,14 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import com.ritesh.cashiro.data.preferences.NavigationBarStyle
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
-
-import com.ritesh.cashiro.presentation.navigation.safeNavigate
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeDefaults.tint
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.HazeProgressive
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 
 /**
  * Bottom navigation bar component that supports both NORMAL and FLOATING styles.
@@ -48,15 +58,19 @@ import com.ritesh.cashiro.presentation.navigation.safeNavigate
  */
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
+    ExperimentalMaterial3ExpressiveApi::class, ExperimentalHazeApi::class
 )
 @Composable
 fun CashiroBottomNavigation(
+    modifier: Modifier = Modifier,
     navController: NavHostController,
     currentDestination: NavDestination?,
     navigationBarStyle: NavigationBarStyle,
+    hideLabels: Boolean,
+    hidePill: Boolean,
+    blurEffects: Boolean,
     visible: Boolean,
-    modifier: Modifier = Modifier
+    hazeState: HazeState = remember { HazeState() },
 ) {
     val navigationItems = listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Chat)
 
@@ -67,45 +81,73 @@ fun CashiroBottomNavigation(
             enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
             exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
         ) {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                navigationItems.forEach { item ->
-                    val selected = currentDestination?.hierarchy?.any { 
-                        it.route?.contains(item.destinationType.qualifiedName ?: "") == true 
-                    } == true
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            navController.safeNavigate(item.destination) {
-                                popUpTo(Home) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.title,
-                                tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
-                                       else MaterialTheme.colorScheme.onSurfaceVariant
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.1f)
+                )
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(
+                        alpha = if (blurEffects) 0.7f else 1f
+                    ),
+                    tonalElevation = 2.dp,
+                    modifier = Modifier.then(
+                        if (blurEffects) Modifier.hazeEffect(
+                            state = hazeState,
+                            style = HazeDefaults.style(
+                                backgroundColor = Color.Transparent,
+                                blurRadius = 20.dp,
+                                noiseFactor = -1f
                             )
-                        },
-                        label = {
-                            Text(
-                                text = item.title,
-                                color = if (selected) MaterialTheme.colorScheme.primary 
-                                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                        ) else Modifier
                     )
+                ) {
+                    navigationItems.forEach { item ->
+                        val selected = currentDestination?.hierarchy?.any {
+                            it.route?.contains(item.destinationType.qualifiedName ?: "") == true
+                        } == true
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                navController.safeNavigate(item.destination) {
+                                    popUpTo(Home) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.title,
+                                    tint = if (selected) {
+                                        if (hidePill) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onPrimaryContainer
+                                    } else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(
+                                        if (hidePill && hideLabels) 28.dp else 24.dp
+                                    )
+                                )
+                            },
+                            label = if (hideLabels) null else {
+                                {
+                                    Text(
+                                        text = item.title,
+                                        color = if (selected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = if (hidePill) Color.Transparent
+                                else MaterialTheme.colorScheme.primaryContainer
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -136,12 +178,25 @@ fun CashiroBottomNavigation(
                         .align(Alignment.BottomCenter)
                         .navigationBarsPadding()
                         .shadow(
-                            elevation = 16.dp,
+                            elevation = if (blurEffects) 0.dp else 16.dp,
                             shape = MaterialTheme.shapes.extraLarge
+                        )
+                        .clip(FloatingToolbarDefaults.ContainerShape)
+                        .then(
+                            if (blurEffects) Modifier.hazeEffect(
+                                state = hazeState,
+                                style = HazeDefaults.style(
+                                    backgroundColor = Color.Transparent,
+                                    blurRadius = 20.dp,
+                                    noiseFactor = -1f
+                                )
+                            ) else Modifier
                         )
                         .zIndex(1000f),
                     colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                        toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(
+                            alpha = if (blurEffects) 0.7f else 1f
+                        ),
                     ),
                     expanded = true,
                 ) {
@@ -162,11 +217,15 @@ fun CashiroBottomNavigation(
                                 }
                             },
                             colors = ToggleButtonDefaults.toggleButtonColors(
-                                containerColor =MaterialTheme.colorScheme.surfaceBright,
+                                containerColor = if(blurEffects)
+                                    MaterialTheme.colorScheme.surfaceBright.copy(0.6f)
+                                else MaterialTheme.colorScheme.surfaceBright,
                                 contentColor = MaterialTheme.colorScheme.inverseSurface,
                                 disabledContainerColor = MaterialTheme.colorScheme.surfaceBright.copy(0.7f),
                                 disabledContentColor = MaterialTheme.colorScheme.inverseSurface.copy(0.5f),
-                                checkedContainerColor =  MaterialTheme.colorScheme.tertiaryContainer.copy(0.6f),
+                                checkedContainerColor =  if(blurEffects)
+                                    MaterialTheme.colorScheme.tertiaryContainer.copy(0.6f)
+                                else MaterialTheme.colorScheme.tertiaryContainer,
                                 checkedContentColor =  MaterialTheme.colorScheme.onTertiaryContainer,
                             ),
                             modifier = Modifier.padding(horizontal = 4.dp)

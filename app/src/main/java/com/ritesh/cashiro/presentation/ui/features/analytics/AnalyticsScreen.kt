@@ -114,7 +114,8 @@ enum class BreakdownType {
 fun SharedTransitionScope.AnalyticsScreen(
     analyticsViewModel: AnalyticsViewModel = hiltViewModel(),
     onNavigateToTransactions: (category: String?, merchant: String?, period: String?, currency: String?) -> Unit = { _, _, _, _ -> },
-    animatedContentScope: AnimatedContentScope? = null
+    animatedContentScope: AnimatedContentScope? = null,
+    hazeState: HazeState = remember { HazeState() }
 ) {
     val uiState by analyticsViewModel.uiState.collectAsStateWithLifecycle()
     val selectedPeriod by analyticsViewModel.selectedPeriod.collectAsStateWithLifecycle()
@@ -143,7 +144,6 @@ fun SharedTransitionScope.AnalyticsScreen(
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
-    val hazeState = remember { HazeState() }
     val lazyListState = rememberLazyListState()
 
     Scaffold(
