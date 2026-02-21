@@ -24,6 +24,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,20 +43,29 @@ import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.AccountCard
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.DeleteAccountDialog
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import java.math.BigDecimal
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalHazeApi::class
+)
 @Composable
 fun ManageAccountsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToAccountDetail: (String, String) -> Unit,
-    manageAccountsViewModel: ManageAccountsViewModel = hiltViewModel()
+    manageAccountsViewModel: ManageAccountsViewModel = hiltViewModel(),
+    blurEffects: Boolean,
 ) {
     val uiState by manageAccountsViewModel.uiState.collectAsState()
     var showUpdateDialog by remember { mutableStateOf(false) }
@@ -65,7 +76,7 @@ fun ManageAccountsScreen(
     var showHistoryDialog by remember { mutableStateOf(false) }
     var historyAccount by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
-    var accountToDelete by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var accountToDelete by remember { mutableStateOf<AccountBalanceEntity?>(null) }
     var showHiddenAccounts by remember { mutableStateOf(false) }
     var showAddSheet by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
@@ -122,17 +133,33 @@ fun ManageAccountsScreen(
                 actionContent = {}
             ) },
         floatingActionButton = {
+            val fabContainerColor =  MaterialTheme.colorScheme.primaryContainer
+            val fabContentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ExtendedFloatingActionButton(
                 onClick = { showAddSheet = true },
                 expanded = showFloatingLabel,
                 icon = { Icon(Icons.Default.Add, contentDescription = "Add Account") },
                 text = { Text(text = "Add Account") },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shape =
-                    if (showFloatingLabel)
-                        MaterialTheme.shapes.extraLargeIncreased
-                    else MaterialTheme.shapes.large
+                shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large,
+                modifier = Modifier
+                    .then(
+                        if (blurEffects) Modifier
+                            .clip(if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large)
+                            .hazeEffect(
+                            state = hazeState,
+                            block = fun HazeEffectScope.() {
+                                style = HazeDefaults.style(
+                                    backgroundColor = Color.Transparent,
+                                    tint = HazeDefaults.tint(fabContainerColor),
+                                    blurRadius = 20.dp,
+                                    noiseFactor = -1f,
+                                )
+                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                            }
+                        ) else Modifier
+                    ),
+                containerColor = fabContainerColor,
+                contentColor = fabContentColor
             ) },
         snackbarHost = {
             SnackbarHost(
@@ -269,7 +296,7 @@ fun ManageAccountsScreen(
                                 },
                                 onUnlinkCard = {},
                                 onDeleteAccount = {
-                                    accountToDelete = account.bankName to account.accountLast4
+                                    accountToDelete = account
                                     showDeleteConfirmDialog = true
                                 },
                                 onEditAccount = {
@@ -330,7 +357,7 @@ fun ManageAccountsScreen(
                                     manageAccountsViewModel.unlinkCard(cardId)
                                 },
                                 onDeleteAccount = {
-                                    accountToDelete = account.bankName to account.accountLast4
+                                    accountToDelete = account
                                     showDeleteConfirmDialog = true
                                 },
                                 onEditAccount = {
@@ -410,7 +437,7 @@ fun ManageAccountsScreen(
                                     showHistoryDialog = true
                                 },
                                 onDeleteAccount = {
-                                    accountToDelete = card.bankName to card.accountLast4
+                                    accountToDelete = card
                                     showDeleteConfirmDialog = true
                                 },
                                 onEditAccount = {
@@ -516,7 +543,7 @@ fun ManageAccountsScreen(
                                     },
                                     onDeleteAccount = {
                                         accountToDelete =
-                                            account.bankName to account.accountLast4
+                                            account
                                         showDeleteConfirmDialog = true
                                     },
                                     onEditAccount = {
@@ -560,7 +587,7 @@ fun ManageAccountsScreen(
                                         showHistoryDialog = true
                                     },
                                     onDeleteAccount = {
-                                        accountToDelete = card.bankName to card.accountLast4
+                                        accountToDelete = card
                                         showDeleteConfirmDialog = true
                                     },
                                     onEditAccount = {
@@ -676,21 +703,27 @@ fun ManageAccountsScreen(
 
     // Delete Account Confirmation Dialog
     if (showDeleteConfirmDialog && accountToDelete != null) {
-        DeleteAccountConfirmDialog(
-            bankName = accountToDelete!!.first,
-            accountLast4 = accountToDelete!!.second,
+        DeleteAccountDialog(
+            bankName = accountToDelete!!.bankName,
+            accountLast4 = accountToDelete!!.accountLast4,
+            accountIcon = accountToDelete!!.iconResId,
+            accountColor = accountToDelete!!.color,
+            isCreditCard = accountToDelete!!.isCreditCard,
+            isWallet = accountToDelete!!.isWallet,
             onDismiss = {
                 showDeleteConfirmDialog = false
                 accountToDelete = null
             },
-            onConfirm = {
+            onDelete = {
                 manageAccountsViewModel.deleteAccount(
-                    accountToDelete!!.first,
-                    accountToDelete!!.second
+                    accountToDelete!!.bankName,
+                    accountToDelete!!.accountLast4
                 )
                 showDeleteConfirmDialog = false
                 accountToDelete = null
-            }
+            },
+            hazeState = hazeState,
+            blurEffects = blurEffects
         )
     }
 
@@ -719,7 +752,7 @@ fun ManageAccountsScreen(
                     )
                 },
                 onDelete = {
-                    accountToDelete = accountToEdit!!.bankName to accountToEdit!!.accountLast4
+                    accountToDelete = accountToEdit
                     showEditSheet = false
                     accountToEdit = null
                     showDeleteConfirmDialog = true
@@ -1294,78 +1327,6 @@ private fun LinkCardDialog(
                 onClick = { selectedAccount?.let(onConfirm) },
                 enabled = selectedAccount != null
             ) { Text("Link") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
-}
-
-@Composable
-private fun DeleteAccountConfirmDialog(
-    bankName: String,
-    accountLast4: String,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                Icons.Default.Warning,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
-            )
-        },
-        title = { Text("Delete Account?") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                Text(
-                    text = "Are you sure you want to delete this account?",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(Spacing.sm),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.AccountBalance,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Column {
-                            Text(
-                                text = bankName,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = "Account ending in $accountLast4",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-                Text(
-                    text = "This will permanently delete all balance history for this account." +
-                            " Any linked cards will be unlinked. This action cannot be undone.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) { Text("Delete") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )

@@ -4,56 +4,103 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ritesh.cashiro.data.database.entity.TransactionType
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import com.ritesh.cashiro.presentation.ui.components.AccountCard
-import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
-import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
-import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
-import com.ritesh.cashiro.presentation.ui.theme.*
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-import androidx.compose.ui.res.painterResource
-import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import androidx.core.graphics.toColorInt
-import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
+import com.ritesh.cashiro.data.database.entity.TransactionType
+import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
+import com.ritesh.cashiro.presentation.ui.components.AttachmentSection
+import com.ritesh.cashiro.presentation.ui.components.BrandIcon
+import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
+import com.ritesh.cashiro.presentation.ui.components.DatePicker
+import com.ritesh.cashiro.presentation.ui.components.TimePicker
+import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.delay
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TransactionTabContent(
     viewModel: AddViewModel,
     onSave: () -> Unit,
-    isTransitioning: Boolean = false
+    isTransitioning: Boolean = false,
+    blurEffects: Boolean,
+    hazeState: HazeState
 ) {
     val uiState by viewModel.transactionUiState.collectAsState()
     val categories by viewModel.categories.collectAsState()
@@ -101,8 +148,6 @@ fun TransactionTabContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Amount Input
-            val amountInteractionSource = remember { MutableInteractionSource() }
-            // Amount Input
             AmountInput(
                 amount = uiState.amount.ifEmpty { "0" },
                 currencySymbol = CurrencyFormatter.getCurrencySymbol(
@@ -127,7 +172,7 @@ fun TransactionTabContent(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    TransactionType.values().forEach { type ->
+                    TransactionType.entries.forEach { type ->
                         FilterChip(
                             selected = uiState.transactionType == type,
                             onClick = { viewModel.updateTransactionType(type) },
@@ -323,20 +368,12 @@ fun TransactionTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    if (uiState.selectedAccount != null && uiState.selectedAccount?.iconResId != 0) {
-                                        Icon(
-                                            painter = painterResource(id = uiState.selectedAccount!!.iconResId),
-                                            contentDescription = null,
-                                            tint = Color.Unspecified,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = Icons.Default.AccountBalance,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
+                                    BrandIcon(
+                                        merchantName = uiState.selectedAccount?.bankName ?: "",
+                                        accountIconResId = uiState.selectedAccount?.iconResId ?: 0,
+                                        size = 24.dp,
+                                        showBackground = false
+                                    )
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
@@ -385,20 +422,12 @@ fun TransactionTabContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    if (uiState.targetAccount != null && uiState.targetAccount?.iconResId != 0) {
-                                        Icon(
-                                            painter = painterResource(id = uiState.targetAccount!!.iconResId),
-                                            contentDescription = null,
-                                            tint = Color.Unspecified,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = Icons.Default.AccountBalance,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
+                                    BrandIcon(
+                                        merchantName = uiState.targetAccount?.bankName ?: "",
+                                        accountIconResId = uiState.targetAccount?.iconResId ?: 0,
+                                        size = 24.dp,
+                                        showBackground = false
+                                    )
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
@@ -534,20 +563,12 @@ fun TransactionTabContent(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (uiState.selectedAccount != null && uiState.selectedAccount?.iconResId != 0) {
-                                Icon(
-                                    painter = painterResource(id = uiState.selectedAccount!!.iconResId),
-                                    contentDescription = null,
-                                    tint = Color.Unspecified,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AccountBalance,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
+                            BrandIcon(
+                                merchantName = uiState.selectedAccount?.bankName ?: "",
+                                accountIconResId = uiState.selectedAccount?.iconResId ?: 0,
+                                size = 24.dp,
+                                showBackground = false
+                            )
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -960,22 +981,18 @@ fun TransactionTabContent(
                         .toEpochMilli()
             )
 
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            viewModel.updateTransactionDate(millis)
-                        }
-                        showDatePicker = false
-                    }
-                ) { Text("OK") }
+        DatePicker(
+            onDismiss = { showDatePicker = false },
+            onConfirm = {
+                datePickerState.selectedDateMillis?.let { millis ->
+                    viewModel.updateTransactionDate(millis)
+                }
+                showDatePicker = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
-            }
-        ) { DatePicker(state = datePickerState) }
+            datePickerState = datePickerState,
+            blurEffects = blurEffects,
+            hazeState = hazeState
+        )
     }
 
     // Time Picker Dialog
@@ -986,23 +1003,18 @@ fun TransactionTabContent(
                 initialMinute = uiState.date.minute
             )
 
-        AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            title = { Text("Select Time") },
-            text = { TimePicker(state = timePickerState) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.updateTransactionTime(
-                            timePickerState.hour,
-                            timePickerState.minute
-                        )
-                        showTimePicker = false
-                    }
-                ) { Text("OK") } },
-            dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
-            }
+        TimePicker(
+            onDismiss = { showTimePicker = false },
+            onConfirm = {
+                viewModel.updateTransactionTime(
+                    timePickerState.hour,
+                    timePickerState.minute
+                )
+                showTimePicker = false
+            },
+            timePickerState = timePickerState,
+            blurEffects = blurEffects,
+            hazeState = hazeState
         )
     }
 }

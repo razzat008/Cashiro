@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,30 +16,58 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Badge
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.domain.usecase.BatchApplyResult
-import com.ritesh.cashiro.presentation.ui.components.CashiroCard
-import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.ritesh.cashiro.domain.model.rule.TransactionRule
-import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
-import dev.chrisbanes.haze.HazeState
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.CashiroCard
+import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
+import com.ritesh.cashiro.presentation.ui.components.RulesBatchApplyDialog
+import com.ritesh.cashiro.presentation.ui.components.RulesDeleteDialog
+import com.ritesh.cashiro.presentation.ui.components.RulesResetDialog
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
+import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -48,7 +75,8 @@ import dev.chrisbanes.haze.hazeSource
 fun RulesScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCreateRule: () -> Unit,
-    rulesViewModel: RulesViewModel = hiltViewModel()
+    rulesViewModel: RulesViewModel = hiltViewModel(),
+    blurEffects: Boolean
 ) {
     val rules by rulesViewModel.rules.collectAsStateWithLifecycle()
     val uiState by rulesViewModel.uiState.collectAsStateWithLifecycle()
@@ -75,7 +103,7 @@ fun RulesScreen(
                 hasActionButton = true,
                 navigationContent = { NavigationContent(onNavigateBack) },
                 actionContent = {
-                    // Optional: Add reset button for advanced users
+                    // Add reset button for advanced users
                     var showResetDialog by remember { mutableStateOf(false) }
 
                     IconButton(
@@ -94,25 +122,14 @@ fun RulesScreen(
                     }
 
                     if (showResetDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showResetDialog = false },
-                            title = { Text("Reset Rules") },
-                            text = { Text("Reset all rules to default settings? Your custom settings will be lost.") },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        rulesViewModel.resetToDefaults()
-                                        showResetDialog = false
-                                    }
-                                ) {
-                                    Text("Reset")
-                                }
+                        RulesResetDialog(
+                            onDismiss = { showResetDialog = false },
+                            onConfirm = {
+                                rulesViewModel.resetToDefaults()
+                                showResetDialog = false
                             },
-                            dismissButton = {
-                                TextButton(onClick = { showResetDialog = false }) {
-                                    Text("Cancel")
-                                }
-                            }
+                            blurEffects = blurEffects,
+                            hazeState = hazeState
                         )
                     }
                 }
@@ -245,7 +262,9 @@ fun RulesScreen(
                                     onApplyToPast = {
                                         selectedRuleForBatch = rule
                                         showBatchApplyDialog = true
-                                    }
+                                    },
+                                    blurEffects = blurEffects,
+                                    hazeState = hazeState
                                 )
                             }
                         }
@@ -268,7 +287,7 @@ fun RulesScreen(
 
     // Batch Apply Dialog
     if (showBatchApplyDialog && selectedRuleForBatch != null) {
-        BatchApplyDialog(
+        RulesBatchApplyDialog(
             rule = selectedRuleForBatch!!,
             progress = batchApplyProgress,
             result = batchApplyResult,
@@ -282,7 +301,9 @@ fun RulesScreen(
             },
             onApplyToUncategorized = {
                 rulesViewModel.applyRuleToPastTransactions(selectedRuleForBatch!!, applyToUncategorizedOnly = true)
-            }
+            },
+            blurEffects = blurEffects,
+            hazeState = hazeState
         )
     }
 }
@@ -292,7 +313,9 @@ private fun RuleCard(
     rule: TransactionRule,
     onToggle: (Boolean) -> Unit,
     onDelete: () -> Unit,
-    onApplyToPast: () -> Unit
+    onApplyToPast: () -> Unit,
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState() }
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showActionsMenu by remember { mutableStateOf(false) }
@@ -413,7 +436,7 @@ private fun RuleCard(
                                     onApplyToPast()
                                 },
                                 colors = MenuDefaults.itemColors(
-                                    textColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    textColor = MaterialTheme.colorScheme.onSurface
                                 ),
                                 modifier = Modifier
                                     .clip(shape)
@@ -477,175 +500,15 @@ private fun RuleCard(
     }
 
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Rule") },
-            text = { Text("Delete \"${rule.name}\"? This action cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete()
-                        showDeleteDialog = false
-                    },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete")
-                }
+        RulesDeleteDialog(
+            rule = rule,
+            onDismiss = { showDeleteDialog = false },
+            onDelete = {
+                onDelete()
+                showDeleteDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            blurEffects = blurEffects,
+            hazeState = hazeState
         )
     }
-}
-
-@Composable
-private fun BatchApplyDialog(
-    rule: TransactionRule,
-    progress: Pair<Int, Int>?,
-    result: BatchApplyResult?,
-    onDismiss: () -> Unit,
-    onApplyToAll: () -> Unit,
-    onApplyToUncategorized: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = {
-            if (progress == null) {
-                onDismiss()
-            }
-        },
-        title = {
-            Text(
-                text = if (progress != null) "Applying Rule..." else "Apply Rule to Past Transactions"
-            )
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(Spacing.md)
-            ) {
-                if (progress == null && result == null) {
-                    // Initial state - show options
-                    Text(
-                        text = "Apply \"${rule.name}\" to existing transactions?",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(Spacing.sm))
-
-                    Text(
-                        text = "Choose how to apply this rule:",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(Spacing.xs))
-
-                    Text(
-                        text = "• All - Apply to every transaction",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = "• Uncategorized - Skip already categorized transactions (Recommended)",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                } else if (progress != null) {
-                    // Processing state - show progress
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
-                    ) {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Text(
-                            text = "Processing ${progress.first} of ${progress.second} transactions",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                } else if (result != null) {
-                    // Result state - show summary
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                if (result.errors.isEmpty()) Icons.Default.CheckCircle else Icons.Default.Warning,
-                                contentDescription = null,
-                                tint = if (result.errors.isEmpty())
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.error
-                            )
-                            Text(
-                                text = "Completed",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-
-                        HorizontalDivider()
-
-                        Text(
-                            text = "Transactions processed: ${result.totalProcessed}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = "Transactions updated: ${result.totalUpdated}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        if (result.totalDeleted > 0) {
-                            Text(
-                                text = "Transactions blocked (soft deleted): ${result.totalDeleted}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.tertiary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-
-                        if (result.errors.isNotEmpty()) {
-                            Text(
-                                text = "Errors: ${result.errors.size}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            if (progress == null && result == null) {
-                // Show action buttons using FlowRow for better responsive layout
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cancel")
-                    }
-                    TextButton(onClick = onApplyToUncategorized) {
-                        Text("Uncategorized")
-                    }
-                    TextButton(onClick = onApplyToAll) {
-                        Text("All")
-                    }
-                }
-            } else if (result != null) {
-                // Done - show close button
-                TextButton(onClick = onDismiss) {
-                    Text("Close")
-                }
-            }
-        }
-    )
 }

@@ -136,7 +136,7 @@ android {
     kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
-            freeCompilerArgs.add("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+            freeCompilerArgs.add("-Xannotation-default-target=param-property")
         }
     }
 
@@ -252,7 +252,7 @@ dependencies {
     implementation(libs.opencsv)
     testImplementation(kotlin("test"))
 
-    // coil for images and gif
+    // coil for images and GIF
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.gif)

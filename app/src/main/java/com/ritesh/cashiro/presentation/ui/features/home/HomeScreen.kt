@@ -81,8 +81,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -91,6 +93,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -132,14 +135,24 @@ import com.ritesh.cashiro.presentation.ui.theme.expense_light
 import com.ritesh.cashiro.presentation.ui.theme.income_dark
 import com.ritesh.cashiro.presentation.ui.theme.income_light
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import com.ritesh.cashiro.utils.bottomFade
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeDefaults.tint
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
+    ExperimentalHazeApi::class
+)
 @Composable
 fun SharedTransitionScope.HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
@@ -154,15 +167,18 @@ fun SharedTransitionScope.HomeScreen(
     onTransactionClick: (Long, String) -> Unit = { _, _ -> },
     onFullResyncClick: () -> Unit = {},
     animatedContentScope: AnimatedContentScope? = null,
-    hazeState: HazeState = remember { HazeState()}
 ) {
 
     val uiState by homeViewModel.uiState.collectAsState()
+    val themeUiState by themeViewModel.themeUiState.collectAsState()
     val deletedTransaction by homeViewModel.deletedTransaction.collectAsState()
     val categoriesMap by homeViewModel.categoriesMap.collectAsStateWithLifecycle()
     val subcategoriesMap by homeViewModel.subcategoriesMap.collectAsStateWithLifecycle()
     val homeWidgets by homeViewModel.homeWidgets.collectAsStateWithLifecycle()
     val activity = LocalActivity.current
+    val hazeState = remember { HazeState()}
+    val hazeStateBanner = remember { HazeState()}
+    val blurEffects = themeUiState.blurEffects
 
     val snackbarHostState = remember { SnackbarHostState() }
     
@@ -292,13 +308,30 @@ fun SharedTransitionScope.HomeScreen(
                     }
                 },
                 actionContent = {
+                    val containerColor = MaterialTheme.colorScheme.surfaceContainer
                     Box(
                         modifier =
                             Modifier.padding(end = 16.dp)
                                 .size(40.dp)
+                                .clip(CircleShape)
                                 .background(
-                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    color = if (blurEffects) containerColor.copy(0.5f)
+                                    else containerColor,
                                     shape = CircleShape
+                                )
+                                .then(
+                                    if (blurEffects) Modifier.hazeEffect(
+                                        state = hazeState,
+                                        block = fun HazeEffectScope.() {
+                                            style = HazeDefaults.style(
+                                                backgroundColor = Color.Transparent,
+                                                tint = tint(containerColor),
+                                                blurRadius = 20.dp,
+                                                noiseFactor = -1f,
+                                            )
+                                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                                        }
+                                    ) else Modifier
                                 )
                                 .clickable(
                                     onClick = { showMoreBottomSheet = true },
@@ -321,7 +354,8 @@ fun SharedTransitionScope.HomeScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize(),
                 contentAlignment = Alignment.TopCenter
             ) {
                 // Banner Image Background
@@ -343,31 +377,26 @@ fun SharedTransitionScope.HomeScreen(
                             AsyncImage(
                                 model = uiState.bannerImageUri,
                                 contentDescription = "Banner",
-                                modifier = Modifier.fillMaxSize().alpha(0.5f),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .hazeSource(hazeStateBanner)
+                                    .alpha(0.5f)
+                                    .bottomFade(0.4f)
+                                    .hazeSource(hazeStateBanner),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
                             Image(
                                 painter = painterResource(id = R.drawable.banner_bg_image),
                                 contentDescription = "Banner",
-                                modifier = Modifier.fillMaxSize().alpha(0.5f),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .alpha(0.5f)
+                                    .bottomFade(0.4f)
+                                    .hazeSource(hazeStateBanner),
                                 contentScale = ContentScale.Crop
                             )
                         }
-                        Spacer(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .height(100.dp)
-                                .fillMaxWidth()
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            Color.Transparent,
-                                            MaterialTheme.colorScheme.background
-                                        )
-                                    )
-                                )
-                        )
                     }
                 }
             }
@@ -396,13 +425,17 @@ fun SharedTransitionScope.HomeScreen(
                                         onCurrencySelected = {
                                             homeViewModel.selectCurrency(it)
                                         },
+                                        blurEffects = blurEffects && uiState.showBannerImage,
+                                        hazeState = hazeStateBanner
                                     )
                                 }
                             }
                             HomeWidget.TRANSACTION_HEATMAP -> {
                                 item(key = "transaction_heatmap") {
                                     HeatmapWidget(
-                                        data = uiState.transactionHeatmap
+                                        data = uiState.transactionHeatmap,
+                                        blurEffects = blurEffects && uiState.showBannerImage,
+                                        hazeState = hazeStateBanner
                                     )
                                 }
                             }
@@ -426,7 +459,7 @@ fun SharedTransitionScope.HomeScreen(
                                                     onNavigateToBudgets(it)
                                                 }
                                             },
-                                            animatedVisibilityScope = animatedContentScope
+                                            animatedVisibilityScope = animatedContentScope,
                                         )
                                     }
                                 }
@@ -447,7 +480,9 @@ fun SharedTransitionScope.HomeScreen(
                                                     )
                                                 )
                                             },
-                                            animatedContentScope = animatedContentScope
+                                            animatedContentScope = animatedContentScope,
+                                            blurEffects = blurEffects && uiState.showBannerImage,
+                                            hazeState = hazeStateBanner
                                         )
                                     }
                                 }
@@ -468,6 +503,8 @@ fun SharedTransitionScope.HomeScreen(
                                                 categoriesMap = categoriesMap,
                                                 subcategoriesMap = subcategoriesMap,
                                                 onClick = onNavigateToSubscriptions,
+                                                blurEffects = blurEffects && uiState.showBannerImage,
+                                                hazeState = hazeStateBanner,
                                                 modifier = cardModifier.sharedBounds(
                                                     rememberSharedContentState(key = "upcoming_subscriptions_card"),
                                                     animatedVisibilityScope = animatedContentScope,
@@ -493,6 +530,8 @@ fun SharedTransitionScope.HomeScreen(
                                                 categoriesMap = categoriesMap,
                                                 subcategoriesMap = subcategoriesMap,
                                                 onClick = onNavigateToSubscriptions,
+                                                blurEffects = blurEffects && uiState.showBannerImage,
+                                                hazeState = hazeStateBanner,
                                                 modifier = cardModifier
                                             )
                                         }
@@ -501,11 +540,31 @@ fun SharedTransitionScope.HomeScreen(
                             }
                             HomeWidget.RECENT_TRANSACTIONS -> {
                                 item(key = "recent_transactions") {
+                                    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                                     Column {
                                         Surface(
-                                            modifier = Modifier.padding(horizontal = Spacing.md).fillMaxWidth(),
+                                            modifier = Modifier
+                                                .padding(horizontal = Spacing.md)
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(Dimensions.Radius.lg))
+                                                .then(
+                                                    if (blurEffects && uiState.showBannerImage) Modifier.hazeEffect(
+                                                        state = hazeStateBanner,
+                                                        block = fun HazeEffectScope.() {
+                                                            style = HazeDefaults.style(
+                                                                backgroundColor = Color.Transparent,
+                                                                tint = HazeDefaults.tint(containerColor),
+                                                                blurRadius = 20.dp,
+                                                                noiseFactor = -1f,
+                                                            )
+                                                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                                                        }
+                                                    ) else Modifier
+                                                ),
+                                            shape = RoundedCornerShape(Dimensions.Radius.lg),
+                                            color = if (blurEffects && uiState.showBannerImage) MaterialTheme.colorScheme.surface.copy(0.5f)
+                                            else MaterialTheme.colorScheme.surface,
                                             contentColor = Color.Transparent,
-                                            shape = RoundedCornerShape(Spacing.lg),
                                         ) {
                                             Column {
                                                 SectionHeader(
@@ -629,7 +688,7 @@ fun SharedTransitionScope.HomeScreen(
                                         ) {
                                             TextButton(
                                                 onClick = onNavigateToTransactions,
-                                                modifier = Modifier.height(26.dp)
+                                                modifier = Modifier
                                                     .then(
                                                         if (animatedContentScope != null) {
                                                             Modifier.sharedBounds(
@@ -649,10 +708,28 @@ fun SharedTransitionScope.HomeScreen(
                                                             )
                                                                 .skipToLookaheadSize()
                                                         } else Modifier
-                                                    ),
+                                                    )
+                                                    .clip(RoundedCornerShape(Dimensions.Radius.lg))
+                                                    .then(
+                                                        if (blurEffects && uiState.showBannerImage) Modifier.hazeEffect(
+                                                            state = hazeStateBanner,
+                                                            block = fun HazeEffectScope.() {
+                                                                style = HazeDefaults.style(
+                                                                    backgroundColor = Color.Transparent,
+                                                                    tint = HazeDefaults.tint(containerColor),
+                                                                    blurRadius = 20.dp,
+                                                                    noiseFactor = -1f,
+                                                                )
+                                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                                                            }
+                                                        ) else Modifier
+                                                    )
+                                                    .height(26.dp),
                                                 colors = ButtonDefaults.textButtonColors(
                                                     contentColor = MaterialTheme.colorScheme.primary,
-                                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                                                    containerColor = if (blurEffects && uiState.showBannerImage)
+                                                        MaterialTheme.colorScheme.surfaceContainerLow.copy(0.7f)
+                                                    else MaterialTheme.colorScheme.surfaceContainerLow
                                                 ),
                                                 contentPadding = PaddingValues(0.dp)
                                             ) {
@@ -978,6 +1055,7 @@ private fun BreakdownRow(
     }
 }
 
+@OptIn(ExperimentalHazeApi::class)
 @Composable
 private fun UpcomingSubscriptionsCard(
     modifier: Modifier = Modifier,
@@ -987,53 +1065,86 @@ private fun UpcomingSubscriptionsCard(
     categoriesMap: Map<String, CategoryEntity> = emptyMap(),
     subcategoriesMap: Map<String, SubcategoryEntity> = emptyMap(),
     onClick: () -> Unit = {},
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState() }
 ) {
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+
     Card(
-        modifier = modifier.fillMaxWidth(),
-        onClick = onClick,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Dimensions.Radius.xxl))
+            .then(
+                if (blurEffects) Modifier.hazeEffect(
+                    state = hazeState,
+                    block = fun HazeEffectScope.() {
+                        style = HazeDefaults.style(
+                            backgroundColor = Color.Transparent,
+                            tint = HazeDefaults.tint(containerColor),
+                            blurRadius = 20.dp,
+                            noiseFactor = -1f,
+                        )
+                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                    }
+                ) else Modifier
             ),
-        shape = RoundedCornerShape(Spacing.xxl)
+        shape = RoundedCornerShape(Dimensions.Radius.xxl),
+        colors = CardDefaults.cardColors(
+            containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+            else MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        onClick = onClick,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(Dimensions.Padding.content),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+            Column(
+                modifier = Modifier.padding(start = 12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarToday,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(Dimensions.Icon.medium)
+                Text(
+                    text ="${subscriptions.size} Subscriptions",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = Dimensions.Alpha.subtitle
+                    )
                 )
-                Column {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
                     Text(
-                        text = "${subscriptions.size} active subscriptions",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                        text =
+                            CurrencyFormatter.formatCurrency(
+                                totalAmount,
+                                currency
+                            ).uppercase(),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text =
-                            "Monthly total: ${CurrencyFormatter.formatCurrency(totalAmount, currency)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                            "/ Month".uppercase(),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(
                             alpha = Dimensions.Alpha.subtitle
-                        )
+                        ),
+                        modifier = Modifier.padding(bottom = 2.dp)
                     )
                 }
+
             }
+
             SubscriptionIconsStack(
                 subscriptions = subscriptions,
                 iconSize = 38.dp,
                 modifier = Modifier.padding(end = Spacing.sm),
+                borderColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 categoriesMap = categoriesMap,
                 subcategoriesMap = subcategoriesMap
             )
@@ -1046,6 +1157,8 @@ private fun UpcomingSubscriptionsCard(
 private fun NetworthSummaryCards(
     uiState: HomeUiState,
     onCurrencySelected: (String) -> Unit = {},
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState() },
 ) {
     var showCurrencySheet by remember { mutableStateOf(false) }
 
@@ -1103,6 +1216,8 @@ private fun NetworthSummaryCards(
             thisYearValue = CurrencyFormatter.formatCurrency(uiState.currentMonthExpenses, uiState.selectedCurrency),
             availableCurrenciesCount = uiState.availableCurrencies.size,
             onCurrencyClick = { showCurrencySheet = true },
+            blurEffects = blurEffects,
+            hazeState = hazeState,
             modifier = Modifier.padding(
                 start = Dimensions.Padding.content,
                 end = Dimensions.Padding.content,

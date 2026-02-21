@@ -3,13 +3,18 @@ package com.ritesh.cashiro.presentation.ui.features.transactions
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -18,15 +23,27 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.export.ExportResult
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import com.ritesh.cashiro.presentation.ui.theme.LocalBlurEffects
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalHazeApi::class)
 @Composable
 fun ExportTransactionsDialog(
     transactions: List<TransactionEntity>,
     onDismiss: () -> Unit,
-    viewModel: ExportViewModel = hiltViewModel()
+    blurEffects: Boolean = LocalBlurEffects.current,
+    viewModel: ExportViewModel = hiltViewModel(),
+    hazeState: HazeState = remember { HazeState() },
 ) {
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var exportState by remember { mutableStateOf<ExportState>(ExportState.Ready) }
@@ -39,8 +56,28 @@ fun ExportTransactionsDialog(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = MaterialTheme.shapes.large
+                .padding(16.dp)
+                .clip(RoundedCornerShape(Dimensions.Radius.md))
+                .then(
+                    if (blurEffects) Modifier.hazeEffect(
+                        state = hazeState,
+                        block = fun HazeEffectScope.() {
+                            style = HazeDefaults.style(
+                                backgroundColor = Color.Transparent,
+                                tint = HazeDefaults.tint(containerColor),
+                                blurRadius = 20.dp,
+                                noiseFactor = -1f,
+                            )
+                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                        }
+                    ) else Modifier
+                ),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(
+                containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                else MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
         ) {
             Column(
                 modifier = Modifier
@@ -89,7 +126,7 @@ fun ExportTransactionsDialog(
                         Text(
                             text = "Export ${transactions.size} transactions to CSV format",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f),
                             textAlign = TextAlign.Center
                         )
                         
@@ -98,7 +135,7 @@ fun ExportTransactionsDialog(
                         // Summary info
                         Card(
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = MaterialTheme.colorScheme.surface.copy(0.5f)
                             ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -224,12 +261,22 @@ fun ExportTransactionsDialog(
                 // Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     when (exportState) {
                         is ExportState.Ready -> {
-                            TextButton(
+                            Button(
                                 onClick = onDismiss,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xxl,
+                                    topEnd = Dimensions.Radius.xs,
+                                    bottomStart = Dimensions.Radius.xxl,
+                                    bottomEnd = Dimensions.Radius.xs
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Cancel")
@@ -263,6 +310,16 @@ fun ExportTransactionsDialog(
                                         }
                                     }
                                 },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xs,
+                                    topEnd = Dimensions.Radius.xxl,
+                                    bottomStart = Dimensions.Radius.xs,
+                                    bottomEnd = Dimensions.Radius.xxl
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Export")
@@ -274,8 +331,18 @@ fun ExportTransactionsDialog(
                         }
                         
                         is ExportState.Success -> {
-                            TextButton(
+                            Button(
                                 onClick = onDismiss,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xxl,
+                                    topEnd = Dimensions.Radius.xs,
+                                    bottomStart = Dimensions.Radius.xxl,
+                                    bottomEnd = Dimensions.Radius.xs
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Done")
@@ -287,11 +354,21 @@ fun ExportTransactionsDialog(
                                     val shareIntent = Intent(Intent.ACTION_SEND).apply {
                                         type = "text/csv"
                                         putExtra(Intent.EXTRA_STREAM, (exportState as ExportState.Success).uri)
-                                        putExtra(Intent.EXTRA_SUBJECT, "PennyWise Transactions Export")
+                                        putExtra(Intent.EXTRA_SUBJECT, "Cashiro Transactions Export")
                                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                     }
                                     context.startActivity(Intent.createChooser(shareIntent, "Share CSV"))
                                 },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xs,
+                                    topEnd = Dimensions.Radius.xxl,
+                                    bottomStart = Dimensions.Radius.xs,
+                                    bottomEnd = Dimensions.Radius.xxl
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
@@ -305,8 +382,18 @@ fun ExportTransactionsDialog(
                         }
                         
                         is ExportState.Error -> {
-                            TextButton(
+                            Button(
                                 onClick = onDismiss,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xxl,
+                                    topEnd = Dimensions.Radius.xs,
+                                    bottomStart = Dimensions.Radius.xxl,
+                                    bottomEnd = Dimensions.Radius.xs
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Close")
@@ -316,6 +403,16 @@ fun ExportTransactionsDialog(
                                 onClick = {
                                     exportState = ExportState.Ready
                                 },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = Dimensions.Radius.xs,
+                                    topEnd = Dimensions.Radius.xxl,
+                                    bottomStart = Dimensions.Radius.xs,
+                                    bottomEnd = Dimensions.Radius.xxl
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Retry")

@@ -1,43 +1,93 @@
 package com.ritesh.cashiro.presentation.ui.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.work.WorkInfo
+import com.ritesh.cashiro.presentation.ui.theme.LocalBlurEffects
 import com.ritesh.cashiro.worker.OptimizedSmsReaderWorker
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeApi::class)
 @Composable
 fun SmsParsingProgressDialog(
+    modifier: Modifier = Modifier,
     isVisible: Boolean,
     workInfo: WorkInfo?,
     onDismiss: () -> Unit,
     onCancel: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    blurEffects: Boolean = LocalBlurEffects.current,
+    hazeState: HazeState = remember { HazeState() },
 ) {
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     if (isVisible && workInfo != null) {
         Dialog(onDismissRequest = { }) {
             Card(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .then(
+                        if (blurEffects) Modifier.hazeEffect(
+                            state = hazeState,
+                            block = fun HazeEffectScope.() {
+                                style = HazeDefaults.style(
+                                    backgroundColor = Color.Transparent,
+                                    tint = HazeDefaults.tint(containerColor),
+                                    blurRadius = 20.dp,
+                                    noiseFactor = -1f,
+                                )
+                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                            }
+                        ) else Modifier
+                    ),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                colors = CardDefaults.cardColors(
+                    containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                    else MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
             ) {
                 Column(
                     modifier = Modifier
@@ -73,8 +123,12 @@ fun SmsParsingProgressDialog(
 
                     // Cancel Button
                     if (onCancel != null && workInfo.state == WorkInfo.State.RUNNING) {
-                        OutlinedButton(
+                        Button(
                             onClick = onCancel,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(
@@ -86,17 +140,22 @@ fun SmsParsingProgressDialog(
                             Text("Cancel Scan")
                         }
                     } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                        TextButton(
+                        Button(
                             onClick = onDismiss,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.onPrimary,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Done")
                         }
                     } else if (workInfo.state == WorkInfo.State.FAILED) {
-                        TextButton(
+                        Button(
                             onClick = onDismiss,
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.textButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceBright,
                                 contentColor = MaterialTheme.colorScheme.error
                             )
                         ) {

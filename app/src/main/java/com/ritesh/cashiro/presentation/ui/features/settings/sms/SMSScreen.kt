@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
@@ -23,7 +24,10 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -39,6 +43,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,15 +64,23 @@ import com.ritesh.cashiro.presentation.ui.theme.blue_dark
 import com.ritesh.cashiro.presentation.ui.theme.blue_light
 import com.ritesh.cashiro.presentation.ui.theme.cyan_dark
 import com.ritesh.cashiro.presentation.ui.theme.cyan_light
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalHazeApi::class
+)
 @Composable
 fun SMSScreen(
     onNavigateBack: () -> Unit,
     onNavigateToUnrecognizedSms: () -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel(),
+    blurEffects: Boolean
 ) {
     val smsScanMonths by settingsViewModel.smsScanMonths.collectAsStateWithLifecycle(initialValue = 3)
     val smsScanAllTime by settingsViewModel.smsScanAllTime.collectAsStateWithLifecycle(initialValue = false)
@@ -242,11 +257,12 @@ fun SMSScreen(
 
         // SMS Scan Period Dialog
         if (showSmsScanDialog) {
+            val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             AlertDialog(
                 onDismissRequest = { showSmsScanDialog = false },
                 title = { Text("SMS Scan Period") },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(1.5.dp)) {
                         Text(
                             text = "Choose how many months of SMS history to scan for transactions",
                             style = MaterialTheme.typography.bodyMedium
@@ -254,55 +270,83 @@ fun SMSScreen(
                         Spacer(modifier = Modifier.height(Spacing.md))
 
                         val options = listOf(-1) + listOf(1, 2, 3, 6, 12, 24)
-                        options.forEach { months ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        if (months == -1) {
-                                            settingsViewModel.updateSmsScanAllTime(true)
-                                            showSmsScanDialog = false
-                                        } else {
-                                            settingsViewModel.updateSmsScanMonths(months)
-                                            settingsViewModel.updateSmsScanAllTime(false)
-                                            showSmsScanDialog = false
+                        options.forEachIndexed { index, months ->
+                            val isSelected = if (months == -1) smsScanAllTime
+                            else smsScanMonths == months && !smsScanAllTime
+
+                            ListItem(
+                                headline = {
+                                    Text(
+                                        text = when (months) {
+                                            -1 -> "All Time"
+                                            1 -> "1 month"
+                                            24 -> "2 years"
+                                            else -> "$months months"
                                         }
+                                    )
+                                },
+                                trailing = {
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = null
+                                    )
+                                },
+                                selected = isSelected,
+                                onClick = {
+                                    if (months == -1) {
+                                        settingsViewModel.updateSmsScanAllTime(true)
+                                        showSmsScanDialog = false
+                                    } else {
+                                        settingsViewModel.updateSmsScanMonths(months)
+                                        settingsViewModel.updateSmsScanAllTime(false)
+                                        showSmsScanDialog = false
                                     }
-                                    .padding(vertical = Spacing.sm),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val isSelected = if (months == -1) smsScanAllTime
-                                else smsScanMonths == months && !smsScanAllTime
-                                RadioButton(
-                                    selected = isSelected,
-                                    onClick = {
-                                        if (months == -1) {
-                                            settingsViewModel.updateSmsScanAllTime(true)
-                                            showSmsScanDialog = false
-                                        } else {
-                                            settingsViewModel.updateSmsScanMonths(months)
-                                            settingsViewModel.updateSmsScanAllTime(false)
-                                            showSmsScanDialog = false
-                                        }
-                                    }
-                                )
-                                Spacer(modifier = Modifier.width(Spacing.md))
-                                Text(
-                                    text = when (months) {
-                                        -1 -> "All Time"
-                                        1 -> "1 month"
-                                        24 -> "2 years"
-                                        else -> "$months months"
-                                    },
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
+                                },
+                                shape = ListItemPosition.from(index, options.size).toShape(),
+                                listColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                                padding = PaddingValues(0.dp)
+                            )
                         }
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { showSmsScanDialog = false }) { Text("Cancel") }
-                }
+                    Button(
+                        onClick = { showSmsScanDialog = false },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier
+                            .padding(horizontal = Spacing.xl)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                },
+                containerColor = if (blurEffects)
+                    MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                else MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .then(
+                        if (blurEffects) Modifier.hazeEffect(
+                            state = hazeState,
+                            block = fun HazeEffectScope.() {
+                                style = HazeDefaults.style(
+                                    backgroundColor = Color.Transparent,
+                                    tint = HazeDefaults.tint(containerColor),
+                                    blurRadius = 20.dp,
+                                    noiseFactor = -1f,
+                                )
+                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                            }
+                        ) else Modifier
+                    ),
+                shape = RoundedCornerShape(16.dp),
             )
         }
     }

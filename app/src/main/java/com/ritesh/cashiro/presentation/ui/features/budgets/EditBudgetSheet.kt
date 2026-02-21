@@ -38,7 +38,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
+import com.ritesh.cashiro.presentation.ui.components.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -90,9 +90,12 @@ import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.BudgetAnimatedGradientMeshCard
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
+import com.ritesh.cashiro.presentation.ui.components.DeleteBudgetDialog
 import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.Instant
@@ -121,7 +124,8 @@ fun EditBudgetSheet(
     onRemoveCategoryLimit: (String) -> Unit,
     onSave: () -> Unit,
     onDelete: (() -> Unit)? = null,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    blurEffects: Boolean
 ) {
     var showNumberPad by remember { mutableStateOf(false) }
     var editingCategoryLimit by remember { mutableStateOf<String?>(null) }
@@ -137,73 +141,54 @@ fun EditBudgetSheet(
     
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
+    val hazeState = remember { HazeState() }
+
     // Date Picker Dialogs
     if (showStartDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = budgetState.startDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         )
-        DatePickerDialog(
-            onDismissRequest = { showStartDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        onStartDateChange(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
-                    }
-                    showStartDatePicker = false
-                }) { Text("OK") }
+        DatePicker(
+            onDismiss = { showStartDatePicker = false },
+            onConfirm = {
+                datePickerState.selectedDateMillis?.let {
+                    onStartDateChange(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
+                }
+                showStartDatePicker = false
             },
-            dismissButton = {
-                TextButton(onClick = { showStartDatePicker = false }) { Text("Cancel") }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+            datePickerState = datePickerState,
+            blurEffects = blurEffects,
+            hazeState = hazeState
+        )
     }
 
     if (showEndDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = budgetState.endDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         )
-        DatePickerDialog(
-            onDismissRequest = { showEndDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let {
-                        onEndDateChange(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
-                    }
-                    showEndDatePicker = false
-                }) { Text("OK") }
+        DatePicker(
+            onDismiss = { showEndDatePicker = false },
+            onConfirm = {
+                datePickerState.selectedDateMillis?.let {
+                    onEndDateChange(LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneId.systemDefault()))
+                }
+                showEndDatePicker = false
             },
-            dismissButton = {
-                TextButton(onClick = { showEndDatePicker = false }) { Text("Cancel") }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+            datePickerState = datePickerState,
+            blurEffects = blurEffects,
+            hazeState = hazeState
+        )
     }
 
     if (showDeleteConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmation = false },
-            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-            title = { Text("Delete Budget?") },
-            text = { Text("Are you sure you want to delete this budget? This action cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete?.invoke()
-                        showDeleteConfirmation = false
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
+        DeleteBudgetDialog(
+            onDismiss = { showDeleteConfirmation = false },
+            onDelete = {
+                onDelete?.invoke()
+                showDeleteConfirmation = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel")
-                }
-            }
+            blurEffects = blurEffects,
+            hazeState = hazeState
         )
     }
 
@@ -355,7 +340,7 @@ fun EditBudgetSheet(
         }
     }
     
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = Modifier.fillMaxWidth().hazeSource(hazeState)) {
         Column(
             modifier = Modifier
                 .imePadding()

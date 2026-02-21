@@ -70,8 +70,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -94,7 +92,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -161,6 +158,10 @@ import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.presentation.ui.components.AccountSelectionSheet
+import com.ritesh.cashiro.presentation.ui.components.DatePicker
+import com.ritesh.cashiro.presentation.ui.components.DeleteMultipleTransactionsDialog
+import com.ritesh.cashiro.presentation.ui.components.DeleteTransactionDialog
+import com.ritesh.cashiro.presentation.ui.components.TimePicker
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.formatAmount
 import dev.chrisbanes.haze.HazeState
@@ -183,7 +184,8 @@ fun SharedTransitionScope.TransactionDetailScreen(
     sharedElementKey: String? = null,
     onNavigateBack: () -> Unit,
     transactionDetailViewModel: TransactionDetailViewModel = hiltViewModel(),
-    animatedContentScope: AnimatedContentScope? = null
+    animatedContentScope: AnimatedContentScope? = null,
+    blurEffects: Boolean,
 ) {
     val uiState by transactionDetailViewModel.uiState.collectAsStateWithLifecycle()
     val transaction = uiState.transaction
@@ -211,12 +213,13 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val scrollBehaviorLarge = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    val hazeState = remember { HazeState() }
     var showNumberPad by remember { mutableStateOf(false) }
     var showCategoryMenu by remember { mutableStateOf(false) }
     var showAccountSheet by remember { mutableStateOf(false) }
     var showTargetAccountSheet by remember { mutableStateOf(false) }
     var showBillingCycleMenu by remember { mutableStateOf(false) }
+    val hazeState = remember { HazeState() }
+
 
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -372,7 +375,6 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     accountPrimaryCurrency = accountPrimaryCurrency,
                     convertedAmount = convertedAmount,
                     availableAccounts = availableAccounts,
-                    hazeState = hazeState,
                     onAmountClick = { showNumberPad = true },
                     onCategoryClick = { showCategoryMenu = true },
                     onAccountClick = { showAccountSheet = true },
@@ -386,6 +388,8 @@ fun SharedTransitionScope.TransactionDetailScreen(
                     editableAttachments = editableAttachments,
                     onAddAttachment = transactionDetailViewModel::addAttachment,
                     onRemoveAttachment = transactionDetailViewModel::removeAttachment,
+                    blurEffects = blurEffects,
+                    hazeState = hazeState
                 )
             }
 
@@ -541,35 +545,12 @@ fun SharedTransitionScope.TransactionDetailScreen(
 
     // Delete Confirmation Dialog
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { transactionDetailViewModel.hideDeleteDialog() },
-            title = { Text("Delete Transaction") },
-            text = {
-                Text("Are you sure you want to delete this transaction? This action cannot be undone.")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { transactionDetailViewModel.deleteTransaction() },
-                    enabled = !isDeleting
-                ) {
-                    if (isDeleting) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            "Delete",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { transactionDetailViewModel.hideDeleteDialog() }) {
-                    Text("Cancel")
-                }
-            }
+        DeleteTransactionDialog(
+            onDismiss = { transactionDetailViewModel.hideDeleteDialog() },
+            onDelete = { transactionDetailViewModel.deleteTransaction() },
+            isDeleting = isDeleting,
+            blurEffects = blurEffects,
+            hazeState = hazeState
         )
     }
 }
@@ -647,7 +628,6 @@ private fun TransactionDetailContent(
     viewModel: TransactionDetailViewModel,
     accountPrimaryCurrency: String,
     convertedAmount: BigDecimal?,
-    hazeState: HazeState,
     onAmountClick: () -> Unit,
     onCategoryClick: () -> Unit,
     onAccountClick: () -> Unit,
@@ -662,6 +642,8 @@ private fun TransactionDetailContent(
     editableAttachments: List<String> = emptyList(),
     onAddAttachment: (String) -> Unit = {},
     onRemoveAttachment: (String) -> Unit = {},
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState()},
 ) {
 
     Column(
@@ -697,7 +679,9 @@ private fun TransactionDetailContent(
                     viewModel = viewModel,
                     onAmountClick = onAmountClick,
                     categoryEntity = categoryEntity,
-                    subcategoryEntity = subcategoryEntity
+                    subcategoryEntity = subcategoryEntity,
+                    blurEffects = blurEffects,
+                    hazeState = hazeState
                 )
                 Spacer(modifier = Modifier.height(Spacing.lg))
                 // SMS Body - Always read-only
@@ -812,7 +796,9 @@ private fun EditableTransactionHeader(
     viewModel: TransactionDetailViewModel,
     onAmountClick: () -> Unit,
     categoryEntity: CategoryEntity? = null,
-    subcategoryEntity: SubcategoryEntity? = null
+    subcategoryEntity: SubcategoryEntity? = null,
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState()},
 ) {
     CashiroCard(
         modifier = Modifier.fillMaxWidth(),
@@ -884,7 +870,9 @@ private fun EditableTransactionHeader(
             // Date and Time
             DateTimeField(
                 dateTime = transaction.dateTime,
-                onDateTimeChange = { viewModel.updateDateTime(it) }
+                onDateTimeChange = { viewModel.updateDateTime(it) },
+                blurEffects = blurEffects,
+                hazeState = hazeState
             )
 
 
@@ -1042,20 +1030,12 @@ private fun EditableExtractedInfoCard(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    if (selectedAccount != null && selectedAccount?.iconResId != 0) {
-                                        Icon(
-                                            painter = painterResource(id = selectedAccount!!.iconResId),
-                                            contentDescription = null,
-                                            tint = Color.Unspecified,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = Icons.Default.AccountBalance,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
+                                    BrandIcon(
+                                        merchantName = selectedAccount?.bankName ?: "",
+                                        accountIconResId = selectedAccount?.iconResId ?: 0,
+                                        size = 24.dp,
+                                        showBackground = false
+                                    )
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
@@ -1104,20 +1084,12 @@ private fun EditableExtractedInfoCard(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
-                                    if (targetAccount != null && targetAccount?.iconResId != 0) {
-                                        Icon(
-                                            painter = painterResource(id = targetAccount!!.iconResId),
-                                            contentDescription = null,
-                                            tint = Color.Unspecified,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = Icons.Default.AccountBalance,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
+                                    BrandIcon(
+                                        merchantName = targetAccount?.bankName ?: "",
+                                        accountIconResId = targetAccount?.iconResId ?: 0,
+                                        size = 24.dp,
+                                        showBackground = false
+                                    )
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
@@ -1210,20 +1182,12 @@ private fun EditableExtractedInfoCard(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (selectedAccount != null && selectedAccount?.iconResId != 0) {
-                                Icon(
-                                    painter = painterResource(id = selectedAccount!!.iconResId),
-                                    contentDescription = null,
-                                    tint = Color.Unspecified,
-                                    modifier = Modifier.size(24.dp)
+                                BrandIcon(
+                                    merchantName = selectedAccount?.bankName ?: "",
+                                    accountIconResId = selectedAccount?.iconResId ?: 0,
+                                    size = 24.dp,
+                                    showBackground = false
                                 )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AccountBalance,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -1529,7 +1493,10 @@ private fun CategoryDropdown(
 @Composable
 private fun DateTimeField(
     dateTime: LocalDateTime,
-    onDateTimeChange: (LocalDateTime) -> Unit
+    onDateTimeChange: (LocalDateTime) -> Unit,
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState()},
+
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -1655,31 +1622,25 @@ private fun DateTimeField(
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = dateTime.toLocalDate().toEpochDay() * 24 * 60 * 60 * 1000
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val newDate = Instant.ofEpochMilli(millis)
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate()
-                        onDateTimeChange(dateTime.withYear(newDate.year)
+        DatePicker(
+            onDismiss = { showDatePicker = false },
+            onConfirm = {
+                datePickerState.selectedDateMillis?.let { millis ->
+                    val newDate = Instant.ofEpochMilli(millis)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    onDateTimeChange(
+                        dateTime.withYear(newDate.year)
                             .withMonth(newDate.monthValue)
-                            .withDayOfMonth(newDate.dayOfMonth))
-                    }
-                    showDatePicker = false
-                }) {
-                    Text("OK")
+                            .withDayOfMonth(newDate.dayOfMonth)
+                    )
                 }
+                showDatePicker = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+            datePickerState = datePickerState,
+            blurEffects = blurEffects,
+            hazeState = hazeState
+        )
     }
 
     // Time Picker Dialog
@@ -1688,26 +1649,16 @@ private fun DateTimeField(
             initialHour = dateTime.hour,
             initialMinute = dateTime.minute
         )
-        AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            title = { Text("Select Time") },
-            text = {
-                TimePicker(state = timePickerState)
+        TimePicker(
+            onDismiss = { showTimePicker = false },
+            onConfirm = {
+                onDateTimeChange(dateTime.withHour(timePickerState.hour)
+                    .withMinute(timePickerState.minute))
+                showTimePicker = false
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    onDateTimeChange(dateTime.withHour(timePickerState.hour)
-                        .withMinute(timePickerState.minute))
-                    showTimePicker = false
-                }) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancel")
-                }
-            }
+            timePickerState = timePickerState,
+            blurEffects = blurEffects,
+            hazeState = hazeState
         )
     }
 }

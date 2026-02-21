@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.appearance
 
 import android.os.Build
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -185,6 +186,7 @@ fun AppearanceScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 Column(
+                    modifier = Modifier.animateContentSize(),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
                     Row(
@@ -436,7 +438,7 @@ fun AppearanceScreen(
                         visible = themeUiState.themeStyle == ThemeStyle.DEFAULT,
                         enter = fadeIn() + slideInVertically{-it},
                         exit = fadeOut() + slideOutVertically{-it},
-                        modifier = Modifier.zIndex(-1f)
+                        modifier = Modifier.animateContentSize().zIndex(-1f)
                     ) {
                         val isDark = themeUiState.isDarkTheme ?: isSystemInDarkTheme()
 
@@ -516,7 +518,7 @@ fun AppearanceScreen(
                     modifier = Modifier.padding(start = Spacing.xl, top = Spacing.md)
                 )
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.md),
+                    modifier = Modifier.animateContentSize().fillMaxWidth().padding(horizontal = Spacing.md),
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ){
                     Row(

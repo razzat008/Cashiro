@@ -25,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Upcoming
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,8 +32,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -50,14 +47,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
+import com.ritesh.cashiro.presentation.ui.components.TimePicker
 import com.ritesh.cashiro.presentation.ui.components.toShape
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
+import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.blue_dark
@@ -76,6 +74,7 @@ import java.time.format.DateTimeFormatter
 fun NotificationScreen(
     onNavigateBack: () -> Unit,
     notificationViewModel: NotificationViewModel = hiltViewModel(),
+    blurEffects: Boolean,
 ) {
     val scanEnabled by notificationViewModel.scanNewTransactionsEnabled.collectAsStateWithLifecycle()
     val alertTimeMinutes by notificationViewModel.scanNewTransactionsAlertTime.collectAsStateWithLifecycle()
@@ -86,6 +85,7 @@ fun NotificationScreen(
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
 
+
     var showTimePicker by remember { mutableStateOf(false) }
 
     if (showTimePicker) {
@@ -95,28 +95,16 @@ fun NotificationScreen(
             initialHour = initialHour,
             initialMinute = initialMinute
         )
-
-        AlertDialog(
-            onDismissRequest = { showTimePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val newMinutes = (timePickerState.hour * 60 + timePickerState.minute).toLong()
-                        notificationViewModel.setScanNewTransactionsAlertTime(newMinutes)
-                        showTimePicker = false
-                    }
-                ) {
-                    Text("OK")
-                }
+        TimePicker(
+            onDismiss = { showTimePicker = false },
+            onConfirm =  {
+                val newMinutes = (timePickerState.hour * 60 + timePickerState.minute).toLong()
+                notificationViewModel.setScanNewTransactionsAlertTime(newMinutes)
+                showTimePicker = false
             },
-            dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancel")
-                }
-            },
-            text = {
-                TimePicker(state = timePickerState)
-            }
+            timePickerState = timePickerState,
+            blurEffects = blurEffects,
+            hazeState = hazeState
         )
     }
 

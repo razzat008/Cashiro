@@ -6,64 +6,108 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material3.*
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
-import com.ritesh.cashiro.presentation.ui.components.CategoryItem
-import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
-import com.ritesh.cashiro.presentation.ui.components.SearchBarBox
-import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.CategoryItem
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
+import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
+import com.ritesh.cashiro.presentation.ui.components.DeleteCategoryDialog
+import com.ritesh.cashiro.presentation.ui.components.SearchBarBox
+import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import androidx.compose.animation.scaleIn
-import androidx.compose.ui.text.input.TextFieldValue
-import com.ritesh.cashiro.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalHazeApi::class
+)
 @Composable
 fun CategoriesScreen(
     onNavigateBack: () -> Unit,
-    categoriesViewModel: CategoriesViewModel = hiltViewModel()
+    categoriesViewModel: CategoriesViewModel = hiltViewModel(),
+    blurEffects: Boolean
 ) {
     val categories by categoriesViewModel.filteredCategories.collectAsStateWithLifecycle()
     val searchQuery by categoriesViewModel.searchQuery.collectAsStateWithLifecycle()
@@ -151,14 +195,34 @@ fun CategoriesScreen(
             )
         },
         floatingActionButton = {
+            val fabContainerColor =  MaterialTheme.colorScheme.primaryContainer
+            val fabContentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ExtendedFloatingActionButton(
                 onClick = { categoriesViewModel.showAddDialog() },
                 expanded = showFloatingLabel,
                 icon = { Icon(Icons.Default.Add, contentDescription = "Add Category") },
                 text = { Text(text = "Add Category") },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large
+                shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large,
+                modifier = Modifier
+                    .then(
+                        if (blurEffects) Modifier
+                            .clip(if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large)
+                            .hazeEffect(
+                            state = hazeState,
+                            block = fun HazeEffectScope.() {
+                                style = HazeDefaults.style(
+                                    backgroundColor = Color.Transparent,
+                                    tint = HazeDefaults.tint(fabContainerColor),
+                                    blurRadius = 20.dp,
+                                    noiseFactor = -1f,
+                                )
+                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                            }
+                        ) else Modifier
+                    ),
+                containerColor = fabContainerColor,
+                contentColor = fabContentColor
+
             )
         },
         snackbarHost = {
@@ -425,62 +489,16 @@ fun CategoriesScreen(
     // Deletion Confirmation Dialog
     if (showDeleteConfirmation && categoryToDelete != null) {
         val categoryName = categoryToDelete?.name ?: "this category"
-        if (hasTransactions) {
-            AlertDialog(
-                onDismissRequest = { categoriesViewModel.dismissDeleteConfirmation() },
-                title = { Text("Delete Category") },
-                text = { 
-                    Text(
-                        "This action cannot be undone. All transactions under '$categoryName' must be moved to another category."
-                    ) 
-                },
-                confirmButton = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.xs)
-                    ) {
-                        TextButton(
-                            onClick = { categoriesViewModel.showMigrationSheet() },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Move to Different Category")
-                        }
-                        TextButton(
-                            onClick = { categoriesViewModel.confirmDelete(moveToMiscellaneous = true) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Move to Miscellaneous")
-                        }
-                        TextButton(
-                            onClick = { categoriesViewModel.dismissDeleteConfirmation() },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Cancel")
-                        }
-                    }
-                }
-            )
-        } else {
-            AlertDialog(
-                onDismissRequest = { categoriesViewModel.dismissDeleteConfirmation() },
-                title = { Text("Delete Category") },
-                text = { Text("Are you sure you want to delete '$categoryName'?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = { categoriesViewModel.confirmDelete() }
-                    ) {
-                        Text("Delete")
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { categoriesViewModel.dismissDeleteConfirmation() }
-                    ) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
+        DeleteCategoryDialog(
+            hasTransactions = hasTransactions,
+            categoryName = categoryName,
+            onMoveOthers = { categoriesViewModel.showMigrationSheet() },
+            onMoveDefault = { categoriesViewModel.confirmDelete(moveToMiscellaneous = true) },
+            onDismiss = { categoriesViewModel.dismissDeleteConfirmation() },
+            onDelete = { categoriesViewModel.confirmDelete() },
+            blurEffects = blurEffects,
+            hazeState = hazeState
+        )
     }
 
     // Category Migration Bottom Sheet

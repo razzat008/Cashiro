@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -73,6 +74,7 @@ fun CashiroBottomNavigation(
     hazeState: HazeState = remember { HazeState() },
 ) {
     val navigationItems = listOf(BottomNavItem.Home, BottomNavItem.Analytics, BottomNavItem.Chat)
+    val containerColor = MaterialTheme.colorScheme.surface
 
     Box(modifier = modifier) {
         // NORMAL style NavigationBar
@@ -85,22 +87,26 @@ fun CashiroBottomNavigation(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 HorizontalDivider(
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.1f)
+                    thickness = 1.5.dp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.3f)
                 )
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface.copy(
-                        alpha = if (blurEffects) 0.7f else 1f
+                        alpha = if (blurEffects) 0.5f else 1f
                     ),
                     tonalElevation = 2.dp,
                     modifier = Modifier.then(
                         if (blurEffects) Modifier.hazeEffect(
                             state = hazeState,
-                            style = HazeDefaults.style(
-                                backgroundColor = Color.Transparent,
-                                blurRadius = 20.dp,
-                                noiseFactor = -1f
-                            )
+                            block = fun HazeEffectScope.() {
+                                style = HazeDefaults.style(
+                                    backgroundColor = Color.Transparent,
+                                    tint = HazeDefaults.tint(containerColor),
+                                    blurRadius = 20.dp,
+                                    noiseFactor = -1f,
+                                )
+                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                            }
                         ) else Modifier
                     )
                 ) {
@@ -185,11 +191,14 @@ fun CashiroBottomNavigation(
                         .then(
                             if (blurEffects) Modifier.hazeEffect(
                                 state = hazeState,
-                                style = HazeDefaults.style(
-                                    backgroundColor = Color.Transparent,
-                                    blurRadius = 20.dp,
-                                    noiseFactor = -1f
-                                )
+                                block = fun HazeEffectScope.() {
+                                    style = HazeDefaults.style(
+                                        backgroundColor = Color.Transparent,
+                                        blurRadius = 20.dp,
+                                        noiseFactor = -1f,
+                                    )
+                                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                                }
                             ) else Modifier
                         )
                         .zIndex(1000f),

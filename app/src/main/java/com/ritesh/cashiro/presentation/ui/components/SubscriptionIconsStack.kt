@@ -28,7 +28,7 @@ fun SubscriptionIconsStack(
     modifier: Modifier = Modifier,
     iconSize: Dp = 32.dp,
     maxIcons: Int = 4,
-    borderColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    borderColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     categoriesMap: Map<String, CategoryEntity> = emptyMap(),
     subcategoriesMap: Map<String, SubcategoryEntity> = emptyMap()
 ) {

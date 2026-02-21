@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -34,6 +35,12 @@ import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.presentation.common.icons.IconProvider
 import com.ritesh.cashiro.utils.formatBalance
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -42,7 +49,9 @@ fun SharedTransitionScope.AccountCarousel(
     bankAccounts: List<AccountBalanceEntity>,
     creditCards: List<AccountBalanceEntity>,
     onAccountClick: (bankName: String, accountLast4: String) -> Unit = { _, _ -> },
-    animatedContentScope: AnimatedVisibilityScope? = null
+    animatedContentScope: AnimatedVisibilityScope? = null,
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState() }
 ) {
     val totalAccounts = bankAccounts.size + creditCards.size
     val allAccounts = bankAccounts + creditCards
@@ -73,6 +82,8 @@ fun SharedTransitionScope.AccountCarousel(
                 isWallet = account.isWallet,
                 iconResId = account.iconResId,
                 color = account.color,
+                blurEffects = blurEffects,
+                hazeState = hazeState,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -102,13 +113,15 @@ fun SharedTransitionScope.AccountCarousel(
                 isWallet = account.isWallet,
                 iconResId = account.iconResId,
                 color = account.color,
+                blurEffects = blurEffects,
+                hazeState = hazeState,
                 modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeApi::class)
 @Composable
 fun SharedTransitionScope.AccountCarouselCard(
     bankName: String,
@@ -120,13 +133,15 @@ fun SharedTransitionScope.AccountCarouselCard(
     animatedContentScope: AnimatedVisibilityScope? = null,
     isWallet: Boolean = false,
     iconResId: Int = 0,
-    color: String? = null
+    color: String? = null,
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState() }
 ) {
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .clip(RoundedCornerShape(28.dp))
             .clickable(onClick = onClick)
             .then(
                 if (animatedContentScope != null) {
@@ -146,11 +161,25 @@ fun SharedTransitionScope.AccountCarouselCard(
                     )
                         .skipToLookaheadSize()
                 } else Modifier
+            )
+            .clip(RoundedCornerShape(28.dp))
+            .then(
+                if (blurEffects) Modifier.hazeEffect(
+                    state = hazeState,
+                    block = fun HazeEffectScope.() {
+                        style = HazeDefaults.style(
+                            backgroundColor = Color.Transparent,
+                            tint = HazeDefaults.tint(containerColor),
+                            blurRadius = 20.dp,
+                            noiseFactor = -1f,
+                        )
+                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                    }
+                ) else Modifier
             ),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+        else MaterialTheme.colorScheme.surfaceContainerLow,
         shape = RoundedCornerShape(28.dp),
-//        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)),
-        shadowElevation = 2.dp
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             val iconResource = remember(bankName, iconResId) {
@@ -174,8 +203,10 @@ fun SharedTransitionScope.AccountCarouselCard(
                         brush = Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                MaterialTheme.colorScheme.surfaceContainerLow,
-                                MaterialTheme.colorScheme.surfaceContainerLow
+                                if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                                else MaterialTheme.colorScheme.surfaceContainerLow,
+                                if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                                else MaterialTheme.colorScheme.surfaceContainerLow,
                             )
                         )
                     )

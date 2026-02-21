@@ -16,23 +16,27 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,6 +45,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
@@ -86,9 +93,15 @@ import com.ritesh.cashiro.presentation.ui.features.transactions.ExportTransactio
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsScreen
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalHazeApi::class)
 @Composable
 fun CashiroNavHost(
     navController: NavHostController,
@@ -132,6 +145,7 @@ fun CashiroNavHost(
 
 
     val hazeState = remember { HazeState() }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -141,7 +155,7 @@ fun CashiroNavHost(
             NavHost(
                 navController = navController,
                 startDestination = stableStartDestination,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().hazeSource(hazeState),
             ) {
                 // App Lock Screen
                 composable<AppLock>(
@@ -204,7 +218,6 @@ fun CashiroNavHost(
                         },
                         onFullResyncClick = { showFullResyncDialog = true },
                         animatedContentScope = this@composable,
-                        hazeState = hazeState
                     )
                 }
 
@@ -227,7 +240,7 @@ fun CashiroNavHost(
                             )
                         },
                         animatedContentScope = this@composable,
-                        hazeState = hazeState
+                        blurEffects = themeUiState.blurEffects,
                     )
                 }
 
@@ -265,6 +278,7 @@ fun CashiroNavHost(
                         onNavigateToBudgets = { navController.safeNavigate(Budgets()) },
                         onNavigateToDeveloper = { navController.safeNavigate(DeveloperOptions) },
                         onNavigateToDataPrivacy = { navController.safeNavigate(DataPrivacy) },
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -275,7 +289,8 @@ fun CashiroNavHost(
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
                     DataPrivacyScreen(
-                        onNavigateBack = { navController.safePopBackStack() }
+                        onNavigateBack = { navController.safePopBackStack() },
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -298,7 +313,8 @@ fun CashiroNavHost(
                 ) {
                     SMSScreen(
                         onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToUnrecognizedSms = { navController.safeNavigate(UnrecognizedSms) }
+                        onNavigateToUnrecognizedSms = { navController.safeNavigate(UnrecognizedSms) },
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -331,7 +347,8 @@ fun CashiroNavHost(
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
                     NotificationScreen(
-                        onNavigateBack = { navController.safePopBackStack() }
+                        onNavigateBack = { navController.safePopBackStack() },
+                        blurEffects = themeUiState.blurEffects,
                     )
                 }
 
@@ -342,7 +359,8 @@ fun CashiroNavHost(
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
                 ) {
                     CategoriesScreen(
-                        onNavigateBack = { navController.safePopBackStack() }
+                        onNavigateBack = { navController.safePopBackStack() },
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -378,7 +396,8 @@ fun CashiroNavHost(
                         onNavigateBack = { navController.safePopBackStack() },
                         onNavigateToAccountDetail = { bankName, last4 ->
                             navController.safeNavigate(AccountDetail(bankName, last4))
-                        }
+                        },
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -401,7 +420,8 @@ fun CashiroNavHost(
                 ) {
                     RulesScreen(
                         onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToCreateRule = { navController.safeNavigate(CreateRule) }
+                        onNavigateToCreateRule = { navController.safeNavigate(CreateRule) },
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -437,7 +457,8 @@ fun CashiroNavHost(
                             onEditComplete()
                             navController.safePopBackStack()
                         },
-                        animatedContentScope = this@composable
+                        animatedContentScope = this@composable,
+                        blurEffects = themeUiState.blurEffects,
                     )
                 }
 
@@ -500,7 +521,8 @@ fun CashiroNavHost(
                         onNavigateToSettings = {
                             navController.safeNavigate(Settings)
                         },
-                        animatedContentScope = this@composable
+                        animatedContentScope = this@composable,
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -517,7 +539,8 @@ fun CashiroNavHost(
                             navController.safeNavigate(BudgetDetail(budgetId = id, sharedElementKey = key))
                         },
                         animatedContentScope = this@composable,
-                        sharedElementPrefix = budgets.sharedElementPrefix
+                        sharedElementPrefix = budgets.sharedElementPrefix,
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
 
@@ -535,7 +558,8 @@ fun CashiroNavHost(
                             navController.safeNavigate(TransactionDetail(transactionId, key))
                         },
                         animatedContentScope = this@composable,
-                        sharedElementKey = budgetDetail.sharedElementKey
+                        sharedElementKey = budgetDetail.sharedElementKey,
+                        blurEffects = themeUiState.blurEffects
                     )
                 }
             }
@@ -557,7 +581,8 @@ fun CashiroNavHost(
                 AddScreen(
                     onNavigateBack = { navController.safePopBackStack() },
                     animatedVisibilityScope = this@AnimatedVisibility,
-                    initialTab = addTransaction.initialTab
+                    initialTab = addTransaction.initialTab,
+                    blurEffects = themeUiState.blurEffects,
                 )
             }
 
@@ -585,6 +610,8 @@ fun CashiroNavHost(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
+                        val smallFabContainerColor =  MaterialTheme.colorScheme.tertiaryContainer
+                        val smallFabContentColor = MaterialTheme.colorScheme.onTertiaryContainer
                         // Secondary FAB (Sync or Download)
                         if (isHomeScreen || isTransactionsScreen) {
                             SmallFloatingActionButton(
@@ -596,23 +623,24 @@ fun CashiroNavHost(
                                         showExportDialog = true
                                     }
                                 },
-                                modifier = Modifier.pointerInput(isHomeScreen) {
-                                    if (isHomeScreen) {
-                                        detectTapGestures(
-                                            onLongPress = {
-                                                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                                                showFullResyncDialog = true
-                                            }
-                                        )
-                                    } else {
-                                        // Use default click handling for Transactions screen
-                                        detectTapGestures(onTap = {
-                                            if (isTransactionsScreen) showExportDialog = true
-                                        })
-                                    }
-                                },
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                modifier = Modifier
+                                    .pointerInput(isHomeScreen) {
+                                        if (isHomeScreen) {
+                                            detectTapGestures(
+                                                onLongPress = {
+                                                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                                                    showFullResyncDialog = true
+                                                }
+                                            )
+                                        } else {
+                                            // Use default click handling for Transactions screen
+                                            detectTapGestures(onTap = {
+                                                if (isTransactionsScreen) showExportDialog = true
+                                            })
+                                        }
+                                    },
+                                containerColor = smallFabContainerColor,
+                                contentColor = smallFabContentColor,
                             ) {
                                 if (isHomeScreen) {
                                     Icon(
@@ -630,31 +658,51 @@ fun CashiroNavHost(
                             }
                         }
 
+                        val fabContainerColor =  MaterialTheme.colorScheme.primaryContainer
+                        val fabContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+
                         // Add FAB
                         FloatingActionButton(
                             onClick = { 
                                 val initialTab = if (isSubscriptionsScreen) 1 else 0
                                 navController.safeNavigate(AddTransaction(initialTab = initialTab)) 
                             },
-                            modifier = Modifier.then(
-                                Modifier.sharedBounds(
-                                    rememberSharedContentState(key = "fab_to_add"),
-                                    animatedVisibilityScope = this@AnimatedVisibility,
-                                    boundsTransform = { _, _ ->
-                                        spring(
-                                            stiffness = Spring.StiffnessLow,
-                                            dampingRatio = Spring.DampingRatioLowBouncy
+                            modifier = Modifier
+                                .then(
+                                    Modifier.sharedBounds(
+                                        rememberSharedContentState(key = "fab_to_add"),
+                                        animatedVisibilityScope = this@AnimatedVisibility,
+                                        boundsTransform = { _, _ ->
+                                            spring(
+                                                stiffness = Spring.StiffnessLow,
+                                                dampingRatio = Spring.DampingRatioLowBouncy
+                                            )
+                                        },
+                                        resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
+                                            contentScale = ContentScale.FillBounds,
+                                            alignment = Alignment.Center
                                         )
-                                    },
-                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
-                                        contentScale = ContentScale.FillBounds,
-                                        alignment = Alignment.Center
                                     )
+                                        .skipToLookaheadSize()
                                 )
-                                    .skipToLookaheadSize()
-                            ),
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                .then(
+                                    if (themeUiState.blurEffects) Modifier
+                                        .clip(MaterialTheme.shapes.large)
+                                        .hazeEffect(
+                                            state = hazeState,
+                                            block = fun HazeEffectScope.() {
+                                                style = HazeDefaults.style(
+                                                    backgroundColor = Color.Transparent,
+                                                    tint = HazeDefaults.tint(fabContainerColor),
+                                                    blurRadius = 20.dp,
+                                                    noiseFactor = -1f,
+                                                )
+                                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                                            }
+                                        ) else Modifier
+                                ),
+                            containerColor = fabContainerColor,
+                            contentColor = fabContentColor,
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
@@ -668,6 +716,7 @@ fun CashiroNavHost(
 
             // Full Resync Confirmation Dialog
             if (showFullResyncDialog) {
+                val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 AlertDialog(
                     onDismissRequest = { showFullResyncDialog = false },
                     icon = {
@@ -686,20 +735,83 @@ fun CashiroNavHost(
                         )
                     },
                     confirmButton = {
-                        Button(
-                            onClick = {
-                                showFullResyncDialog = false
-                                homeViewModel.scanSmsMessages(
-                                    forceResync = true
-                                )
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.align(Alignment.Center),
+                                horizontalArrangement = Arrangement.spacedBy(1.5.dp),
+                            ) {
+                                Button(
+                                    onClick = { showFullResyncDialog = false },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                                        contentColor = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    shape = RoundedCornerShape(
+                                        topStart = Dimensions.Radius.xxl,
+                                        topEnd = Dimensions.Radius.xs,
+                                        bottomStart = Dimensions.Radius.xxl,
+                                        bottomEnd = Dimensions.Radius.xs
+                                    ),
+                                    modifier = Modifier
+                                        .weight(0.8f)
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "Cancel",
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                                Button(
+                                    onClick = {
+                                        showFullResyncDialog = false
+                                        homeViewModel.scanSmsMessages(
+                                            forceResync = true
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    ),
+                                    shape = RoundedCornerShape(
+                                        topStart = Dimensions.Radius.xs,
+                                        topEnd = Dimensions.Radius.xxl,
+                                        bottomStart = Dimensions.Radius.xs,
+                                        bottomEnd = Dimensions.Radius.xxl
+                                    ),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "Resync All",
+                                        style = MaterialTheme.typography.titleMedium)
+                                }
                             }
-                        ) { Text("Resync All") }
+                        }
                     },
-                    dismissButton = {
-                        TextButton(
-                            onClick = { showFullResyncDialog = false }
-                        ) { Text("Cancel") }
-                    }
+                    containerColor = if (themeUiState.blurEffects)
+                        MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                    else MaterialTheme.colorScheme.surfaceContainerLow,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .then(
+                            if (themeUiState.blurEffects) Modifier.hazeEffect(
+                                state = hazeState,
+                                block = fun HazeEffectScope.() {
+                                    style = HazeDefaults.style(
+                                        backgroundColor = Color.Transparent,
+                                        tint = HazeDefaults.tint(containerColor),
+                                        blurRadius = 20.dp,
+                                        noiseFactor = -1f,
+                                    )
+                                    blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                                }
+                            ) else Modifier
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    dismissButton = {}
                 )
             }
 
@@ -708,7 +820,9 @@ fun CashiroNavHost(
             if (showExportDialog && isTransactionsScreen) {
                 ExportTransactionsDialog(
                     transactions = transactionsUiState.transactions,
-                    onDismiss = { showExportDialog = false }
+                    onDismiss = { showExportDialog = false },
+                    blurEffects = themeUiState.blurEffects,
+                    hazeState = hazeState
                 )
             }
 
@@ -717,7 +831,9 @@ fun CashiroNavHost(
                 isVisible = homeUiState.isScanning,
                 workInfo = smsScanWorkInfo,
                 onDismiss = { homeViewModel.cancelSmsScan() },
-                onCancel = { homeViewModel.cancelSmsScan() }
+                onCancel = { homeViewModel.cancelSmsScan() },
+                blurEffects = themeUiState.blurEffects,
+                hazeState = hazeState
             )
         }
 

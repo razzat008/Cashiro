@@ -27,6 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -40,11 +41,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -58,12 +62,17 @@ import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesViewModel
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
-    ExperimentalMaterial3ExpressiveApi::class
+    ExperimentalMaterial3ExpressiveApi::class, ExperimentalHazeApi::class
 )
 @Composable
 fun SharedTransitionScope.BudgetsScreen(
@@ -72,7 +81,8 @@ fun SharedTransitionScope.BudgetsScreen(
     budgetViewModel: BudgetViewModel = hiltViewModel(),
     categoriesViewModel: CategoriesViewModel = hiltViewModel(),
     animatedContentScope: AnimatedContentScope? = null,
-    sharedElementPrefix: Long? = null
+    sharedElementPrefix: Long? = null,
+    blurEffects: Boolean
 ) {
     val uiState by budgetViewModel.uiState.collectAsStateWithLifecycle()
     val editBudgetState by budgetViewModel.editBudgetState.collectAsStateWithLifecycle()
@@ -142,7 +152,8 @@ fun SharedTransitionScope.BudgetsScreen(
                     showEditSheet = false
                     editingBudgetId = null
                     budgetViewModel.clearEditState()
-                }
+                },
+                blurEffects = blurEffects
             )
         }
     }
@@ -244,13 +255,33 @@ fun SharedTransitionScope.BudgetsScreen(
             )
         },
         floatingActionButton = {
+            val fabContainerColor =  MaterialTheme.colorScheme.primaryContainer
+            val fabContentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ExtendedFloatingActionButton(
                 onClick = {
                     showTypeWizard = true
                 },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("New Budget") },
-                shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large
+                shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large,
+                modifier = Modifier
+                    .then(
+                        if (blurEffects) Modifier.clip(if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large)
+                            .hazeEffect(
+                            state = hazeState,
+                            block = fun HazeEffectScope.() {
+                                style = HazeDefaults.style(
+                                    backgroundColor = Color.Transparent,
+                                    tint = HazeDefaults.tint(fabContainerColor),
+                                    blurRadius = 20.dp,
+                                    noiseFactor = -1f,
+                                )
+                                blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                            }
+                        ) else Modifier
+                    ),
+                containerColor = fabContainerColor,
+                contentColor = fabContentColor
             )
         }
     ) { paddingValues ->

@@ -132,10 +132,10 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileContent(
+    modifier: Modifier = Modifier,
     state: ProfileScreenState,
     listState: LazyListState,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -384,10 +384,17 @@ fun FinancialOverviewCard(
 }
 
 @Composable
-fun FinancialItem(label: String, value: String, icon: ImageVector, color: Color, iconColor: Color, modifier: Modifier = Modifier) {
+fun FinancialItem(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    color: Color,
+    iconColor: Color,
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier.fillMaxWidth().background(
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = MaterialTheme.colorScheme.surface.copy(0.5f),
             shape = RoundedCornerShape(Dimensions.Radius.md)
         ).padding(4.dp),
         verticalAlignment = Alignment.CenterVertically,

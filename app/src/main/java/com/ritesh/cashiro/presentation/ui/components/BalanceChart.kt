@@ -14,6 +14,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.animation.core.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -38,6 +39,7 @@ fun BalanceChart(
     primaryCurrency: String,
     balanceHistory: List<BalancePoint>,
     modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     height: Int = 200
 ) {
     if (balanceHistory.isEmpty()) return
@@ -54,7 +56,6 @@ fun BalanceChart(
     
     val lineColor = MaterialTheme.colorScheme.primary
     val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
-    val backgroundColor = MaterialTheme.colorScheme.surfaceContainerLow
 
     val animationProgress = remember { Animatable(0f) }
     LaunchedEffect(balanceHistory) {
@@ -95,6 +96,7 @@ fun BalanceChart(
                 Text(
                     text = "Balance Trend",
                     style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -233,7 +235,7 @@ fun BalanceChart(
                             DateTimeFormatter.ofPattern("MMM d")
                         ),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     if (smoothedHistory.size > 1) {
@@ -243,7 +245,7 @@ fun BalanceChart(
                                 DateTimeFormatter.ofPattern("MMM d")
                             ),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

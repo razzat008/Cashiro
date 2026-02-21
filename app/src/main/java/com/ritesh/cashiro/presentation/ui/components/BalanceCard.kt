@@ -29,6 +29,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -45,8 +46,15 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.success_dark
 import com.ritesh.cashiro.presentation.ui.theme.expense_dark
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeInputScale
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import java.math.BigDecimal
 
+@OptIn(ExperimentalHazeApi::class)
 @Composable
 fun BalanceCard(
     modifier: Modifier = Modifier,
@@ -61,9 +69,12 @@ fun BalanceCard(
     thisYearValue: String = "",
     dateRangeLabel: String = "",
     availableCurrenciesCount: Int = 0,
-    onCurrencyClick: () -> Unit = {}
+    onCurrencyClick: () -> Unit = {},
+    blurEffects: Boolean,
+    hazeState: HazeState = remember { HazeState() }
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 
     val rotation by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
@@ -74,10 +85,27 @@ fun BalanceCard(
         CashiroCard(
             modifier = modifier
                 .fillMaxWidth()
-                .animateContentSize(),
+                .animateContentSize()
+                .clip(RoundedCornerShape(Dimensions.Radius.lg))
+                .then(
+                    if (blurEffects) Modifier.hazeEffect(
+                        state = hazeState,
+                        block = fun HazeEffectScope.() {
+                            style = HazeDefaults.style(
+                                backgroundColor = Color.Transparent,
+                                tint = HazeDefaults.tint(containerColor),
+                                blurRadius = 20.dp,
+                                noiseFactor = -1f,
+                            )
+                            blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+
+                        }
+                    ) else Modifier
+                ),
             shape = RoundedCornerShape(Spacing.lg),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+                else MaterialTheme.colorScheme.surfaceContainerLow
             ),
             onClick = { isExpanded = !isExpanded }
         ) {
@@ -98,6 +126,7 @@ fun BalanceCard(
                                 text = abbreviatedName.uppercase(),
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(start = Spacing.xs)
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -110,6 +139,7 @@ fun BalanceCard(
                                 Text(
                                     text = "${if (monthlyChangePercent >= 0) "+" else ""}$monthlyChangePercent% this month",
                                     style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.alpha(0.6f),
                                     fontWeight = FontWeight.Medium
                                 )
@@ -142,6 +172,7 @@ fun BalanceCard(
                                 Text(
                                     text = abbreviatedName.uppercase(),
                                     style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.ExtraBold,
                                 )
                                 Row(
@@ -151,18 +182,21 @@ fun BalanceCard(
                                     Text(
                                         text = userName,
                                         style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.alpha(0.4f),
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
                                         text = "•",
                                         style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.alpha(0.4f),
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
                                         text = "Net worth",
                                         style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         modifier = Modifier.alpha(0.4f),
                                         fontWeight = FontWeight.Medium
                                     )
@@ -176,6 +210,7 @@ fun BalanceCard(
                                 Text(
                                     text = CurrencyFormatter.formatCurrency(totalBalance, currency),
                                     style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     lineHeight = 24.sp,
                                     fontWeight = FontWeight.Bold,
                                 )
@@ -227,6 +262,7 @@ fun BalanceCard(
                             BalanceChart(
                                 primaryCurrency = currency,
                                 balanceHistory = balanceHistory,
+                                backgroundColor = if (blurEffects) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerLow,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(180.dp),
@@ -235,6 +271,7 @@ fun BalanceCard(
                             Text(
                                 text = dateRangeLabel,
                                 style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.align(Alignment.CenterHorizontally).alpha(0.4f)
                             )
@@ -290,6 +327,7 @@ private fun SummaryItem(label: String, value: String) {
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
         )
         Text(

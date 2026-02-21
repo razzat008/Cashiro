@@ -84,8 +84,8 @@ import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CategoryIcon
 import com.ritesh.cashiro.presentation.ui.components.CollapsibleFilterRow
-import com.ritesh.cashiro.presentation.ui.components.CustomDateRangePickerDialog
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
+import com.ritesh.cashiro.presentation.ui.components.DateRangePickerDialog
 import com.ritesh.cashiro.presentation.ui.components.ExpandableList
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
@@ -115,7 +115,7 @@ fun SharedTransitionScope.AnalyticsScreen(
     analyticsViewModel: AnalyticsViewModel = hiltViewModel(),
     onNavigateToTransactions: (category: String?, merchant: String?, period: String?, currency: String?) -> Unit = { _, _, _, _ -> },
     animatedContentScope: AnimatedContentScope? = null,
-    hazeState: HazeState = remember { HazeState() }
+    blurEffects: Boolean
 ) {
     val uiState by analyticsViewModel.uiState.collectAsStateWithLifecycle()
     val selectedPeriod by analyticsViewModel.selectedPeriod.collectAsStateWithLifecycle()
@@ -145,6 +145,7 @@ fun SharedTransitionScope.AnalyticsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val lazyListState = rememberLazyListState()
+    val hazeState = remember { HazeState() }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -661,14 +662,16 @@ fun SharedTransitionScope.AnalyticsScreen(
         }
 
         if (showDateRangePicker) {
-            CustomDateRangePickerDialog(
+            DateRangePickerDialog(
                 onDismiss = { showDateRangePicker = false },
                 onConfirm = { startDate, endDate ->
                     analyticsViewModel.setCustomDateRange(startDate, endDate)
                     showDateRangePicker = false
                 },
                 initialStartDate = customDateRange?.first,
-                initialEndDate = customDateRange?.second
+                initialEndDate = customDateRange?.second,
+                blurEffects = blurEffects,
+                hazeState = hazeState
             )
         }
     }

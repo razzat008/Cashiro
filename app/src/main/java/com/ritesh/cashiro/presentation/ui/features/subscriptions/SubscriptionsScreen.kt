@@ -5,8 +5,10 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -31,12 +34,15 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Subscriptions
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -63,6 +69,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
@@ -79,6 +88,7 @@ import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CashiroCard
+import com.ritesh.cashiro.presentation.ui.components.DeleteSubscriptionDialog
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -87,7 +97,11 @@ import com.ritesh.cashiro.presentation.ui.theme.expense_dark
 import com.ritesh.cashiro.presentation.ui.theme.expense_light
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import com.ritesh.cashiro.utils.formatAmount
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeDefaults.tint
+import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -165,7 +179,22 @@ fun SubscriptionsScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         val selectedSubscription = uiState.selectedSubscription
+        var subscriptionToDelete by remember { mutableStateOf<SubscriptionEntity?>(null) }
         
+        if (subscriptionToDelete != null) {
+            DeleteSubscriptionDialog(
+                subscriptionName = subscriptionToDelete!!.merchantName,
+                onDismiss = { subscriptionToDelete = null },
+                onDelete = {
+                    subscriptionToDelete?.let {
+                        subscriptionsViewModel.hideSubscription(it.id)
+                    }
+                    subscriptionToDelete = null
+                },
+                hazeState = hazeState
+            )
+        }
+
         if (selectedSubscription != null) {
             PaymentStatusBottomSheet(
                 subscription = selectedSubscription,
@@ -215,7 +244,7 @@ fun SubscriptionsScreen(
                         subscription = subscription,
                         categoryEntity = categoryEntity,
                         subcategoryEntity = subcategoryEntity,
-                        onHide = { subscriptionsViewModel.hideSubscription(subscription.id) },
+                        onDelete = { subscriptionToDelete = subscription },
                         onClick = { subscriptionsViewModel.selectSubscription(subscription) }
                     )
                 }
@@ -253,13 +282,12 @@ private fun TotalSubscriptionsSummary(
     activeCount: Int,
     currency: String
 ) {
-    val expenseColor = if (!isSystemInDarkTheme()) expense_light else expense_dark
-    
     CashiroCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        shape = MaterialTheme.shapes.extraLarge
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -274,56 +302,98 @@ private fun TotalSubscriptionsSummary(
                         text = "Total Subscriptions",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "$activeCount active",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
-                
-                Icon(
-                    imageVector = Icons.Default.Subscriptions,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f),
-                    modifier = Modifier.size(24.dp)
-                )
+                Box(
+                    modifier =
+                        Modifier.padding(end = Spacing.xs)
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = MaterialTheme.colorScheme.tertiaryContainer.copy(0.5f),
+                                shape = CircleShape
+                            ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Subscriptions,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
-            
             Spacer(modifier = Modifier.height(Spacing.md))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.xl)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(0.7f),
+                            shape = MaterialTheme.shapes.large
+                        )
+                        .padding(Spacing.sm),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
                         text = "MONTHLY",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(Spacing.sm))
                     Text(
                         text = CurrencyFormatter.formatCurrency(monthlyAmount, currency),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = expenseColor
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-                
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(0.7f),
+                            shape = MaterialTheme.shapes.large
+                        )
+                        .padding(Spacing.sm),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
                         text = "YEARLY",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
-                        letterSpacing = 1.sp
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(Spacing.sm))
+
                     Text(
                         text = CurrencyFormatter.formatCurrency(yearlyAmount, currency),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = expenseColor
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -337,7 +407,7 @@ private fun SwipeableSubscriptionItem(
     subscription: SubscriptionEntity,
     categoryEntity: CategoryEntity? = null,
     subcategoryEntity: SubcategoryEntity? = null,
-    onHide: () -> Unit,
+    onDelete: () -> Unit,
     onClick: () -> Unit
 ) {
     var showSmsBody by remember { mutableStateOf(false) }
@@ -348,7 +418,8 @@ private fun SwipeableSubscriptionItem(
     // Handle dismissal event when the state changes to EndToStart
     LaunchedEffect(dismissState.currentValue) {
         if (isInitialized && dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            onHide()
+            onDelete()
+            dismissState.reset()
         }
         isInitialized = true
     }
@@ -370,7 +441,7 @@ private fun SwipeableSubscriptionItem(
                     .fillMaxSize()
                     .background(
                         color = MaterialTheme.colorScheme.error,
-                        shape = MaterialTheme.shapes.large
+                        shape = MaterialTheme.shapes.extraLarge
                     )
                     .padding(horizontal = Dimensions.Padding.content),
                 contentAlignment = Alignment.CenterEnd
@@ -394,7 +465,11 @@ private fun SwipeableSubscriptionItem(
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
-                    shape = MaterialTheme.shapes.large
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    shape = MaterialTheme.shapes.extraLarge
                 ) {
                     Row(
                         modifier = Modifier
@@ -594,7 +669,7 @@ private fun PaymentStatusBottomSheet(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isOverdue) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
+                    containerColor = if (isOverdue) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer.copy(0.7f)
                 ),
                 shape = MaterialTheme.shapes.large
             ) {
