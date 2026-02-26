@@ -17,24 +17,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeveloperMode
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.rounded.PieChart
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -73,6 +61,19 @@ import com.ritesh.cashiro.presentation.ui.components.LoadingCircularProgress
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Box2
+import com.ritesh.cashiro.presentation.ui.icons.Clock
+import com.ritesh.cashiro.presentation.ui.icons.ExportArrow02
+import com.ritesh.cashiro.presentation.ui.icons.Fireworks7
+import com.ritesh.cashiro.presentation.ui.icons.Ghost
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.ImportArrow01
+import com.ritesh.cashiro.presentation.ui.icons.MessageProgramming
+import com.ritesh.cashiro.presentation.ui.icons.MessageQuestion
+import com.ritesh.cashiro.presentation.ui.icons.NotificationBing
+import com.ritesh.cashiro.presentation.ui.icons.SecuritySafe
+import com.ritesh.cashiro.presentation.ui.icons.Status
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.blue_dark
@@ -206,7 +207,7 @@ fun SettingsScreen(
                     },
                     trailing = {
                         Icon(
-                            Icons.Default.ChevronRight,
+                            Icons.Rounded.ChevronRight,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -243,7 +244,7 @@ fun SettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.Palette,
+                                Icons.Rounded.Palette,
                                 contentDescription = null,
                                 tint = orange_dark
                             )
@@ -251,7 +252,7 @@ fun SettingsScreen(
                     },
                     trailing = {
                         Icon(
-                            Icons.Default.ChevronRight,
+                            Icons.Rounded.ChevronRight,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -287,7 +288,7 @@ fun SettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.NotificationsActive,
+                                Iconax.NotificationBing,
                                 contentDescription = null,
                                 tint = blue_dark
                             )
@@ -295,7 +296,7 @@ fun SettingsScreen(
                     },
                     trailing = {
                         Icon(
-                            Icons.Default.ChevronRight,
+                            Icons.Rounded.ChevronRight,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -340,7 +341,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.AccountBalance,
+                                    Icons.Rounded.AccountBalance,
                                     contentDescription = null,
                                     tint = red_dark
                                 )
@@ -348,7 +349,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                Icons.Rounded.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -385,7 +386,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Rounded.PieChart,
+                                    Iconax.Status,
                                     contentDescription = null,
                                     tint = green_dark
                                 )
@@ -393,7 +394,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                Icons.Rounded.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -430,7 +431,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.Category,
+                                    Iconax.Box2,
                                     contentDescription = null,
                                     tint = purple_dark
                                 )
@@ -438,7 +439,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                Icons.Rounded.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -475,7 +476,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.AutoAwesome,
+                                    Iconax.Fireworks7,
                                     contentDescription = null,
                                     tint = orange_dark
                                 )
@@ -483,7 +484,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                Icons.Rounded.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -520,7 +521,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.PrivacyTip,
+                                    Iconax.SecuritySafe,
                                     contentDescription = null,
                                     tint = blue_dark
                                 )
@@ -528,7 +529,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                Icons.Rounded.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -567,7 +568,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.Schedule,
+                                    Iconax.Clock,
                                     contentDescription = null,
                                     tint = cyan_dark,
                                 )
@@ -575,7 +576,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                Icons.Rounded.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -642,7 +643,7 @@ fun SettingsScreen(
                         when (downloadState) {
                             DownloadState.NOT_DOWNLOADED -> {
                                 Icon(
-                                    Icons.Default.Download,
+                                    Iconax.ImportArrow01,
                                     contentDescription = "Download",
                                     tint = MaterialTheme.colorScheme.primary
                                 )
@@ -655,21 +656,21 @@ fun SettingsScreen(
                             }
                             DownloadState.PAUSED, DownloadState.FAILED -> {
                                 Icon(
-                                    Icons.Default.Refresh,
+                                    Icons.Rounded.Refresh,
                                     contentDescription = "Retry",
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                             DownloadState.COMPLETED -> {
                                 Icon(
-                                    Icons.Default.Delete,
+                                    Iconax.Bag,
                                     contentDescription = "Delete",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             DownloadState.ERROR_INSUFFICIENT_SPACE -> {
                                 Icon(
-                                    Icons.Default.Error,
+                                    Icons.Rounded.Error,
                                     contentDescription = "Error",
                                     tint = MaterialTheme.colorScheme.error
                                 )
@@ -725,7 +726,7 @@ fun SettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.DeveloperMode,
+                                Iconax.MessageProgramming,
                                 contentDescription = null,
                                 tint = grey_dark
                             )
@@ -733,7 +734,7 @@ fun SettingsScreen(
                     },
                     trailing = {
                         Icon(
-                            Icons.Default.ChevronRight,
+                            Icons.Rounded.ChevronRight,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -780,7 +781,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.AutoMirrored.Filled.Help,
+                                    Iconax.MessageQuestion,
                                     contentDescription = null,
                                     tint = pink_dark
                                 )
@@ -788,7 +789,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.Default.ChevronRight,
+                                Icons.Rounded.ChevronRight,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -822,7 +823,7 @@ fun SettingsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.BugReport,
+                                    Iconax.Ghost,
                                     contentDescription = null,
                                     tint = blue_dark
                                 )
@@ -830,7 +831,7 @@ fun SettingsScreen(
                         },
                         trailing = {
                             Icon(
-                                Icons.AutoMirrored.Filled.OpenInNew,
+                                Iconax.ExportArrow02,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )

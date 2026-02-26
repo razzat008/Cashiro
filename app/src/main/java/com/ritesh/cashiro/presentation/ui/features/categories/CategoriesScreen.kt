@@ -27,10 +27,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.DropdownMenu
@@ -38,7 +36,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -52,6 +49,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -88,12 +86,14 @@ import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteCategoryDialog
 import com.ritesh.cashiro.presentation.ui.components.SearchBarBox
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeEffectScope
-import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -146,6 +146,8 @@ fun CategoriesScreen(
     var selectedFilter by remember { mutableStateOf("All") }
     val labels = listOf("Search Fruits", "Search Shopping", "Search Fitness", "Search Sports")
     var currentLabelIndex by remember { mutableIntStateOf(0) }
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -200,7 +202,7 @@ fun CategoriesScreen(
             ExtendedFloatingActionButton(
                 onClick = { categoriesViewModel.showAddDialog() },
                 expanded = showFloatingLabel,
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add Category") },
+                icon = { Icon(Icons.Rounded.Add, contentDescription = "Add Category") },
                 text = { Text(text = "Add Category") },
                 shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large,
                 modifier = Modifier
@@ -300,7 +302,7 @@ fun CategoriesScreen(
                                 categoriesViewModel.updateSearchQuery("")
                             }) {
                                 Icon(
-                                    Icons.Default.Close,
+                                    Iconax.CloseCircle,
                                     contentDescription = "Clear search"
                                 )
                             }
@@ -435,6 +437,7 @@ fun CategoriesScreen(
     // Add/Edit Category Bottom Sheet
     if (showAddEditDialog) {
         ModalBottomSheet(
+            sheetState = sheetState,
             onDismissRequest = { categoriesViewModel.hideDialog() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -448,6 +451,9 @@ fun CategoriesScreen(
                 },
                 onReset = if (editingCategory?.isSystem == true) {
                     { categoryId -> categoriesViewModel.resetCategory(categoryId) }
+                } else null,
+                onDelete = if (editingCategory != null && !editingCategory!!.isSystem) {
+                    { categoriesViewModel.deleteCategory(editingCategory!!) }
                 } else null
             )
         }
@@ -459,6 +465,7 @@ fun CategoriesScreen(
             editingSubcategory?.categoryId?.let { catId -> categories.find { it.id == catId } }
 
         ModalBottomSheet(
+            sheetState = sheetState,
             onDismissRequest = { categoriesViewModel.hideSubcategoryDialog() },
             dragHandle = { BottomSheetDefaults.DragHandle() },
             containerColor = MaterialTheme.colorScheme.surface,
@@ -567,7 +574,7 @@ private fun SwipeableCategoryItem(
             ) {
                 if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = Iconax.Bag,
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.onError
                     )
@@ -612,9 +619,8 @@ fun NavigationContent(onNavigateBack: () -> Unit) {
             shapes =  IconButtonDefaults.shapes()
         ) {
             Icon(
-                    imageVector = Icons.Rounded.ArrowBackIosNew,
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                     contentDescription = "Back Button",
-                    modifier = Modifier.size(18.dp)
             )
         }
     }

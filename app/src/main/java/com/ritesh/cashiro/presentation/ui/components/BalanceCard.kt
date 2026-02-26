@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.LongArrow
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.success_dark
@@ -131,7 +135,7 @@ fun BalanceCard(
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
-                                    imageVector = if (monthlyChange >= BigDecimal.ZERO) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                    imageVector = if (monthlyChange >= BigDecimal.ZERO) Icons.Rounded.ArrowDropUp else Icons.Rounded.ArrowDropDown,
                                     contentDescription = null,
                                     tint = if (monthlyChange >= BigDecimal.ZERO) success_dark else expense_dark,
                                     modifier = Modifier.size(20.dp)
@@ -309,13 +313,14 @@ fun BalanceCard(
         }
         // Collapse/Expand Icon
         Icon(
-            imageVector = Icons.Default.KeyboardArrowDown,
+            imageVector = Iconax.LongArrow,
             contentDescription = if (isExpanded) "Collapse" else "Expand",
             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 8.dp)
-                .size(24.dp)
+                .padding(bottom = 4.dp)
+                .height(28.dp)
+                .width(40.dp)
                 .rotate(rotation)
         )
     }

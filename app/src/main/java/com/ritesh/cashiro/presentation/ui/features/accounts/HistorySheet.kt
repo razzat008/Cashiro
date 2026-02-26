@@ -1,15 +1,53 @@
 package com.ritesh.cashiro.presentation.ui.features.accounts
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
@@ -19,6 +57,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Card
+import com.ritesh.cashiro.presentation.ui.icons.Clock
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Information
+import com.ritesh.cashiro.presentation.ui.icons.Messages
+import com.ritesh.cashiro.presentation.ui.icons.Path
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -79,7 +125,7 @@ fun HistorySheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.Info,
+                    Iconax.Information,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
@@ -237,7 +283,7 @@ private fun HistoryRecordItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.Schedule,
+                        Iconax.Clock,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -260,7 +306,7 @@ private fun HistoryRecordItem(
                             modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
-                                Icons.Default.Edit,
+                                Iconax.Edit2,
                                 contentDescription = "Edit",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
@@ -271,7 +317,7 @@ private fun HistoryRecordItem(
                             modifier = Modifier.size(32.dp)
                         ) {
                             Icon(
-                                Icons.Default.Delete,
+                                Iconax.Bag,
                                 contentDescription = "Delete",
                                 tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(18.dp)
@@ -343,11 +389,11 @@ private fun HistoryRecordItem(
 
                     // Source Badge
                     val (sourceIcon, sourceText, sourceColor) = when (balance.sourceType) {
-                        "TRANSACTION" -> Triple(Icons.Default.SwapHoriz, "Transaction", MaterialTheme.colorScheme.tertiary)
-                        "SMS_BALANCE" -> Triple(Icons.AutoMirrored.Filled.Message, "SMS", MaterialTheme.colorScheme.secondary)
-                        "CARD_LINK" -> Triple(Icons.Default.CreditCard, "Card Link", MaterialTheme.colorScheme.primary)
-                        "MANUAL" -> Triple(Icons.Default.Edit, "Manual", MaterialTheme.colorScheme.onSurfaceVariant)
-                        else -> Triple(Icons.Default.Info, "System", MaterialTheme.colorScheme.onSurfaceVariant)
+                        "TRANSACTION" -> Triple(Icons.Rounded.SwapHoriz, "Transaction", MaterialTheme.colorScheme.tertiary)
+                        "SMS_BALANCE" -> Triple(Iconax.Messages, "SMS", MaterialTheme.colorScheme.secondary)
+                        "CARD_LINK" -> Triple(Iconax.Card, "Card Link", MaterialTheme.colorScheme.primary)
+                        "MANUAL" -> Triple(Iconax.Edit2, "Manual", MaterialTheme.colorScheme.onSurfaceVariant)
+                        else -> Triple(Iconax.Information, "System", MaterialTheme.colorScheme.onSurfaceVariant)
                     }
 
                     Surface(
@@ -401,7 +447,7 @@ private fun HistoryRecordItem(
                                 fontWeight = FontWeight.Medium
                             )
                             Icon(
-                                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                imageVector = if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -422,7 +468,7 @@ private fun HistoryRecordItem(
                                     .size(24.dp)
                             ) {
                                 Icon(
-                                    Icons.Default.ContentCopy,
+                                    Icons.Rounded.ContentCopy,
                                     contentDescription = "Copy",
                                     modifier = Modifier.size(14.dp),
                                     tint = MaterialTheme.colorScheme.primary

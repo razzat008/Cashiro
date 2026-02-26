@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.ritesh.cashiro.data.repository.BudgetWithSpending
+import com.ritesh.cashiro.presentation.ui.icons.History
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -163,7 +165,7 @@ fun SharedTransitionScope.BudgetCard(
                     modifier = Modifier.size(22.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.History,
+                        imageVector = Iconax.History,
                         contentDescription = "More options",
                         modifier = Modifier.size(14.dp)
                     )

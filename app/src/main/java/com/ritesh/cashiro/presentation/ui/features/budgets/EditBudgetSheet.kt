@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,29 +23,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.DriveFileRenameOutline
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Api
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.PieChart
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import com.ritesh.cashiro.presentation.ui.components.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -90,8 +87,14 @@ import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.BudgetAnimatedGradientMeshCard
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
+import com.ritesh.cashiro.presentation.ui.components.DatePicker
 import com.ritesh.cashiro.presentation.ui.components.DeleteBudgetDialog
 import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.History
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Wallet3
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import dev.chrisbanes.haze.HazeState
@@ -367,7 +370,7 @@ fun EditBudgetSheet(
                 startDate = budgetState.startDate,
                 endDate = budgetState.endDate,
                 currency = budgetState.currency,
-                categoryLimitsCount = budgetState.categoryLimits.size,
+                budgetType = budgetState.budgetType,
                 color = Color(budgetState.color.toColorInt())
             )
 
@@ -579,7 +582,7 @@ fun EditBudgetSheet(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.AccountBalance, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Accounts", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
@@ -589,7 +592,7 @@ fun EditBudgetSheet(
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
-                    Icon(Icons.Default.ChevronRight, contentDescription = null)
+                    Icon(Icons.Rounded.ChevronRight, contentDescription = null)
                 }
             }
             
@@ -613,7 +616,7 @@ fun EditBudgetSheet(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Rounded.PieChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(Iconax.Wallet3, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text("Amount", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
@@ -664,7 +667,7 @@ fun EditBudgetSheet(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 ),
-                leadingIcon = { Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null) }
+                leadingIcon = { Icon(Iconax.Edit2, contentDescription = null) }
             )
             
             // Category Limits Section
@@ -691,7 +694,7 @@ fun EditBudgetSheet(
                             onClick = { showCategorySheet = true }
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = Icons.Rounded.Add,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -784,7 +787,7 @@ fun EditBudgetSheet(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Delete,
+                            imageVector = Iconax.Bag,
                             contentDescription = "Delete budget"
                         )
                     }
@@ -866,7 +869,7 @@ private fun CategoryLimitItem(
         
         IconButton(onClick = onRemove) {
             Icon(
-                imageVector = Icons.Outlined.Delete,
+                imageVector = Iconax.Bag,
                 contentDescription = "Remove limit",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -875,6 +878,7 @@ private fun CategoryLimitItem(
 }
 
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun BudgetPreviewCard(
     name: String,
@@ -882,72 +886,154 @@ private fun BudgetPreviewCard(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     currency: String,
-    categoryLimitsCount: Int,
+    budgetType: BudgetType,
     color: Color
 ) {
+    val isSavings = budgetType == BudgetType.SAVINGS
+    val daysRemaining = java.time.Duration.between(LocalDateTime.now(), endDate).toDays().coerceAtLeast(0)
+    val dailyBudget = if (daysRemaining > 0) amount.divide(BigDecimal.valueOf(daysRemaining.coerceAtLeast(1)), 2, java.math.RoundingMode.HALF_UP) else BigDecimal.ZERO
+
     BudgetAnimatedGradientMeshCard(
         budgetColor = color
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(color.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
+                // Status Icon
+                Icon(
+                    imageVector = Icons.Rounded.Api,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(16.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Budget Name
+                Text(
+                    text = name.uppercase(),
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // History Icon Placeholder
+                IconButton(
+                    onClick = { },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(0.2f),
+                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    ),
+                    shapes = IconButtonDefaults.shapes(),
+                    modifier = Modifier.size(22.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.PieChart,
+                        imageVector = Iconax.History,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = color
-                    )
-                }
-                
-                Column {
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "${startDate.format(DateTimeFormatter.ofPattern("MMM d"))} - ${endDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            Text(
-                text = CurrencyFormatter.formatCurrency(amount, currency),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.ExtraBold
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Progress bar placeholder
+
+            Spacer(modifier = Modifier.height(Spacing.sm))
+
+            // Main Content Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = if (isSavings) "DAILY GOAL REMAINING" else "DAILY BUDGET LEFT",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            letterSpacing = 0.5.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+
+                    Text(
+                        text = CurrencyFormatter.formatCurrency(dailyBudget, currency),
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = if (isSavings) "SAVED / GOAL" else "SPEND / LIMIT",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            letterSpacing = 0.5.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = CurrencyFormatter.formatCurrency(BigDecimal.ZERO, currency).replace(".00", ""),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Text(
+                            text = " / ",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+
+                        Text(
+                            text = CurrencyFormatter.formatCurrency(amount, currency).replace(".00", ""),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Progress Bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(CircleShape)
-                    .background(color.copy(alpha = 0.2f))
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0f)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(color)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "$daysRemaining Days remaining",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
     }
@@ -992,7 +1078,7 @@ private fun AccountMultiSelectionSheet(
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.AccountBalance, contentDescription = null)
+                            Icon(Icons.Rounded.AccountBalance, contentDescription = null)
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 "All Accounts",

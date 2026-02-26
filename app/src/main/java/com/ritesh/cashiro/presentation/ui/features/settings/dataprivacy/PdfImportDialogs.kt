@@ -21,6 +21,9 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -38,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
+import com.ritesh.cashiro.presentation.ui.icons.HierarchySquare3
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.ReceiptItem
 import com.ritesh.cashiro.presentation.ui.theme.LocalBlurEffects
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.ExperimentalHazeApi
@@ -92,7 +98,7 @@ fun PdfProcessingDialog(
             ) {
                 if (error != null) {
                     Icon(
-                        Icons.Default.Error,
+                        Icons.Rounded.Error,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(40.dp)
@@ -360,7 +366,7 @@ private fun PdfStatsSummary(result: PdfAnalysisResult) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ReceiptLong,
+                        Iconax.ReceiptItem,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
@@ -466,7 +472,7 @@ private fun PdfAccountDecisionCard(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
                 Icon(
-                    Icons.Default.AccountBalance,
+                    Icons.Rounded.AccountBalance,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurface
@@ -501,7 +507,7 @@ private fun PdfAccountDecisionCard(
                     selected = currentDecision == AccountImportDecision.MERGE_WITH_EXISTING,
                     label = "Merge with ${match.existingAccount?.bankName}",
                     description = "Link transactions to existing account",
-                    icon = Icons.AutoMirrored.Filled.MergeType,
+                    icon = Iconax.HierarchySquare3,
                     cardColor = subCardColor,
                     cardTextColor =  subCardTextColor,
                     onClick = { onDecisionChanged(AccountImportDecision.MERGE_WITH_EXISTING) }
@@ -510,7 +516,7 @@ private fun PdfAccountDecisionCard(
                     selected = currentDecision == AccountImportDecision.CREATE_NEW,
                     label = "Create new bank \"${match.bankNameInPdf}\"",
                     description = "Add as a separate account",
-                    icon = Icons.Default.Add,
+                    icon = Icons.Rounded.Add,
                     cardColor = subCardColor,
                     cardTextColor =  subCardTextColor,
                     onClick = { onDecisionChanged(AccountImportDecision.CREATE_NEW) }
@@ -527,7 +533,7 @@ private fun PdfAccountDecisionCard(
                         horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
                         Icon(
-                            Icons.Default.Add,
+                            Icons.Rounded.Add,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.tertiary

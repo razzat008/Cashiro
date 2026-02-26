@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
@@ -54,6 +55,10 @@ import com.ritesh.cashiro.presentation.ui.components.CashiroCard
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Information
+import com.ritesh.cashiro.presentation.ui.icons.Send
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
@@ -113,7 +118,7 @@ fun UnrecognizedSmsScreen(
                     horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
                     Icon(
-                        Icons.Default.Info,
+                        Iconax.Information,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -190,7 +195,7 @@ fun UnrecognizedSmsScreen(
                     verticalArrangement = Arrangement.spacedBy(Spacing.md)
                 ) {
                     Icon(
-                        Icons.Default.CheckCircle,
+                        Icons.Rounded.CheckCircle,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -339,7 +344,7 @@ private fun UnrecognizedSmsItem(
                         onClick = onDelete
                     ) {
                         Icon(
-                            Icons.Default.Delete,
+                            Iconax.Bag,
                             contentDescription = "Delete",
                             modifier = Modifier.size(18.dp)
                         )
@@ -357,7 +362,7 @@ private fun UnrecognizedSmsItem(
                         )
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.Send,
+                            Iconax.Send,
                             contentDescription = "Report",
                             modifier = Modifier.size(18.dp)
                         )
@@ -372,7 +377,7 @@ private fun UnrecognizedSmsItem(
                         )
                     ) {
                         Icon(
-                            Icons.Default.Delete,
+                            Iconax.Bag,
                             contentDescription = "Delete",
                             modifier = Modifier.size(18.dp)
                         )

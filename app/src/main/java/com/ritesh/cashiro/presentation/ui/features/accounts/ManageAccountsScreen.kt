@@ -4,24 +4,64 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.LinkOff
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.LinkOff
 import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.*
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -31,31 +71,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.data.database.entity.CardEntity
 import com.ritesh.cashiro.data.database.entity.CardType
-import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
-import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
-import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.ui.components.AccountCard
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.AccountCard
+import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteAccountDialog
+import com.ritesh.cashiro.presentation.ui.components.SectionHeader
+import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.EyeSlash
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import com.ritesh.cashiro.presentation.ui.theme.LocalBlurEffects
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeEffectScope
-import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import java.math.BigDecimal
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class,
     ExperimentalHazeApi::class
@@ -92,8 +136,20 @@ fun ManageAccountsScreen(
     val scrollBehaviorSmall = TopAppBarDefaults.pinnedScrollBehavior()
     val hazeState = remember { HazeState() }
     val lazyListState = rememberLazyListState()
-
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Merge Flow States
+    var showMergeSelection by remember { mutableStateOf(false) }
+    var showMergeBalanceOption by remember { mutableStateOf(false) }
+    var showMergeConfirmation by remember { mutableStateOf(false) }
+    var showMergeManualInput by remember { mutableStateOf(false) }
+    var accountForMerge by remember { mutableStateOf<AccountBalanceEntity?>(null) }
+
+    var selectedMergeAccounts by remember {
+        mutableStateOf<List<AccountBalanceEntity>>(emptyList())
+    }
+    var mergeNewBalance by remember { mutableStateOf<BigDecimal?>(null) }
+    var selectedCardForLink by remember { mutableStateOf<CardEntity?>(null) }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemIndex }.collect { firstVisibleItem ->
@@ -138,7 +194,7 @@ fun ManageAccountsScreen(
             ExtendedFloatingActionButton(
                 onClick = { showAddSheet = true },
                 expanded = showFloatingLabel,
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add Account") },
+                icon = { Icon(Icons.Rounded.Add, contentDescription = "Add Account") },
                 text = { Text(text = "Add Account") },
                 shape = if (showFloatingLabel) MaterialTheme.shapes.extraLargeIncreased else MaterialTheme.shapes.large,
                 modifier = Modifier
@@ -191,7 +247,7 @@ fun ManageAccountsScreen(
                         verticalArrangement = Arrangement.spacedBy(Spacing.md)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.AccountBalance,
+                            imageVector = Icons.Rounded.AccountBalance,
                             contentDescription = null,
                             modifier = Modifier.size(64.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -305,6 +361,10 @@ fun ManageAccountsScreen(
                                 },
                                 onAccountClick = {
                                     onNavigateToAccountDetail(account.bankName, account.accountLast4)
+                                },
+                                onMergeAccount = {
+                                    accountForMerge = account
+                                    showMergeSelection = true
                                 }
                             )
                         }
@@ -366,6 +426,10 @@ fun ManageAccountsScreen(
                                 },
                                 onAccountClick = {
                                     onNavigateToAccountDetail(account.bankName, account.accountLast4)
+                                },
+                                onMergeAccount = {
+                                    accountForMerge = account
+                                    showMergeSelection = true
                                 }
                             )
                         }
@@ -384,11 +448,8 @@ fun ManageAccountsScreen(
                             OrphanedCardItem(
                                 card = card,
                                 accounts = allRegularAccounts,
-                                onLinkToAccount = { accountLast4 ->
-                                    manageAccountsViewModel.linkCardToAccount(
-                                        card.id,
-                                        accountLast4
-                                    )
+                                onLinkToAccount = {
+                                    selectedCardForLink = card
                                 },
                                 onDeleteCard = { cardId ->
                                     manageAccountsViewModel.deleteCard(cardId)
@@ -446,6 +507,10 @@ fun ManageAccountsScreen(
                                 },
                                 onAccountClick = {
                                     onNavigateToAccountDetail(card.bankName, card.accountLast4)
+                                },
+                                onMergeAccount = {
+                                    accountForMerge = card
+                                    showMergeSelection = true
                                 }
                             )
                         }
@@ -480,7 +545,7 @@ fun ManageAccountsScreen(
                                         horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                                     ) {
                                         Icon(
-                                            Icons.Default.VisibilityOff,
+                                            Iconax.EyeSlash,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -493,9 +558,9 @@ fun ManageAccountsScreen(
                                     }
                                     Icon(
                                         if (showHiddenAccounts)
-                                            Icons.Default.ExpandLess
+                                            Icons.Rounded.ExpandLess
                                         else
-                                            Icons.Default.ExpandMore,
+                                            Icons.Rounded.ExpandMore,
                                         contentDescription = if (showHiddenAccounts) "Collapse" else "Expand",
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -552,6 +617,10 @@ fun ManageAccountsScreen(
                                     },
                                     onAccountClick = {
                                         onNavigateToAccountDetail(account.bankName, account.accountLast4)
+                                    },
+                                    onMergeAccount = {
+                                        accountForMerge = account
+                                        showMergeSelection = true
                                     }
                                 )
                             }
@@ -596,6 +665,10 @@ fun ManageAccountsScreen(
                                     },
                                     onAccountClick = {
                                         onNavigateToAccountDetail(card.bankName, card.accountLast4)
+                                    },
+                                    onMergeAccount = {
+                                        accountForMerge = card
+                                        showMergeSelection = true
                                     }
                                 )
                             }
@@ -730,6 +803,7 @@ fun ManageAccountsScreen(
     // Edit Account Sheet
     if (showEditSheet && accountToEdit != null) {
         ModalBottomSheet(
+            sheetState = sheetState,
             onDismissRequest = {
                 showEditSheet = false
                 accountToEdit = null
@@ -743,13 +817,6 @@ fun ManageAccountsScreen(
                 onDismiss = {
                     showEditSheet = false
                     accountToEdit = null
-                },
-                onMerge = { targetAccount, sourceAccounts, newBalance ->
-                    manageAccountsViewModel.mergeAccounts(
-                        targetAccount,
-                        sourceAccounts,
-                        newBalance
-                    )
                 },
                 onDelete = {
                     accountToDelete = accountToEdit
@@ -780,6 +847,7 @@ fun ManageAccountsScreen(
     // Add Account Sheet
     if (showAddSheet) {
         ModalBottomSheet(
+            sheetState = sheetState,
             onDismissRequest = { showAddSheet = false },
             containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -804,6 +872,125 @@ fun ManageAccountsScreen(
             )
         }
     }
+
+    // Merge Account Dialogs
+    if (showMergeSelection && accountForMerge != null) {
+        MergeAccountSelectionDialog(
+            currentAccount = accountForMerge!!,
+            allAccounts = uiState.accounts,
+            onDismiss = {
+                showMergeSelection = false
+                accountForMerge = null
+                selectedMergeAccounts = emptyList()
+            },
+            onNext = { accounts ->
+                selectedMergeAccounts = accounts
+                showMergeSelection = false
+                showMergeBalanceOption = true
+            }
+        )
+    }
+
+    if (showMergeBalanceOption && accountForMerge != null && selectedMergeAccounts.isNotEmpty()) {
+        MergeBalanceOptionDialog(
+            currentAccount = accountForMerge!!,
+            selectedAccounts = selectedMergeAccounts,
+            onDismiss = {
+                showMergeBalanceOption = false
+                accountForMerge = null
+                selectedMergeAccounts = emptyList()
+            },
+            onOptionSelected = { option ->
+                when (option) {
+                    BalanceMergeOption.SUM -> {
+                        val sumBalance = selectedMergeAccounts.sumOf { it.balance } + accountForMerge!!.balance
+                        mergeNewBalance = sumBalance
+                        showMergeBalanceOption = false
+                        showMergeConfirmation = true
+                    }
+                    BalanceMergeOption.MANUAL -> {
+                        showMergeBalanceOption = false
+                        showMergeManualInput = true
+                    }
+                    BalanceMergeOption.NONE -> {
+                        mergeNewBalance = accountForMerge!!.balance
+                        showMergeBalanceOption = false
+                        showMergeConfirmation = true
+                    }
+                }
+            }
+        )
+    }
+
+    if (showMergeManualInput && accountForMerge != null && selectedMergeAccounts.isNotEmpty()) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showMergeManualInput = false
+                accountForMerge = null
+                selectedMergeAccounts = emptyList()
+            },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
+            NumberPad(
+                initialValue = accountForMerge!!.balance.toPlainString(),
+                title = "Enter Merged Balance",
+                bankName = accountForMerge!!.bankName,
+                accountLast4 = accountForMerge!!.accountLast4,
+                doneButtonLabel = "Confirm Balance",
+                onDone = { newValue ->
+                    newValue.toBigDecimalOrNull()?.let { newBalance ->
+                        mergeNewBalance = newBalance
+                        showMergeManualInput = false
+                        showMergeConfirmation = true
+                    }
+                }
+            )
+        }
+    }
+
+    if (showMergeConfirmation && accountForMerge != null && selectedMergeAccounts.isNotEmpty() && mergeNewBalance != null) {
+        MergeConfirmationDialog(
+            onDismiss = {
+                showMergeConfirmation = false
+                accountForMerge = null
+                selectedMergeAccounts = emptyList()
+                mergeNewBalance = null
+            },
+            onConfirm = {
+                manageAccountsViewModel.mergeAccounts(
+                    targetAccount = accountForMerge!!,
+                    sourceAccounts = selectedMergeAccounts,
+                    newBalance = mergeNewBalance!!
+                )
+                showMergeConfirmation = false
+                accountForMerge = null
+                selectedMergeAccounts = emptyList()
+                mergeNewBalance = null
+            },
+            hazeState = hazeState,
+            blurEffects = blurEffects
+        )
+    }
+
+    if (selectedCardForLink != null) {
+        val card = selectedCardForLink!!
+        val matchingAccounts = uiState.accounts.filter { it.bankName == card.bankName }
+        LinkCardDialog(
+            card = card,
+            accounts = matchingAccounts,
+            onDismiss = { selectedCardForLink = null },
+            onConfirm = { accountLast4 ->
+                scope.launch {
+                    manageAccountsViewModel.linkCardToAccount(card.id, accountLast4)
+                    selectedCardForLink = null
+                }
+            },
+            hazeState = hazeState,
+            blurEffects = blurEffects
+        )
+    }
 }
 
 
@@ -819,7 +1006,8 @@ private fun CreditCardItem(
     isMain: Boolean = false,
     onSetAsMain: () -> Unit = {},
     onEditAccount: () -> Unit = {},
-    onAccountClick: () -> Unit = {}
+    onAccountClick: () -> Unit = {},
+    onMergeAccount: () -> Unit = {}
 ) {
     val available = (card.creditLimit ?: BigDecimal.ZERO) - card.balance
     val utilization =
@@ -846,7 +1034,8 @@ private fun CreditCardItem(
         onDeleteAccount = onDeleteAccount,
         isMain = isMain,
         onSetAsMain = onSetAsMain,
-        onClick = onAccountClick
+        onClick = onAccountClick,
+        onMergeAccount = onMergeAccount
     ) {
         // Credit Card
         Column(
@@ -909,7 +1098,7 @@ private fun CreditCardItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalHazeApi::class)
 @Composable
 private fun AccountItem(
     account: AccountBalanceEntity,
@@ -923,7 +1112,8 @@ private fun AccountItem(
     onUnlinkCard: (cardId: Long) -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onEditAccount: () -> Unit = {},
-    onAccountClick: () -> Unit = {}
+    onAccountClick: () -> Unit = {},
+    onMergeAccount: () -> Unit = {}
 ) {
     Column {
         AccountCard(
@@ -936,7 +1126,8 @@ private fun AccountItem(
             onDeleteAccount = onDeleteAccount,
             isMain = isMain,
             onSetAsMain = onSetAsMain,
-            onClick = onAccountClick
+            onClick = onAccountClick,
+            onMergeAccount = onMergeAccount
         ) {
 
             // Linked Cards Section
@@ -954,9 +1145,9 @@ private fun AccountItem(
                                 .fillMaxWidth()
                                 .padding(bottom = Spacing.xs),
                             color = MaterialTheme.colorScheme.surface,
-                            shape = MaterialTheme.shapes.medium,
                             tonalElevation = 2.dp,
-                            shadowElevation = 2.dp
+                            shadowElevation = 2.dp,
+                            shape = MaterialTheme.shapes.medium
                         ) {
                             Row(
                                 modifier = Modifier
@@ -1003,7 +1194,7 @@ private fun AccountItem(
                                     modifier = Modifier.size(24.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.LinkOff,
+                                        imageVector = Icons.Rounded.LinkOff,
                                         contentDescription = "Unlink card",
                                         modifier = Modifier.size(16.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1026,7 +1217,6 @@ private fun OrphanedCardItem(
     onLinkToAccount: (String) -> Unit,
     onDeleteCard: (Long) -> Unit
 ) {
-    var showLinkDialog by remember { mutableStateOf(false) }
     var expandedSource by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
 
@@ -1097,13 +1287,13 @@ private fun OrphanedCardItem(
                             text = { Text("Link to Account") },
                             leadingIcon = {
                                 Icon(
-                                    Icons.Default.Link,
+                                    Icons.Rounded.Link,
                                     contentDescription = null
                                 )
                             },
                             onClick = {
                                 showMenu = false
-                                showLinkDialog = true
+                                onLinkToAccount("")
                             },
                             modifier = Modifier
                                 .shadow(
@@ -1136,7 +1326,7 @@ private fun OrphanedCardItem(
                             },
                             leadingIcon = {
                                 Icon(
-                                    Icons.Default.Delete,
+                                    Iconax.Bag,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -1213,18 +1403,6 @@ private fun OrphanedCardItem(
             }
         }
     }
-
-    if (showLinkDialog) {
-        LinkCardDialog(
-            card = card,
-            accounts = accounts.filter { it.bankName == card.bankName },
-            onDismiss = { showLinkDialog = false },
-            onConfirm = { accountLast4 ->
-                onLinkToAccount(accountLast4)
-                showLinkDialog = false
-            }
-        )
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1233,15 +1411,28 @@ private fun LinkCardDialog(
     card: CardEntity,
     accounts: List<AccountBalanceEntity>,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String) -> Unit,
+    blurEffects: Boolean = LocalBlurEffects.current,
+    hazeState: HazeState = remember { HazeState() }
 ) {
     var selectedAccount by remember { mutableStateOf<String?>(null) }
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Icons.Rounded.Link,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
         title = {
-            Column {
-                Text("Link Card to Account")
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Link Card")
                 Text(
                     text = "${card.bankName} ••${card.cardLast4}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -1253,64 +1444,61 @@ private fun LinkCardDialog(
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 if (accounts.isEmpty()) {
                     Text(
-                        text = "No ${card.bankName} accounts found. Add an account first.",
+                        text = "No ${card.bankName} accounts found. Please add a corresponding bank account first.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 } else {
                     Text(
                         text = "Select an account to link this card to:",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = Spacing.xs)
                     )
                     accounts.forEach { account ->
+                        val isSelected = selectedAccount == account.accountLast4
                         Surface(
                             onClick = { selectedAccount = account.accountLast4 },
                             modifier = Modifier.fillMaxWidth(),
-                            color =
-                                if (selectedAccount ==
-                                    account.accountLast4
-                                ) {
-                                    MaterialTheme.colorScheme.primaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.surface
-                                },
-                            shape = MaterialTheme.shapes.small,
-                            border =
-                                BorderStroke(
-                                    1.dp,
-                                    if (selectedAccount ==
-                                        account.accountLast4
-                                    ) { MaterialTheme.colorScheme.primary
-                                    } else { MaterialTheme.colorScheme.outline
-                                    }
-                                )
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(0.3f)
+                                   else MaterialTheme.colorScheme.surface.copy(0.5f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(
+                                1.dp,
+                                if (isSelected) MaterialTheme.colorScheme.primary 
+                                else MaterialTheme.colorScheme.outlineVariant
+                            )
                         ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth().padding(Spacing.sm),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.padding(Spacing.md),
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.md),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                com.ritesh.cashiro.presentation.ui.components.BrandIcon(
+                                    merchantName = account.bankName,
+                                    accountIconResId = account.iconResId,
+                                    accountColorHex = account.color,
+                                    size = 32.dp
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = "••${account.accountLast4}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
-                                        text = CurrencyFormatter
-                                            .formatCurrency(
-                                                account.balance,
-                                                account.currency
-                                            ),
+                                        text = CurrencyFormatter.formatCurrency(
+                                            account.balance,
+                                            account.currency
+                                        ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                if (selectedAccount ==
-                                    account.accountLast4
-                                ) {
+                                if (isSelected) {
                                     Icon(
-                                        Icons.Default.CheckCircle,
+                                        Icons.Rounded.CheckCircle,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(20.dp)
@@ -1323,12 +1511,81 @@ private fun LinkCardDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { selectedAccount?.let(onConfirm) },
-                enabled = selectedAccount != null
-            ) { Text("Link") }
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
+                ) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = Dimensions.Radius.xxl,
+                            topEnd = Dimensions.Radius.xs,
+                            bottomStart = Dimensions.Radius.xxl,
+                            bottomEnd = Dimensions.Radius.xs
+                        ),
+                        modifier = Modifier
+                            .padding(start = Spacing.xl)
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    Button(
+                        onClick = { selectedAccount?.let(onConfirm) },
+                        enabled = selectedAccount != null,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = Dimensions.Radius.xs,
+                            topEnd = Dimensions.Radius.xxl,
+                            bottomStart = Dimensions.Radius.xs,
+                            bottomEnd = Dimensions.Radius.xxl
+                        ),
+                        modifier = Modifier
+                            .padding(end = Spacing.xl)
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Link",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+        else MaterialTheme.colorScheme.surfaceContainerLow,
+        dismissButton = {},
+        modifier = Modifier
+            .clip(RoundedCornerShape(Dimensions.Radius.md))
+            .then(
+                if (blurEffects) Modifier.hazeEffect(
+                    state = hazeState,
+                    block = fun HazeEffectScope.() {
+                        style = HazeDefaults.style(
+                            backgroundColor = Color.Transparent,
+                            tint = HazeDefaults.tint(containerColor),
+                            blurRadius = 20.dp,
+                            noiseFactor = -1f,
+                        )
+                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                    }
+                ) else Modifier
+            ),
+        shape = MaterialTheme.shapes.large
     )
 }
 

@@ -35,6 +35,11 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
+import com.ritesh.cashiro.presentation.ui.components.DeleteSubcategoryDialog
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
 
@@ -56,6 +61,7 @@ fun EditSubcategorySheet(
     }
 
     var showIconSelector by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     val lazyListState = rememberLazyListState()
 
@@ -74,6 +80,17 @@ fun EditSubcategorySheet(
                 }
             )
         }
+    }
+
+    if (showDeleteConfirmation && subcategory != null) {
+        DeleteSubcategoryDialog(
+            subcategoryName = subcategory.name,
+            onDismiss = { showDeleteConfirmation = false },
+            onDelete = {
+                onDelete?.invoke(subcategory.id)
+                showDeleteConfirmation = false
+            }
+        )
     }
 
     Box(
@@ -193,8 +210,7 @@ fun EditSubcategorySheet(
                 Spacer(modifier = Modifier.height(62.dp))
             }
         }
-        var checked by remember { mutableStateOf(false) }
-        // Save Button
+        // Action Buttons at Bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -207,149 +223,79 @@ fun EditSubcategorySheet(
                             MaterialTheme.colorScheme.surface
                         )
                     )
-                ),
+                )
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-
-            SplitButtonLayout(
-                leadingButton = {
-                    SplitButtonDefaults.LeadingButton(
-                        onClick = {onSave(name, iconResId, colorHex) },
-                        enabled = name.isNotBlank(),
-                        modifier = Modifier.height(52.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Delete button (only for non-system subcategories)
+                if (onDelete != null && subcategory != null && !subcategory.isSystem) {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmation = true },
+                        modifier = Modifier.height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.error,
+                                    MaterialTheme.colorScheme.error
+                                )
+                            )
+                        ),
+                        shape = MaterialTheme.shapes.extraExtraLarge
                     ) {
-                        Text(
-                            text = if (subcategory == null) "Create Subcategory" else "Update Subcategory",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(0.8f)
+                        Icon(
+                            imageVector = Iconax.Bag,
+                            contentDescription = "Delete subcategory"
                         )
                     }
-                },
-                trailingButton = {
-                    val description = "Toggle Button"
-                    // Icon-only trailing button should have a tooltip for a11y.
-                    TooltipBox(
-                        positionProvider =
-                            TooltipDefaults.rememberTooltipPositionProvider(
-                                TooltipAnchorPosition.End
-                            ),
-                        tooltip = { PlainTooltip { Text(description) } },
-                        state = rememberTooltipState(),
-                    ) {
-                        SplitButtonDefaults.TrailingButton(
-                            checked = checked,
-                            onCheckedChange = { checked = it },
-                            modifier =
-                                Modifier
-                                    .height(52.dp)
-                                    .semantics {
-                                        stateDescription = if (checked) "Expanded" else "Collapsed"
-                                        contentDescription = description
-                                    },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        ) {
-                            val rotation: Float by
-                            animateFloatAsState(
-                                targetValue = if (checked) 90f else 0f,
-                                label = "Trailing Icon Rotation",
-                            )
-                            Icon(
-                                Icons.Filled.MoreVert,
-                                modifier =
-                                    Modifier
-                                        .size(SplitButtonDefaults.TrailingIconSize)
-                                        .weight(0.2f)
-                                        .graphicsLayer {
-                                            this.rotationZ = rotation
-                                        },
-                                contentDescription = "Localized description",
-                            )
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .height(56.dp),
-            )
-            DropdownMenu(
-                expanded = checked,
-                onDismissRequest = { checked = false },
-                containerColor = Color.Transparent,
-                shadowElevation = 0.dp,
-                offset = DpOffset(100.dp, 0.dp),
-                modifier = Modifier.padding(8.dp),
-                shape = MaterialTheme.shapes.large
-            ) {
+                }
+
+                // Create/Update button
+                Button(
+                    onClick = { onSave(name, iconResId, colorHex) },
+                    enabled = name.isNotBlank(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.extraExtraLarge
+                ) {
+                    Text(
+                        text = if (subcategory == null) "Create Subcategory" else "Update Subcategory",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Reset button (only for system subcategories)
                 if (subcategory?.isSystem == true && onReset != null) {
-                    DropdownMenuItem(
-                        text = { Text("Reset") },
+                    IconButton(
                         onClick = {
-                            // Reset to default values
                             name = subcategory.defaultName ?: subcategory.name
                             colorHex = subcategory.defaultColor ?: categoryColor
                             iconResId = subcategory.defaultIconResId ?: categoryIconResId
                             onReset(subcategory.id)
                         },
-                        leadingIcon = { Icon(Icons.Outlined.RestartAlt, contentDescription = null) },
                         modifier = Modifier
-                            .shadow(
-                                elevation = 2.dp,
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            )
+                            .size(56.dp)
                             .background(
-                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            ),
-                    )
-                }
-                Spacer(modifier = Modifier.height(1.5.dp))
-                if (subcategory != null && onDelete != null) {
-                    DropdownMenuItem(
-                        text = { Text(
-                            text = "Delete Subcategory"
-                        ) },
-                        onClick = {
-                            if (!subcategory.isSystem) {
-                                onDelete(subcategory.id)
-                            }
-                        },
-                        leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
-                        enabled = !subcategory.isSystem,
-                        modifier = Modifier
-                            .shadow(
-                                elevation = 2.dp,
-                                shape = RoundedCornerShape(
-                                    topStart = 4.dp,
-                                    topEnd = 4.dp,
-                                    bottomStart = 16.dp,
-                                    bottomEnd = 16.dp
-                                )
+                                MaterialTheme.colorScheme.secondaryContainer,
+                                shape = MaterialTheme.shapes.extraExtraLarge
                             )
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                shape = RoundedCornerShape(
-                                    topStart = 4.dp,
-                                    topEnd = 4.dp,
-                                    bottomStart = 16.dp,
-                                    bottomEnd = 16.dp
-                                )
-                            ),
-                    )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.RestartAlt,
+                            contentDescription = "Reset to default",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                 }
             }
         }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,8 @@ import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
+import com.ritesh.cashiro.presentation.ui.icons.Card
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.credit_dark
@@ -215,13 +218,13 @@ fun SharedTransitionScope.TransactionItem(
                     if (subtitleOverride == null) {
                         when (finalType) {
                             TransactionType.CREDIT -> Icon(
-                                Icons.Default.CreditCard,
+                                Iconax.Card,
                                 contentDescription = "Credit Card",
                                 modifier = Modifier.size(Dimensions.Icon.small),
                                 tint = if (!isSystemInDarkTheme()) credit_light else credit_dark
                             )
                             TransactionType.TRANSFER -> Icon(
-                                Icons.Default.SwapHoriz,
+                                Icons.Rounded.SwapHoriz,
                                 contentDescription = "Transfer",
                                 modifier = Modifier.size(Dimensions.Icon.small),
                                 tint = if (!isSystemInDarkTheme()) transfer_light else transfer_dark

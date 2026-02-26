@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.rounded.AddCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -54,13 +55,13 @@ fun CategoryItem(
                     IconButton(
                         onClick = onAddSubcategory,
                         colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            contentColor = MaterialTheme.colorScheme.onSurface.copy(0.7f),
+                            containerColor = MaterialTheme.colorScheme.surface
                         ),
                         shape = MaterialTheme.shapes.largeIncreased
                     ) {
                         Icon(
-                            Icons.Default.AddCircle,
+                            Icons.Rounded.AddCircle,
                             contentDescription = "Add Subcategory",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)

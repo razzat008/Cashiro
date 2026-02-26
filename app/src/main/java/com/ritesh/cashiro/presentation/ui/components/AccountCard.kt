@@ -15,13 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Update
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -48,6 +44,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.presentation.common.icons.IconProvider
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Balance
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Eye
+import com.ritesh.cashiro.presentation.ui.icons.EyeSlash
+import com.ritesh.cashiro.presentation.ui.icons.HierarchySquare3
+import com.ritesh.cashiro.presentation.ui.icons.History
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 
@@ -66,6 +70,7 @@ fun AccountCard(
     onToggleVisibility: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     onSetAsMain: () -> Unit = {},
+    onMergeAccount: (() -> Unit)? = null,
     content: @Composable () -> Unit = {}
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -139,8 +144,9 @@ fun AccountCard(
                                     text = { Text("Update Balance") },
                                     leadingIcon = {
                                         Icon(
-                                            Icons.Default.Update,
-                                            contentDescription = null
+                                            Iconax.Balance,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
                                         )
                                     },
                                     onClick = {
@@ -173,7 +179,7 @@ fun AccountCard(
                                     text = { Text("Edit Details") },
                                     leadingIcon = {
                                         Icon(
-                                            Icons.Default.Edit,
+                                            Iconax.Edit2,
                                             contentDescription = null
                                         )
                                     },
@@ -202,13 +208,50 @@ fun AccountCard(
                                         )
                                 )
 
+                                if (onMergeAccount != null) {
+                                    Spacer(modifier = Modifier.height(1.5.dp))
+                                    DropdownMenuItem(
+                                        text = { Text("Merge Account") },
+                                        leadingIcon = {
+                                            Icon(
+                                                Iconax.HierarchySquare3,
+                                                contentDescription = null
+                                            )
+                                        },
+                                        onClick = {
+                                            showMenu = false
+                                            onMergeAccount()
+                                        },
+                                        modifier = Modifier
+                                            .shadow(
+                                                elevation = 2.dp,
+                                                shape = RoundedCornerShape(
+                                                    topStart = 4.dp,
+                                                    topEnd = 4.dp,
+                                                    bottomStart = 4.dp,
+                                                    bottomEnd = 4.dp
+                                                )
+                                            )
+                                            .background(
+                                                color = MaterialTheme.colorScheme.surfaceContainer,
+                                                shape = RoundedCornerShape(
+                                                    topStart = 4.dp,
+                                                    topEnd = 4.dp,
+                                                    bottomStart = 4.dp,
+                                                    bottomEnd = 4.dp
+                                                )
+                                            )
+                                    )
+                                }
+
                                 Spacer(modifier = Modifier.height(1.5.dp))
                                 DropdownMenuItem(
                                     text = { Text("History") },
                                     leadingIcon = {
                                         Icon(
-                                            Icons.Default.History,
-                                            contentDescription = null
+                                            Iconax.History,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
                                         )
                                     },
                                     onClick = {
@@ -247,11 +290,9 @@ fun AccountCard(
                                     leadingIcon = {
                                         Icon(
                                             if (isHidden)
-                                                Icons.Default
-                                                    .Visibility
+                                                Iconax.Eye
                                             else
-                                                Icons.Default
-                                                    .VisibilityOff,
+                                                Iconax.EyeSlash,
                                             contentDescription = null
                                         )
                                     },
@@ -285,7 +326,7 @@ fun AccountCard(
                                         text = { Text("Set as Main") },
                                         leadingIcon = {
                                             Icon(
-                                                Icons.Default.Star,
+                                                Icons.Rounded.Star,
                                                 contentDescription = null,
                                                 tint = Color(0xFFFFD700) // Gold
                                             )
@@ -325,7 +366,7 @@ fun AccountCard(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            Icons.Default.Delete,
+                                            Iconax.Bag,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onErrorContainer
                                         )
@@ -427,7 +468,7 @@ fun AccountCard(
                                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Star,
+                                                imageVector = Icons.Rounded.Star,
                                                 contentDescription = null,
                                                 tint = Color(0xFFFFD700),
                                                 modifier = Modifier.size(12.dp)

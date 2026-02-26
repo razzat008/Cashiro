@@ -22,6 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.data.database.entity.BudgetTrackType
 import com.ritesh.cashiro.data.database.entity.BudgetType
+import com.ritesh.cashiro.presentation.ui.icons.Box2
+import com.ritesh.cashiro.presentation.ui.icons.Folder2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.ReceiptItem
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 
 @Composable
@@ -55,7 +59,7 @@ fun BudgetTypeSelectionSheet(
         SelectionCard(
             title = "Expense budget",
             description = "Track your expenses and budget your spending",
-            icon = Icons.Rounded.ReceiptLong,
+            icon = Iconax.ReceiptItem,
             onClick = { onTypeSelected(BudgetType.EXPENSE) }
         )
     }
@@ -84,7 +88,7 @@ fun BudgetTrackTypeSelectionSheet(
             title = "Added only",
             description = "Only the transactions you add\nUseful for one-time budgets with custom time periods",
             example = "Example: 'Vacation' budget",
-            icon = Icons.Rounded.Folder,
+            icon = Iconax.Folder2,
             onClick = { onTrackTypeSelected(BudgetTrackType.ADDED_ONLY) }
         )
 
@@ -94,7 +98,7 @@ fun BudgetTrackTypeSelectionSheet(
             title = "All transactions",
             description = "All transactions within selected categories and filters\nUseful for long term budgets over multiple periods",
             example = "Example: 'Monthly Spending' budget",
-            icon = Icons.Rounded.Category,
+            icon = Iconax.Box2,
             onClick = { onTrackTypeSelected(BudgetTrackType.ALL_TRANSACTIONS) }
         )
     }

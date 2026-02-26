@@ -62,6 +62,8 @@ import com.ritesh.cashiro.presentation.ui.features.analytics.CategoryData
 import com.ritesh.cashiro.presentation.ui.features.analytics.CategoryPieChart
 import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesViewModel
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
@@ -202,7 +204,7 @@ fun SharedTransitionScope.BudgetDetailScreen(
                             shapes = IconButtonDefaults.shapes()
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.Edit,
+                                imageVector = Iconax.Edit2,
                                 contentDescription = "Edit Budget",
                                 modifier = Modifier.size(18.dp)
                             )

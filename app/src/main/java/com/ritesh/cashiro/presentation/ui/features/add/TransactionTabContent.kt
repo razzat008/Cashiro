@@ -3,6 +3,7 @@ package com.ritesh.cashiro.presentation.ui.features.add
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +35,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -68,8 +71,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -84,6 +89,11 @@ import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.DatePicker
 import com.ritesh.cashiro.presentation.ui.components.TimePicker
 import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
+import com.ritesh.cashiro.presentation.ui.icons.Box2
+import com.ritesh.cashiro.presentation.ui.icons.Calendar
+import com.ritesh.cashiro.presentation.ui.icons.DocumentText2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Shop
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
@@ -231,28 +241,43 @@ fun TransactionTabContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
-                        modifier = Modifier.padding(vertical = 10.dp),
+                        modifier = Modifier.padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
                         val themeColors = MaterialTheme.colorScheme
                         Icon(
-                            imageVector = Icons.Default.CalendarToday,
+                            imageVector = Iconax.Calendar,
                             contentDescription = "Date Picker",
-                            modifier = Modifier.size(16.dp),
                             tint = themeColors.onSurface
                         )
                         Spacer(Modifier.size(8.dp))
 
                         val dateLabel =
-                            uiState.date.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
-                        Text(
-                            text = dateLabel,
-                            textAlign = TextAlign.Center,
-                            fontSize = 16.sp,
-                            color = themeColors.onSurface,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                            uiState.date.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                        val yearLabel =
+                            uiState.date.format(DateTimeFormatter.ofPattern("yyyy"))
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = yearLabel,
+                                fontSize = 10.sp,
+                                textAlign = TextAlign.Start,
+                                color = themeColors.primary,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Text(
+                                text = dateLabel,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Start,
+                                color = themeColors.onSurface,
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.basicMarquee()
+                            )
+                        }
                     }
                 }
 
@@ -395,7 +420,7 @@ fun TransactionTabContent(
                                     }
 
                                     Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        imageVector = Icons.Rounded.KeyboardArrowDown,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -449,7 +474,7 @@ fun TransactionTabContent(
                                     }
 
                                     Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        imageVector = Icons.Rounded.KeyboardArrowDown,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -473,7 +498,7 @@ fun TransactionTabContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.SwapVert,
+                                    imageVector = Icons.Rounded.SwapVert,
                                     contentDescription = "Transfer",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp)
@@ -510,11 +535,11 @@ fun TransactionTabContent(
                                     modifier = Modifier.size(24.dp)
                                 )
                             } else {
-                                Icon(Icons.Default.Category, contentDescription = null)
+                                Icon(Iconax.Box2, contentDescription = null)
                             }
                         },
                         trailingIcon = {
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                            Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null)
                         },
                         isError = uiState.categoryError != null,
                         supportingText = uiState.categoryError?.let { { Text(it) } },
@@ -589,7 +614,7 @@ fun TransactionTabContent(
                             }
 
                             Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -628,11 +653,11 @@ fun TransactionTabContent(
                                     modifier = Modifier.size(24.dp)
                                 )
                             } else {
-                                Icon(Icons.Default.Category, contentDescription = null)
+                                Icon(Iconax.Box2, contentDescription = null)
                             }
                         },
                         trailingIcon = {
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                            Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null)
                         },
                         isError = uiState.categoryError != null,
                         supportingText = uiState.categoryError?.let { { Text(it) } },
@@ -878,7 +903,7 @@ fun TransactionTabContent(
                             bottomStart = 4.dp,
                             bottomEnd = 4.dp
                         ),
-                    leadingIcon = { Icon(Icons.Default.Store, contentDescription = null) },
+                    leadingIcon = { Icon(Iconax.Shop, contentDescription = null) },
                     isError = uiState.merchantError != null,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -906,7 +931,7 @@ fun TransactionTabContent(
                             bottomEnd = 16.dp
                         ),
                     leadingIcon = {
-                        Icon(Icons.Default.Description, contentDescription = null)
+                        Icon(Iconax.DocumentText2, contentDescription = null)
                     },
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,

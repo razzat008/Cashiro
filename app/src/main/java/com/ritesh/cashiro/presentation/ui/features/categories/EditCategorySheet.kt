@@ -43,6 +43,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import androidx.compose.material3.OutlinedButton
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -50,7 +53,8 @@ fun EditCategorySheet(
     category: CategoryEntity?,
     onDismiss: () -> Unit,
     onSave: (name: String, description: String, color: String, iconResId: Int, isIncome: Boolean) -> Unit,
-    onReset: ((Long) -> Unit)? = null
+    onReset: ((Long) -> Unit)? = null,
+    onDelete: (() -> Unit)? = null
 ) {
     var name by remember { mutableStateOf(category?.name ?: "") }
     var description by remember { mutableStateOf(category?.description ?: "") }
@@ -62,7 +66,6 @@ fun EditCategorySheet(
 
     var showIconSelector by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-//    val lazyListState = rememberLazyListState()
 
     if (showIconSelector) {
         ModalBottomSheet(
@@ -307,9 +310,7 @@ fun EditCategorySheet(
             Spacer(modifier = Modifier.height(82.dp))
 
         }
-        var checked by remember { mutableStateOf(false) }
-        // Save Button
-
+        // Action Buttons at Bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -322,87 +323,60 @@ fun EditCategorySheet(
                             MaterialTheme.colorScheme.surface
                         )
                     )
-                ),
+                )
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-
-            SplitButtonLayout(
-                leadingButton = {
-                    SplitButtonDefaults.LeadingButton(
-                        onClick = { onSave(name, description, colorHex, iconResId, isIncome) },
-                        enabled = name.isNotBlank(),
-                        modifier = Modifier.height(56.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Delete button (only for non-system categories)
+                if (onDelete != null && category != null && !category.isSystem) {
+                    OutlinedButton(
+                        onClick = { onDelete() },
+                        modifier = Modifier.height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.error,
+                                    MaterialTheme.colorScheme.error
+                                )
+                            )
+                        ),
+                        shape = MaterialTheme.shapes.extraExtraLarge
                     ) {
-                        Text(
-                            text = if (category == null) "Create Category" else "Update Category",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(0.8f)
+                        Icon(
+                            imageVector = Iconax.Bag,
+                            contentDescription = "Delete category"
                         )
                     }
-                },
-                trailingButton = {
-                    val description = "Toggle Button"
-                    // Icon-only trailing button should have a tooltip for a11y.
-                    TooltipBox(
-                        positionProvider =
-                            TooltipDefaults.rememberTooltipPositionProvider(
-                                TooltipAnchorPosition.End
-                            ),
-                        tooltip = { PlainTooltip { Text(description) } },
-                        state = rememberTooltipState(),
-                    ) {
-                        SplitButtonDefaults.TrailingButton(
-                            checked = checked,
-                            onCheckedChange = { checked = it },
-                            modifier =
-                                Modifier
-                                    .height(56.dp)
-                                    .semantics {
-                                        stateDescription = if (checked) "Expanded" else "Collapsed"
-                                        contentDescription = description
-                                    },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        ) {
-                            val rotation: Float by
-                            animateFloatAsState(
-                                targetValue = if (checked) 90f else 0f,
-                                label = "Trailing Icon Rotation",
-                            )
-                            Icon(
-                                Icons.Filled.MoreVert,
-                                modifier =
-                                    Modifier
-                                        .size(SplitButtonDefaults.TrailingIconSize)
-                                        .weight(0.2f)
-                                        .graphicsLayer {
-                                            this.rotationZ = rotation
-                                        },
-                                contentDescription = "Localized description",
-                            )
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .height(56.dp),
-            )
-            DropdownMenu(
-                expanded = checked,
-                onDismissRequest = { checked = false },
-                containerColor = Color.Transparent,
-                shadowElevation = 0.dp,
-                offset = DpOffset(100.dp, 0.dp),
-                modifier = Modifier.padding(8.dp),
-                shape = MaterialTheme.shapes.large
-            ) {
+                }
+
+                // Create/Update button
+                Button(
+                    onClick = { onSave(name, description, colorHex, iconResId, isIncome) },
+                    enabled = name.isNotBlank(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.extraExtraLarge
+                ) {
+                    Text(
+                        text = if (category == null) "Create Category" else "Update Category",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Reset button (only for system categories)
                 if (category?.isSystem == true && onReset != null) {
-                    DropdownMenuItem(
-                        text = { Text("Reset") },
+                    IconButton(
                         onClick = {
                             name = category.defaultName ?: category.name
                             description = category.defaultDescription ?: ""
@@ -410,27 +384,19 @@ fun EditCategorySheet(
                             iconResId = category.defaultIconResId ?: category.iconResId
                             onReset(category.id)
                         },
-                        leadingIcon = { Icon(Icons.Outlined.RestartAlt, contentDescription = null) },
                         modifier = Modifier
-                            .shadow(
-                                elevation = 2.dp,
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            )
+                            .size(56.dp)
                             .background(
-                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            ),
-                    )
+                                MaterialTheme.colorScheme.secondaryContainer,
+                                shape = MaterialTheme.shapes.extraExtraLarge
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.RestartAlt,
+                            contentDescription = "Reset to default",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                 }
             }
         }

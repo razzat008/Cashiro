@@ -7,7 +7,18 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -16,10 +27,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.DriveFileRenameOutline
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +50,11 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
+import com.ritesh.cashiro.presentation.ui.icons.Camera
+import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.GalleryExport
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 
@@ -106,7 +128,7 @@ fun EditProfileSheet(
                         0.7f
                     )
                 ),
-                leadingIcon = { Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+                leadingIcon = { Icon(Iconax.Edit2, contentDescription = null)
                 }
             )
 
@@ -135,7 +157,7 @@ fun EditProfileSheet(
                         ),
                         colors = ButtonDefaults.filledTonalButtonColors()
                     ) {
-                        Icon(Icons.Rounded.PhotoLibrary, contentDescription = null)
+                        Icon(Iconax.GalleryExport, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text("Gallery")
                     }
@@ -151,7 +173,7 @@ fun EditProfileSheet(
                         ),
                         colors = ButtonDefaults.filledTonalButtonColors()
                     ) {
-                        Icon(Icons.Rounded.Close, contentDescription = null)
+                        Icon(Iconax.CloseCircle, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text("Clear")
                     }
@@ -162,7 +184,7 @@ fun EditProfileSheet(
                     shapes = ButtonDefaults.shapes(),
                     colors = ButtonDefaults.filledTonalButtonColors()
                 ) {
-                    Icon(Icons.Rounded.AddAPhoto, contentDescription = null)
+                    Icon(Iconax.Camera, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Change Banner")
                 }

@@ -32,16 +32,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -92,6 +91,8 @@ import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Send
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.TokenUtils
@@ -221,7 +222,7 @@ fun ChatScreen(
                                     verticalArrangement = Arrangement.spacedBy(Spacing.md)
                                 ) {
                                     Icon(
-                                        Icons.Default.CloudDownload,
+                                        Icons.Rounded.CloudDownload,
                                         contentDescription = null,
                                         modifier = Modifier.size(64.dp),
                                         tint = MaterialTheme.colorScheme.primary
@@ -433,7 +434,7 @@ fun ChatScreen(
                                             )
                                             IconButton(onClick = { chatViewModel.clearError() }) {
                                                 Icon(
-                                                    Icons.Default.Close,
+                                                    Icons.Rounded.Close,
                                                     contentDescription = "Dismiss",
                                                     tint = MaterialTheme.colorScheme.onErrorContainer
                                                 )
@@ -513,7 +514,7 @@ fun ChatScreen(
                                                         )
                                                     } else {
                                                         Icon(
-                                                            Icons.AutoMirrored.Outlined.Send,
+                                                            Iconax.Send,
                                                             contentDescription = "Send",
                                                             modifier = Modifier.size(18.dp)
                                                         )
@@ -552,8 +553,8 @@ fun TokenLimitWarning(
     }
     
     val icon = when {
-        usagePercent >= 95 -> Icons.Default.Error
-        else -> Icons.Default.Warning
+        usagePercent >= 95 -> Icons.Rounded.Error
+        else -> Icons.Rounded.Warning
     }
     
     val message = when {
@@ -641,7 +642,7 @@ fun DeveloperInfoCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        Icons.Default.Code,
+                        Icons.Rounded.Code,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -664,7 +665,7 @@ fun DeveloperInfoCard(
                         color = usageColor
                     )
                     Icon(
-                        if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                         contentDescription = if (isExpanded) "Collapse" else "Expand",
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant

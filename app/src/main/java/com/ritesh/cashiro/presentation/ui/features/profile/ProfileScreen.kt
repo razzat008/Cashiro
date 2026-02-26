@@ -44,6 +44,9 @@ import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.icons.Calendar
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.blue_dark
@@ -92,7 +95,7 @@ fun ProfileScreen(
                         modifier = Modifier.padding(end = 16.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Edit,
+                            imageVector = Iconax.Edit2,
                             contentDescription = "Edit",
                             modifier = Modifier.size(18.dp)
                         )
@@ -349,7 +352,7 @@ fun FinancialOverviewCard(
                     value =
                         if (activeSubscriptions == 1) "1 Sub"
                         else "$activeSubscriptions Subs",
-                    icon = Icons.Rounded.CalendarToday,
+                    icon = Iconax.Calendar,
                     color = orange_light,
                     iconColor = orange_dark,
                     modifier = Modifier.weight(1f)

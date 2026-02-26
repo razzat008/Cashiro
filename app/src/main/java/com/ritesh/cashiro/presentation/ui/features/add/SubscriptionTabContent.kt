@@ -2,6 +2,7 @@ package com.ritesh.cashiro.presentation.ui.features.add
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +33,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.icons.filled.Subscriptions
+import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,8 +66,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
@@ -76,12 +81,20 @@ import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.DatePicker
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
 import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
+import com.ritesh.cashiro.presentation.ui.icons.DocumentText2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.VideoPlay
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import dev.chrisbanes.haze.HazeState
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import androidx.core.graphics.toColorInt
+import com.ritesh.cashiro.presentation.ui.icons.Box2
+import com.ritesh.cashiro.presentation.ui.icons.Calendar
+import com.ritesh.cashiro.presentation.ui.icons.Information
+import com.ritesh.cashiro.presentation.ui.icons.VideoTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -147,7 +160,7 @@ fun SubscriptionTabContent(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            Icons.Default.Error,
+                            Icons.Rounded.Error,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onErrorContainer,
                             modifier = Modifier.size(20.dp)
@@ -173,7 +186,7 @@ fun SubscriptionTabContent(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
-                        Icons.Default.Info,
+                        Iconax.Information,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp)
@@ -219,7 +232,7 @@ fun SubscriptionTabContent(
                         label = { Text("Billing Cycle") },
                         leadingIcon = {
                             Icon(
-                                Icons.Default.EventRepeat,
+                                Iconax.VideoTime,
                                 contentDescription = null
                             )
                         },
@@ -271,28 +284,44 @@ fun SubscriptionTabContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
-                        modifier = Modifier.padding(vertical = 10.dp),
+                        modifier = Modifier.padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
                         val themeColors = MaterialTheme.colorScheme
                         Icon(
-                            imageVector = Icons.Default.CalendarToday,
+                            imageVector = Iconax.Calendar,
                             contentDescription = "Date Picker",
-                            modifier = Modifier.size(16.dp),
                             tint = themeColors.onSurface
                         )
                         Spacer(Modifier.size(8.dp))
 
                         val dateLabel =
-                            uiState.nextPaymentDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
-                        Text(
-                            text = dateLabel,
-                            textAlign = TextAlign.Center,
-                            fontSize = 16.sp,
-                            color = themeColors.onSurface,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                            uiState.nextPaymentDate.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                        val yearLabel =
+                            uiState.nextPaymentDate.format(DateTimeFormatter.ofPattern("yyyy"))
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = yearLabel,
+                                fontSize = 10.sp,
+                                textAlign = TextAlign.Start,
+                                color = themeColors.primary,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Text(
+                                text = dateLabel,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Start,
+                                color = themeColors.onSurface,
+                                style = MaterialTheme.typography.bodyLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.basicMarquee()
+                            )
+                        }
+
                     }
                 }
             }
@@ -348,7 +377,7 @@ fun SubscriptionTabContent(
                         }
 
                         Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
+                            imageVector = Icons.Rounded.KeyboardArrowDown,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -387,11 +416,11 @@ fun SubscriptionTabContent(
                                 modifier = Modifier.size(24.dp)
                             )
                         } else {
-                            Icon(Icons.Default.Category, contentDescription = null)
+                            Icon(Iconax.Box2, contentDescription = null)
                         }
                     },
                     trailingIcon = {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                        Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null)
                     },
                     isError = uiState.categoryError != null,
                     supportingText = uiState.categoryError?.let { { Text(it) } },
@@ -440,7 +469,7 @@ fun SubscriptionTabContent(
                         enabled = false,
                         colors = if (selectedSubcategoryObj2 != null) {
                             val color = try {
-                                Color(android.graphics.Color.parseColor(selectedSubcategoryObj2.color))
+                                Color(selectedSubcategoryObj2.color.toColorInt())
                             } catch (e: Exception) {
                                 MaterialTheme.colorScheme.surfaceContainerLow
                             }
@@ -555,7 +584,7 @@ fun SubscriptionTabContent(
                             bottomStart = 4.dp,
                             bottomEnd = 4.dp
                         ),
-                    leadingIcon = { Icon(Icons.Default.Subscriptions, contentDescription = null) },
+                    leadingIcon = { Icon(Iconax.VideoPlay, contentDescription = null) },
                     isError = uiState.serviceError != null,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -574,7 +603,7 @@ fun SubscriptionTabContent(
                     value = uiState.notes,
                     onValueChange = viewModel::updateSubscriptionNotes,
                     label = { Text("Notes (Optional)") },
-                    leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
+                    leadingIcon = { Icon(Iconax.DocumentText2, contentDescription = null) },
                     placeholder = { Text("Add any additional information...") },
                     modifier = Modifier.fillMaxWidth(),
                     shape =

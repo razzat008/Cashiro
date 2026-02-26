@@ -130,6 +130,16 @@ import com.ritesh.cashiro.presentation.ui.components.SubscriptionIconsStack
 import com.ritesh.cashiro.presentation.ui.components.TransactionItem
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeViewModel
+import com.ritesh.cashiro.presentation.ui.icons.AiCommentary
+import com.ritesh.cashiro.presentation.ui.icons.Convertshape2
+import com.ritesh.cashiro.presentation.ui.icons.Gallery
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.ReceiptItem
+import com.ritesh.cashiro.presentation.ui.icons.ReceiptSearch
+import com.ritesh.cashiro.presentation.ui.icons.RefreshArrow01
+import com.ritesh.cashiro.presentation.ui.icons.RefreshCircle
+import com.ritesh.cashiro.presentation.ui.icons.Search
+import com.ritesh.cashiro.presentation.ui.icons.Setting2
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.expense_dark
@@ -617,7 +627,7 @@ fun SharedTransitionScope.HomeScreen(
                                                             ) {
                                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                                     Icon(
-                                                                        imageVector = Icons.Default.Search,
+                                                                        imageVector = Iconax.Search,
                                                                         contentDescription = "Search transactions",
                                                                         modifier = Modifier.size(Dimensions.Icon.small),
                                                                         tint = MaterialTheme.colorScheme.primary
@@ -654,7 +664,7 @@ fun SharedTransitionScope.HomeScreen(
                                                             horizontalAlignment = Alignment.CenterHorizontally,
                                                             ) {
                                                             Icon(
-                                                                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                                                                imageVector = Iconax.ReceiptItem,
                                                                 contentDescription = null,
                                                                 modifier = Modifier.size(48.dp),
                                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -799,7 +809,7 @@ fun SharedTransitionScope.HomeScreen(
                             headline = { Text("Edit Widgets") },
                             leading = {
                                 Icon(
-                                    imageVector = Icons.Outlined.Widgets,
+                                    imageVector = Iconax.Convertshape2,
                                     contentDescription = null,
                                 )
                             },
@@ -815,7 +825,7 @@ fun SharedTransitionScope.HomeScreen(
                             headline = { Text("Settings") },
                             leading = {
                                 Icon(
-                                    imageVector = Icons.Outlined.Settings,
+                                    imageVector = Iconax.Setting2,
                                     contentDescription = null,
                                 )
                             },
@@ -831,7 +841,7 @@ fun SharedTransitionScope.HomeScreen(
                             headline = { Text("Ask AI") },
                             leading = {
                                 Icon(
-                                    imageVector = Icons.Outlined.MarkChatUnread,
+                                    imageVector = Iconax.AiCommentary,
                                     contentDescription = null,
                                 )
                             },
@@ -847,7 +857,7 @@ fun SharedTransitionScope.HomeScreen(
                             headline = { Text("Sync SMS") },
                             leading = {
                                 Icon(
-                                    imageVector = Icons.Outlined.Sync,
+                                    imageVector = Iconax.RefreshCircle,
                                     contentDescription = null,
                                 )
                             },
@@ -876,7 +886,7 @@ fun SharedTransitionScope.HomeScreen(
                             title = "Show Banner Image",
                             leadingIcon = {
                                 Icon(
-                                    imageVector = Icons.Outlined.Image,
+                                    imageVector = Iconax.Gallery,
                                     contentDescription = null,
                                 )
                             },

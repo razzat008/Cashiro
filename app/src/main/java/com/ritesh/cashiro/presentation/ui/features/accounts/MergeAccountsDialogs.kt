@@ -2,6 +2,7 @@ package com.ritesh.cashiro.presentation.ui.features.accounts
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,17 +20,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.presentation.ui.components.BrandIcon
+import com.ritesh.cashiro.presentation.ui.icons.Danger
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
+import dev.chrisbanes.haze.ExperimentalHazeApi
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeEffectScope
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,49 +69,68 @@ fun MergeAccountSelectionDialog(
         containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Spacing.md)
-                .padding(bottom = Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.md)
-        ) {
-            Text(
-                text = "Merge Accounts",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Select accounts to merge into ${currentAccount.bankName} " +
-                        "(...${currentAccount.accountLast4}). Selected accounts will be deleted after merging.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            LazyColumn(
-                modifier = Modifier.weight(1f, fill = false),
-                verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.md)
+                    .padding(bottom = Spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
-                items(availableAccounts) { account ->
-                    val isSelected = selectedAccounts.contains(account)
-                    AccountSelectionItem(
-                        account = account,
-                        isSelected = isSelected,
-                        onClick = {
-                            selectedAccounts = if (isSelected) {
-                                selectedAccounts - account
-                            } else {
-                                selectedAccounts + account
+                Text(
+                    text = "Merge Accounts",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Select accounts to merge into ${currentAccount.bankName} " +
+                            "(...${currentAccount.accountLast4}). Selected accounts will be deleted after merging.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                LazyColumn(
+                    modifier = Modifier.weight(1f, fill = false) .clip(RoundedCornerShape(12.dp)),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    items(availableAccounts) { account ->
+                        val isSelected = selectedAccounts.contains(account)
+                        AccountSelectionItem(
+                            account = account,
+                            isSelected = isSelected,
+                            onClick = {
+                                selectedAccounts = if (isSelected) {
+                                    selectedAccounts - account
+                                } else {
+                                    selectedAccounts + account
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
+                    item{ Spacer(modifier = Modifier.height(48.dp))}
                 }
             }
-            Button(
-                onClick = { onNext(selectedAccounts.toList()) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = selectedAccounts.isNotEmpty()
-            ) { Text("Next") }
-            Spacer(modifier = Modifier.height(Spacing.md))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                MaterialTheme.colorScheme.surface,
+                                MaterialTheme.colorScheme.surface
+                            )
+                        )
+                    )
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Button(
+                    onClick = { onNext(selectedAccounts.toList()) },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    enabled = selectedAccounts.isNotEmpty()
+                ) { Text("Next") }
+            }
         }
     }
 }
@@ -117,8 +149,6 @@ fun AccountSelectionItem(account: AccountBalanceEntity, isSelected: Boolean, onC
                 )
             else MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-        else null
     ) {
         Row(
             modifier = Modifier.padding(Spacing.md),
@@ -126,22 +156,26 @@ fun AccountSelectionItem(account: AccountBalanceEntity, isSelected: Boolean, onC
             horizontalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Icon
-            val iconResId = if (account.iconResId != 0) account.iconResId
-            else R.drawable.type_finance_bank
-            Icon(
-                painter = painterResource(id = iconResId),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = Color.Unspecified
+            BrandIcon(
+                merchantName = account.bankName,
+                size = 32.dp,
+                accountIconResId = account.iconResId,
+                accountColorHex = account.color,
+                showBackground = true
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = account.bankName,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee(
+                        iterations = Int.MAX_VALUE
+                    )
                 )
                 Text(
-                    text = "....${account.accountLast4}",
+                    text = "**** ${account.accountLast4}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -152,7 +186,10 @@ fun AccountSelectionItem(account: AccountBalanceEntity, isSelected: Boolean, onC
                     account.currency
                 ),
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.basicMarquee()
             )
             Icon(
                 imageVector = if (isSelected) Icons.Filled.CheckCircle
@@ -270,19 +307,106 @@ fun MergeOptionItem(title: String, description: String, icon: ImageVector, onCli
     }
 }
 
+@OptIn(ExperimentalHazeApi::class)
 @Composable
-fun MergeConfirmationDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun MergeConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    blurEffects: Boolean = false,
+    hazeState: HazeState = remember { HazeState() }
+) {
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.AutoMirrored.Filled.MergeType, contentDescription = null) },
+        icon = {
+            Icon(
+                Iconax.Danger,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
         title = { Text(text = "Final Confirmation") },
         text = {
             Text(
-                text = "Merging Accounts: All current and past transactions from the merging bank accounts will now show on the merged bank account." +
-                        " The original accounts will be deleted.",
-                textAlign = TextAlign.Center
-            ) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Merge Accounts") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+                text = "Merging Accounts: All current and past transactions from the merging bank accounts will now show on the merged bank account. The original accounts will be deleted.",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
+                ) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = Dimensions.Radius.xxl,
+                            topEnd = Dimensions.Radius.xs,
+                            bottomStart = Dimensions.Radius.xxl,
+                            bottomEnd = Dimensions.Radius.xs
+                        ),
+                        modifier = Modifier
+                            .padding(start = Spacing.xl)
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    Button(
+                        onClick = onConfirm,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = Dimensions.Radius.xs,
+                            topEnd = Dimensions.Radius.xxl,
+                            bottomStart = Dimensions.Radius.xs,
+                            bottomEnd = Dimensions.Radius.xxl
+                        ),
+                        modifier = Modifier
+                            .padding(end = Spacing.xl)
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Merge",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            }
+        },
+        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+        else MaterialTheme.colorScheme.surfaceContainerLow,
+        dismissButton = {},
+        modifier = Modifier
+            .clip(RoundedCornerShape(Dimensions.Radius.md))
+            .then(
+                if (blurEffects) Modifier.hazeEffect(
+                    state = hazeState,
+                    block = fun HazeEffectScope.() {
+                        style = HazeDefaults.style(
+                            backgroundColor = Color.Transparent,
+                            tint = HazeDefaults.tint(containerColor),
+                            blurRadius = 20.dp,
+                            noiseFactor = -1f,
+                        )
+                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                    }
+                ) else Modifier
+            ),
+        shape = MaterialTheme.shapes.large
     )
 }

@@ -29,19 +29,13 @@ import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Deselect
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.rounded.Deselect
+import androidx.compose.material.icons.rounded.FilterAlt
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.SelectAll
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -83,6 +77,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -106,6 +101,13 @@ import com.ritesh.cashiro.presentation.ui.components.TransactionItem
 import com.ritesh.cashiro.presentation.ui.components.TransactionTotalsCard
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Card
+import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Information
+import com.ritesh.cashiro.presentation.ui.icons.ReceiptItem
+import com.ritesh.cashiro.presentation.ui.icons.Search
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.DateRangeUtils
@@ -357,7 +359,7 @@ fun SharedTransitionScope.TransactionsScreen(
                                 shapes =  IconButtonDefaults.shapes(),
                             ) {
                                 Icon(
-                                    imageVector = if (allSelected) Icons.Default.Deselect else Icons.Default.SelectAll,
+                                    imageVector = if (allSelected) Icons.Rounded.Deselect else Icons.Rounded.SelectAll,
                                     contentDescription = if (allSelected) "Deselect All" else "Select All",
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -376,7 +378,7 @@ fun SharedTransitionScope.TransactionsScreen(
                                 modifier = Modifier.padding(end = 16.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Delete,
+                                    imageVector = Iconax.Bag,
                                     contentDescription = "Delete Selected",
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -426,9 +428,9 @@ fun SharedTransitionScope.TransactionsScreen(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Search,
+                            imageVector = Iconax.Search,
                             contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                         )
                     },
                     trailingIcon = {
@@ -439,9 +441,9 @@ fun SharedTransitionScope.TransactionsScreen(
                                     transactionsViewModel.updateSearchQuery("")
                                 }) {
                                     Icon(
-                                        imageVector = Icons.Default.Clear,
+                                        imageVector = Iconax.CloseCircle,
                                         contentDescription = "Clear search",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                                     )
                                 }
                             }
@@ -455,9 +457,9 @@ fun SharedTransitionScope.TransactionsScreen(
                                         .background(Color.Transparent)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.FilterAlt,
+                                        imageVector = Icons.Rounded.MoreHoriz,
                                         contentDescription = "Sort",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                                     )
                                 }
 
@@ -495,8 +497,9 @@ fun SharedTransitionScope.TransactionsScreen(
                     label = {
                         Text(
                             text = if (categoryFilter != null) "Search in $categoryFilter..."
-                            else "Search transactions...",
+                            else "Search transactions",
                             maxLines = 1,
+                            textAlign = TextAlign.Center,
                             overflow = TextOverflow.Ellipsis,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5f)
                         )
@@ -575,7 +578,7 @@ fun SharedTransitionScope.TransactionsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.Info,
+                            Iconax.Information,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier.size(Dimensions.Icon.small)
@@ -635,12 +638,12 @@ fun SharedTransitionScope.TransactionsScreen(
                                             modifier = Modifier.size(Dimensions.Icon.small)
                                         )
                                         TransactionTypeFilter.CREDIT -> Icon(
-                                            Icons.Default.CreditCard,
+                                            Iconax.Card,
                                             contentDescription = null,
                                             modifier = Modifier.size(Dimensions.Icon.small)
                                         )
                                         TransactionTypeFilter.TRANSFER -> Icon(
-                                            Icons.Default.SwapHoriz,
+                                            Icons.Rounded.SwapHoriz,
                                             contentDescription = null,
                                             modifier = Modifier.size(Dimensions.Icon.small)
                                         )
@@ -741,7 +744,7 @@ fun SharedTransitionScope.TransactionsScreen(
                                                     modifier = Modifier.size(18.dp)
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Default.Close,
+                                                        imageVector = Iconax.CloseCircle,
                                                         contentDescription = "Clear category filter",
                                                         modifier = Modifier.size(18.dp)
                                                     )
@@ -878,7 +881,7 @@ private fun EmptyTransactionsState(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
+                    imageVector = Iconax.ReceiptItem,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant

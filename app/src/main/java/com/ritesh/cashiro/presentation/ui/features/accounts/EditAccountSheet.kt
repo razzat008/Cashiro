@@ -13,7 +13,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Merge
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -36,9 +39,18 @@ import androidx.core.graphics.toColorInt
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
 import com.ritesh.cashiro.presentation.accounts.CurrencyBottomSheet
+import com.ritesh.cashiro.presentation.ui.components.DeleteAccountDialog
 import com.ritesh.cashiro.presentation.ui.features.categories.IconSelector
 import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Calendar
+import com.ritesh.cashiro.presentation.ui.icons.Card
+import com.ritesh.cashiro.presentation.ui.icons.DollarCircle
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Information
+import com.ritesh.cashiro.presentation.ui.icons.Wallet3
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -49,8 +61,6 @@ fun EditAccountSheet(
     account: AccountBalanceEntity? = null,
     allAccounts: List<AccountBalanceEntity> = emptyList(),
     onDismiss: () -> Unit,
-    onMerge: (AccountBalanceEntity, List<AccountBalanceEntity>, BigDecimal?) -> Unit =
-        { _, _, _ -> },
     onDelete: (() -> Unit)? = null,
     onSave: (bankName: String,
         balance: BigDecimal,
@@ -82,17 +92,8 @@ fun EditAccountSheet(
     var editingCreditLimit by remember { mutableStateOf(false) }
     var showIconSelector by remember { mutableStateOf(false) }
     var showCurrencySheet by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    // Merge Flow States
-    var showMergeSelection by remember { mutableStateOf(false) }
-    var showMergeBalanceOption by remember { mutableStateOf(false) }
-    var showMergeConfirmation by remember { mutableStateOf(false) }
-    var showMergeManualInput by remember { mutableStateOf(false) }
-
-    var selectedMergeAccounts by remember {
-        mutableStateOf<List<AccountBalanceEntity>>(emptyList())
-    }
-    var mergeNewBalance by remember { mutableStateOf<BigDecimal?>(null) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -147,67 +148,19 @@ fun EditAccountSheet(
         )
     }
 
-    // Merge Dialogs
-    if (showMergeSelection && account != null) {
-        MergeAccountSelectionDialog(
-            currentAccount = account,
-            allAccounts = allAccounts,
-            onDismiss = { showMergeSelection = false },
-            onNext = { accounts ->
-                selectedMergeAccounts = accounts
-                showMergeSelection = false
-                showMergeBalanceOption = true
-            }
-        )
-    }
 
-    if (showMergeBalanceOption && account != null) {
-        MergeBalanceOptionDialog(
-            selectedAccounts = selectedMergeAccounts,
-            currentAccount = account,
-            onDismiss = { showMergeBalanceOption = false },
-            onOptionSelected = { option ->
-                showMergeBalanceOption = false
-                when (option) {
-                    BalanceMergeOption.SUM -> {
-                        mergeNewBalance = account.balance + selectedMergeAccounts.sumOf { it.balance }
-                        showMergeConfirmation = true
-                    }
-                    BalanceMergeOption.MANUAL -> {
-                        showMergeManualInput = true
-                    }
-                    BalanceMergeOption.NONE -> {
-                        mergeNewBalance = null
-                        showMergeConfirmation = true
-                    }
-                }
-            }
-        )
-    }
-
-    if (showMergeManualInput) {
-        ModalBottomSheet(
-            onDismissRequest = { showMergeManualInput = false },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) { NumberPad(
-            initialValue = "",
-            onDone = {
-                mergeNewBalance = it.toBigDecimalOrNull() ?: BigDecimal.ZERO
-                showMergeManualInput = false
-                showMergeConfirmation = true },
-            title = "Set Final Balance"
-        ) }
-    }
-
-    if (showMergeConfirmation && account != null) {
-        MergeConfirmationDialog(
-            onDismiss = { showMergeConfirmation = false },
-            onConfirm = {
-                onMerge(account, selectedMergeAccounts, mergeNewBalance)
-                showMergeConfirmation = false
-                onDismiss() // Close the edit sheet
+    if (showDeleteConfirmation) {
+        DeleteAccountDialog(
+            bankName = bankName,
+            accountLast4 = accountLast4,
+            accountIcon = iconResId,
+            accountColor = colorHex,
+            isCreditCard = isCreditCard,
+            isWallet = isWallet,
+            onDismiss = { showDeleteConfirmation = false },
+            onDelete = {
+                onDelete?.invoke()
+                showDeleteConfirmation = false
             }
         )
     }
@@ -256,7 +209,7 @@ fun EditAccountSheet(
                         icon = {}
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.AccountBalance, null, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.AccountBalance, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text("Bank")
                         }
@@ -278,7 +231,7 @@ fun EditAccountSheet(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CreditCard, null, modifier = Modifier.size(18.dp))
+                            Icon(Iconax.Card, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text("Card")
                         }
@@ -303,7 +256,7 @@ fun EditAccountSheet(
                         icon = {}
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.AccountBalanceWallet, null, modifier = Modifier.size(18.dp))
+                            Icon(Iconax.Wallet3, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text("Wallet")
                         }
@@ -375,7 +328,7 @@ fun EditAccountSheet(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.Edit,
+                                Iconax.Edit2,
                                 contentDescription = null,
                                 modifier = Modifier.size(10.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary
@@ -400,7 +353,7 @@ fun EditAccountSheet(
                         ) {
                             // Leading Icon
                             Icon(
-                                imageVector = Icons.Default.AccountBalanceWallet,
+                                imageVector = Iconax.Wallet3,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -448,7 +401,7 @@ fun EditAccountSheet(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Default.CreditCard,
+                                imageVector = Iconax.Card,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -494,7 +447,7 @@ fun EditAccountSheet(
                             horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                         ) {
                             Icon(
-                                Icons.Default.Info,
+                                Iconax.Information,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.size(20.dp)
@@ -541,7 +494,7 @@ fun EditAccountSheet(
                             0.7f
                         )
                     ),
-                    leadingIcon = { Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+                    leadingIcon = { Icon(Iconax.Edit2, contentDescription = null)
                     }
                 )
 
@@ -565,7 +518,7 @@ fun EditAccountSheet(
                                 0.7f
                             )
                         ),
-                        leadingIcon = { Icon(Icons.Default.Pin, contentDescription = null) }
+                        leadingIcon = { Icon(Icons.Rounded.Pin, contentDescription = null) }
                     )
                 }
 
@@ -607,12 +560,12 @@ fun EditAccountSheet(
                     ),
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.AttachMoney,
+                            imageVector = Iconax.DollarCircle,
                             contentDescription = null
                         )
                     },
                     trailingIcon = {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                        Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null)
                     },
                     enabled = false
                 )
@@ -641,8 +594,7 @@ fun EditAccountSheet(
             Spacer(modifier = Modifier.height(80.dp))
         }
 
-        var checked by remember { mutableStateOf(false) }
-        // Action Button at Bottom
+        // Action Buttons at Bottom
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -655,154 +607,65 @@ fun EditAccountSheet(
                             MaterialTheme.colorScheme.surface
                         )
                     )
-                ),
+                )
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-
-            SplitButtonLayout(
-                leadingButton = {
-                    SplitButtonDefaults.LeadingButton(
-                        onClick = {
-                            onSave(
-                                bankName,
-                                balance,
-                                accountLast4,
-                                iconResId,
-                                colorHex,
-                                isCreditCard,
-                                isWallet,
-                                if (isCreditCard) creditLimit else null,
-                                selectedCurrency) },
-                        enabled = bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
-                        modifier = Modifier.height(56.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Delete button (only for existing accounts)
+                if (onDelete != null && account != null) {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmation = true },
+                        modifier = Modifier.height(56.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.error,
+                                    MaterialTheme.colorScheme.error
+                                )
+                            )
+                        ),
+                        shape = MaterialTheme.shapes.extraExtraLarge
                     ) {
-                        Text(
-                            text = if (account == null) "Add Account" else "Save Changes",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(0.8f)
+                        Icon(
+                            imageVector = Iconax.Bag,
+                            contentDescription = "Delete account"
                         )
                     }
-                },
-                trailingButton = {
-                    val description = "Toggle Button"
-                    TooltipBox(
-                        positionProvider =
-                            TooltipDefaults.rememberTooltipPositionProvider(
-                                TooltipAnchorPosition.Above
-                            ),
-                        tooltip = { PlainTooltip { Text(description) } },
-                        state = rememberTooltipState(),
-                    ) {
-                        SplitButtonDefaults.TrailingButton(
-                            checked = checked,
-                            onCheckedChange = { checked = it },
-                            modifier =
-                                Modifier
-                                    .height(56.dp)
-                                    .semantics {
-                                        stateDescription = if (checked) "Expanded" else "Collapsed"
-                                        contentDescription = description
-                                    },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        ) {
-                            val rotation: Float by
-                            animateFloatAsState(
-                                targetValue = if (checked) 90f else 0f,
-                                label = "Trailing Icon Rotation",
-                            )
-                            Icon(
-                                Icons.Filled.MoreVert,
-                                modifier =
-                                    Modifier
-                                        .size(SplitButtonDefaults.TrailingIconSize)
-                                        .weight(0.2f)
-                                        .graphicsLayer {
-                                            this.rotationZ = rotation
-                                        },
-                                contentDescription = "Localized description",
-                            )
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .height(56.dp),
-            )
-            DropdownMenu(
-                expanded = checked,
-                onDismissRequest = { checked = false },
-                containerColor = Color.Transparent,
-                shadowElevation = 0.dp,
-                modifier = Modifier.padding(8.dp),
-                offset = DpOffset(100.dp, 0.dp),
-                shape = MaterialTheme.shapes.large
-            ) {
-                if (account != null) {
-                    DropdownMenuItem(
-                        text = { Text("Merge Account") },
-                        onClick = {
-                            checked = false
-                            showMergeSelection = true
-                        },
-                        leadingIcon = { Icon(Icons.Outlined.Merge, contentDescription = null) },
-                        modifier = Modifier
-                            .shadow(
-                                elevation = 2.dp,
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            )
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                shape = RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            ),
-                    )
-                    Spacer(modifier = Modifier.height(1.5.dp))
-                    DropdownMenuItem(
-                        text = { Text("Delete Account", color = MaterialTheme.colorScheme.error) },
-                        onClick = {
-                            checked = false
-                            onDelete?.invoke()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = "Delete Account",
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        modifier = Modifier
-                            .shadow(
-                                elevation = 2.dp,
-                                shape = RoundedCornerShape(
-                                    topStart = 4.dp,
-                                    topEnd = 4.dp,
-                                    bottomStart = 16.dp,
-                                    bottomEnd = 16.dp
-                                )
-                            )
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                shape = RoundedCornerShape(
-                                    topStart = 4.dp,
-                                    topEnd = 4.dp,
-                                    bottomStart = 16.dp,
-                                    bottomEnd = 16.dp
-                                )
-                            ),
+                }
+
+                // Save button
+                Button(
+                    onClick = {
+                        onSave(
+                            bankName,
+                            balance,
+                            accountLast4,
+                            iconResId,
+                            colorHex,
+                            isCreditCard,
+                            isWallet,
+                            if (isCreditCard) creditLimit else null,
+                            selectedCurrency
+                        )
+                    },
+                    enabled = bankName.isNotBlank() && (isWallet || accountLast4.length == 4),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.extraExtraLarge
+                ) {
+                    Text(
+                        text = if (account == null) "Add Account" else "Save Changes",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

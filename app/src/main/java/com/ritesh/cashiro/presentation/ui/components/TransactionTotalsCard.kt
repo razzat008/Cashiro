@@ -295,7 +295,9 @@ private fun TotalColumn(
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.basicMarquee()
+            modifier = Modifier.basicMarquee(
+                iterations = Int.MAX_VALUE
+            )
         )
     }
 }

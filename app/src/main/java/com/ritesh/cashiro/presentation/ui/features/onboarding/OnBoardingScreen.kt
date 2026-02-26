@@ -5,10 +5,31 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,9 +37,29 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.Pin
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material3.Badge
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,27 +72,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ritesh.cashiro.presentation.ui.theme.Spacing
-import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import androidx.work.WorkInfo
 import com.ritesh.cashiro.R
+import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
+import com.ritesh.cashiro.presentation.effects.overScrollVertical
+import com.ritesh.cashiro.presentation.ui.components.AccountCard
+import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
+import com.ritesh.cashiro.presentation.ui.components.SmsParsingProgressIndicator
 import com.ritesh.cashiro.presentation.ui.features.profile.EditProfileState
 import com.ritesh.cashiro.presentation.ui.features.profile.PresetAvatarSelection
 import com.ritesh.cashiro.presentation.ui.features.profile.ProfileCardPreview
-import com.ritesh.cashiro.presentation.ui.components.ColorPickerContent
-import com.ritesh.cashiro.presentation.effects.overScrollVertical
-import com.ritesh.cashiro.presentation.ui.components.SmsParsingProgressIndicator
-import com.ritesh.cashiro.presentation.ui.components.AccountCard
-import com.ritesh.cashiro.data.database.entity.AccountBalanceEntity
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Merge
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.filled.Balance
-import androidx.compose.material.icons.filled.DriveFileRenameOutline
-import androidx.compose.material.icons.filled.Pin
-import androidx.work.WorkInfo
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.HierarchySquare3
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Messages
+import com.ritesh.cashiro.presentation.ui.icons.Wallet3
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import com.ritesh.cashiro.presentation.ui.theme.Spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -316,7 +353,7 @@ fun PermissionsStep(showRationale: Boolean) {
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Filled.MailOutline,
+            imageVector = Iconax.Messages,
             contentDescription = null,
             modifier = Modifier.size(120.dp),
             tint = MaterialTheme.colorScheme.primary
@@ -402,7 +439,7 @@ fun SyncStep(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Default.Sync,
+            imageVector = Icons.Rounded.Sync,
             contentDescription = null,
             modifier = Modifier.size(120.dp),
             tint = MaterialTheme.colorScheme.primary
@@ -515,15 +552,30 @@ fun AccountSetupStep(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (isMain) {
-                                Badge(containerColor = MaterialTheme.colorScheme.primary) {
-                                    Text("Main", color = MaterialTheme.colorScheme.onPrimary)
+                                Badge(containerColor = Color(0xFFFFD700).copy(alpha = 0.15f)) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Star,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFFD700),
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Spacer(Modifier.width(Spacing.xs))
+                                        Text(
+                                            text = "Main",
+                                            color = Color(0xFFFFD700),
+                                        )
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(Spacing.sm))
                             }
 
                             IconButton(onClick = { onToggleMerge(key) }) {
                                 Icon(
-                                    imageVector = if (isSelectedForMerge) Icons.Default.Merge else Icons.Default.Merge,
+                                    imageVector = if (isSelectedForMerge) Iconax.HierarchySquare3 else Iconax.HierarchySquare3,
                                     contentDescription = "Merge",
                                     tint = if (isSelectedForMerge) MaterialTheme.colorScheme.primary 
                                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -550,7 +602,7 @@ fun AccountSetupStep(
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     ) {
-                        Icon(Icons.Default.Merge, contentDescription = null)
+                        Icon(Iconax.HierarchySquare3, contentDescription = null)
                         Spacer(modifier = Modifier.width(Spacing.sm))
                         Text("Merge Selected Accounts")
                     }
@@ -577,7 +629,7 @@ fun ManualAccountEntryStep(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            imageVector = Icons.Default.AccountBalance,
+            imageVector = Icons.Rounded.AccountBalance,
             contentDescription = null,
             modifier = Modifier.size(80.dp),
             tint = MaterialTheme.colorScheme.primary
@@ -619,7 +671,7 @@ fun ManualAccountEntryStep(
                     0.7f
                 )
             ),
-            leadingIcon = { Icon(Icons.Default.DriveFileRenameOutline, contentDescription = null)
+            leadingIcon = { Icon(Iconax.Edit2, contentDescription = null)
             }
         )
 
@@ -641,7 +693,7 @@ fun ManualAccountEntryStep(
                     0.7f
                 )
             ),
-            leadingIcon = { Icon(Icons.Default.Balance, contentDescription = null) },
+            leadingIcon = { Icon(Iconax.Wallet3, contentDescription = null) },
             singleLine = true
         )
 
@@ -665,7 +717,7 @@ fun ManualAccountEntryStep(
                     0.7f
                 )
             ),
-            leadingIcon = { Icon(Icons.Default.Pin, contentDescription = null) }
+            leadingIcon = { Icon(Icons.Rounded.Pin, contentDescription = null) }
         )
     }
 }

@@ -3,37 +3,86 @@ package com.ritesh.cashiro.presentation.ui.features.settings.rules
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Category
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import com.ritesh.cashiro.domain.model.rule.*
-import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
-import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
-import dev.chrisbanes.haze.HazeState
-import com.ritesh.cashiro.presentation.ui.theme.Dimensions
-import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import com.ritesh.cashiro.domain.model.rule.ActionType
+import com.ritesh.cashiro.domain.model.rule.ConditionOperator
+import com.ritesh.cashiro.domain.model.rule.RuleAction
+import com.ritesh.cashiro.domain.model.rule.RuleCondition
+import com.ritesh.cashiro.domain.model.rule.TransactionField
+import com.ritesh.cashiro.domain.model.rule.TransactionRule
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
+import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
+import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
+import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Box2
+import com.ritesh.cashiro.presentation.ui.icons.DocumentText2
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.theme.Dimensions
+import com.ritesh.cashiro.presentation.ui.theme.Spacing
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import java.util.UUID
 
@@ -236,7 +285,7 @@ fun CreateRuleScreen(
                             ),
                             leadingIcon = {
                                 Icon(
-                                    Icons.Default.DriveFileRenameOutline,
+                                    Iconax.Edit2,
                                     contentDescription = null
                                 )
                             }
@@ -272,7 +321,7 @@ fun CreateRuleScreen(
                             ),
                             leadingIcon = {
                                 Icon(
-                                    Icons.Default.Description,
+                                    Iconax.DocumentText2,
                                     contentDescription = null
                                 )
                             }
@@ -296,7 +345,7 @@ fun CreateRuleScreen(
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                             ) {
                                 Icon(
-                                    Icons.Default.FilterList,
+                                    Icons.Rounded.FilterList,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary
                                 )
@@ -525,7 +574,7 @@ fun CreateRuleScreen(
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                             ) {
                                 Icon(
-                                    Icons.Default.AutoAwesome,
+                                    Icons.Rounded.AutoAwesome,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary
                                 )
@@ -644,7 +693,7 @@ fun CreateRuleScreen(
                                         horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                                     ) {
                                         Icon(
-                                            Icons.Default.Block,
+                                            Icons.Rounded.Block,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onErrorContainer
                                         )
@@ -762,14 +811,14 @@ fun CreateRuleScreen(
                                             },
                                             leadingContent = {
                                                 Icon(
-                                                    Icons.Outlined.Category,
+                                                    Iconax.Box2,
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.primary
                                                 )
                                             },
                                             trailingContent = {
                                                 Icon(
-                                                    Icons.Default.ChevronRight,
+                                                    Icons.Rounded.ChevronRight,
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
@@ -798,14 +847,14 @@ fun CreateRuleScreen(
                                             },
                                             leadingContent = {
                                                 Icon(
-                                                    Icons.Outlined.Category,
+                                                    Iconax.Box2,
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.primary
                                                 )
                                             },
                                             trailingContent = {
                                                 Icon(
-                                                    Icons.Default.ChevronRight,
+                                                    Icons.Rounded.ChevronRight,
                                                     contentDescription = null,
                                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )

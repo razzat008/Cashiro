@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
 import com.ritesh.cashiro.data.database.entity.SubcategoryEntity
+import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import kotlinx.coroutines.delay
@@ -123,7 +125,7 @@ fun CategorySelectionSheet(
                 trailingIcon = if (searchQuery.text.isNotEmpty()) {
                     {
                         IconButton(onClick = { searchQuery = TextFieldValue("") }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear search")
+                            Icon(Iconax.CloseCircle, contentDescription = "Clear search")
                         }
                     }
                 } else { {} }

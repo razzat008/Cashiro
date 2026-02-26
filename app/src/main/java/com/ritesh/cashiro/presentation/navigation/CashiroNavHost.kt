@@ -25,14 +25,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
@@ -65,9 +64,9 @@ import com.ritesh.cashiro.presentation.ui.features.accounts.AddAccountScreen
 import com.ritesh.cashiro.presentation.ui.features.accounts.ManageAccountsScreen
 import com.ritesh.cashiro.presentation.ui.features.add.AddScreen
 import com.ritesh.cashiro.presentation.ui.features.analytics.AnalyticsScreen
-import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetsScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetHistoryScreen
+import com.ritesh.cashiro.presentation.ui.features.budgets.BudgetsScreen
 import com.ritesh.cashiro.presentation.ui.features.categories.CategoriesScreen
 import com.ritesh.cashiro.presentation.ui.features.chat.ChatScreen
 import com.ritesh.cashiro.presentation.ui.features.home.HomeScreen
@@ -78,26 +77,28 @@ import com.ritesh.cashiro.presentation.ui.features.settings.SettingsScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.appearance.AppearanceScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.appearance.ThemeViewModel
 import com.ritesh.cashiro.presentation.ui.features.settings.applock.AppLockScreen
+import com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy.DataPrivacyScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.developer.DeveloperScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.faq.FAQScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.notifications.NotificationScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.CreateRuleScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.rules.RulesViewModel
-import com.ritesh.cashiro.presentation.ui.features.settings.dataprivacy.DataPrivacyScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.sms.SMSScreen
 import com.ritesh.cashiro.presentation.ui.features.settings.unrecognized.UnrecognizedSmsScreen
 import com.ritesh.cashiro.presentation.ui.features.subscriptions.SubscriptionsScreen
-import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionDetailScreen
-import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsViewModel
 import com.ritesh.cashiro.presentation.ui.features.transactions.ExportTransactionsDialog
+import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionDetailScreen
 import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsScreen
+import com.ritesh.cashiro.presentation.ui.features.transactions.TransactionsViewModel
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.ImportArrow01
+import com.ritesh.cashiro.presentation.ui.icons.Sync
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.ExperimentalHazeApi
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeEffectScope
-import dev.chrisbanes.haze.HazeInputScale
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -675,13 +676,13 @@ fun CashiroNavHost(
                             ) {
                                 if (isHomeScreen) {
                                     Icon(
-                                        imageVector = Icons.Default.Sync,
+                                        imageVector = Icons.Rounded.Sync,
                                         contentDescription = "Sync SMS transactions",
                                         modifier = Modifier.size(20.dp)
                                     )
                                 } else {
                                     Icon(
-                                        imageVector = Icons.Default.FileDownload,
+                                        imageVector = Iconax.ImportArrow01,
                                         contentDescription = "Export Transactions",
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -736,7 +737,7 @@ fun CashiroNavHost(
                             contentColor = fabContentColor,
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = Icons.Rounded.Add,
                                 contentDescription = "Add Transaction or Subscription",
                                 modifier = Modifier.size(24.dp)
                             )

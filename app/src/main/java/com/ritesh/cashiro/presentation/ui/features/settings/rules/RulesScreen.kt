@@ -16,13 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -65,6 +63,9 @@ import com.ritesh.cashiro.presentation.ui.components.RulesDeleteDialog
 import com.ritesh.cashiro.presentation.ui.components.RulesResetDialog
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.History
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import dev.chrisbanes.haze.HazeState
@@ -116,7 +117,7 @@ fun RulesScreen(
                         modifier = Modifier.padding(end = 16.dp)
                     ) {
                         Icon(
-                            Icons.Default.Refresh,
+                            Icons.Rounded.Refresh,
                             contentDescription = "Reset to defaults"
                         )
                     }
@@ -140,7 +141,7 @@ fun RulesScreen(
                 onClick = onNavigateToCreateRule,
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Create Rule")
+                Icon(Icons.Rounded.Add, contentDescription = "Create Rule")
             }
         }
     ) { paddingValues ->
@@ -188,7 +189,7 @@ fun RulesScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.AutoAwesome,
+                            Icons.Rounded.AutoAwesome,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -367,7 +368,7 @@ private fun RuleCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.Info,
+                            Icons.Rounded.Info,
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.primary
@@ -404,7 +405,7 @@ private fun RuleCard(
                             onClick = { showActionsMenu = true }
                         ) {
                             Icon(
-                                Icons.Default.MoreVert,
+                                Icons.Rounded.MoreVert,
                                 contentDescription = "More actions"
                             )
                         }
@@ -429,7 +430,10 @@ private fun RuleCard(
                             DropdownMenuItem(
                                 text = { Text("Apply to Past Transactions") },
                                 leadingIcon = {
-                                    Icon(Icons.Default.History, contentDescription = null)
+                                    Icon(
+                                        Iconax.History,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp))
                                 },
                                 onClick = {
                                     showActionsMenu = false
@@ -458,7 +462,7 @@ private fun RuleCard(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = Icons.Default.Delete,
+                                            imageVector = Iconax.Bag,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.onErrorContainer
                                         )

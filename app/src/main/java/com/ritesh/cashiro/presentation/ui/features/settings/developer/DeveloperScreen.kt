@@ -41,6 +41,10 @@ import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.features.settings.SettingsViewModel
+import com.ritesh.cashiro.presentation.ui.icons.CodeCircle
+import com.ritesh.cashiro.presentation.ui.icons.Glass
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.NotificationBing
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.grey_dark
 import com.ritesh.cashiro.presentation.ui.theme.grey_light
@@ -124,7 +128,7 @@ fun DeveloperScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.DeveloperMode,
+                                Iconax.CodeCircle,
                                 contentDescription = null,
                                 tint = grey_dark
                             )
@@ -151,7 +155,7 @@ fun DeveloperScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Default.NotificationsActive,
+                                Iconax.NotificationBing,
                                 contentDescription = null,
                                 tint = grey_dark
                             )
@@ -183,7 +187,7 @@ fun DeveloperScreen(
                                 )
                             } else {
                                 Icon(
-                                    Icons.Default.Science,
+                                    Iconax.Glass,
                                     contentDescription = null,
                                     tint = grey_dark
                                 )

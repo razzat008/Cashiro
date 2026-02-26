@@ -16,6 +16,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -39,28 +40,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EventRepeat
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -122,6 +112,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -156,6 +147,17 @@ import com.ritesh.cashiro.presentation.ui.components.PreferenceSwitch
 import com.ritesh.cashiro.presentation.ui.components.TimePicker
 import com.ritesh.cashiro.presentation.ui.features.accounts.NumberPad
 import com.ritesh.cashiro.presentation.ui.features.add.AmountInput
+import com.ritesh.cashiro.presentation.ui.icons.ArrowLeft02
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Box2
+import com.ritesh.cashiro.presentation.ui.icons.Calendar
+import com.ritesh.cashiro.presentation.ui.icons.Card
+import com.ritesh.cashiro.presentation.ui.icons.DocumentText2
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Messages
+import com.ritesh.cashiro.presentation.ui.icons.VideoTime
+import com.ritesh.cashiro.presentation.ui.icons.Wallet3
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
@@ -295,7 +297,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     ) {
                         Icon(
-                            imageVector = Icons.Default.BugReport,
+                            imageVector = Icons.Rounded.BugReport,
                             contentDescription = "Report Issue"
                         )
                     }
@@ -342,7 +344,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                                 )
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Edit,
+                                    imageVector = Iconax.Edit2,
                                     contentDescription = "Edit",
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -443,7 +445,7 @@ fun SharedTransitionScope.TransactionDetailScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Delete,
+                                imageVector = Iconax.Bag,
                                 contentDescription = "Delete Transaction",
                                 modifier = Modifier.size(Dimensions.Icon.small)
                             )
@@ -574,7 +576,7 @@ private fun TransactionNavigationContent(
             )
         ) {
             Icon(
-                imageVector = if (isEditMode) Icons.Default.Close else Icons.Rounded.ArrowBackIosNew,
+                imageVector = if (isEditMode) Icons.Rounded.Close else Iconax.ArrowLeft02,
                 contentDescription = if (isEditMode) "Cancel" else "Back",
                 modifier = Modifier.size(18.dp)
             )
@@ -754,7 +756,7 @@ private fun SmsBodyCard(smsBody: String) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.AutoMirrored.Filled.Chat,
+                    Iconax.Messages,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
@@ -837,8 +839,8 @@ private fun EditableTransactionHeader(
                                         imageVector = when (type) {
                                             TransactionType.INCOME -> Icons.AutoMirrored.Filled.TrendingUp
                                             TransactionType.EXPENSE -> Icons.AutoMirrored.Filled.TrendingDown
-                                            TransactionType.CREDIT -> Icons.Default.CreditCard
-                                            TransactionType.TRANSFER -> Icons.Default.SwapHoriz
+                                            TransactionType.CREDIT -> Iconax.Card
+                                            TransactionType.TRANSFER -> Icons.Rounded.SwapHoriz
                                             TransactionType.INVESTMENT -> Icons.AutoMirrored.Filled.ShowChart
                                         },
                                         contentDescription = null,
@@ -927,7 +929,7 @@ private fun EditableTransactionHeader(
                     ),
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Description,
+                            Iconax.DocumentText2,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )
@@ -1052,7 +1054,7 @@ private fun EditableExtractedInfoCard(
                                     }
 
                                     Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        imageVector = Icons.Rounded.KeyboardArrowDown,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -1106,7 +1108,7 @@ private fun EditableExtractedInfoCard(
                                     }
 
                                     Icon(
-                                        imageVector = Icons.Default.KeyboardArrowDown,
+                                        imageVector = Icons.Rounded.KeyboardArrowDown,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -1130,7 +1132,7 @@ private fun EditableExtractedInfoCard(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.SwapVert,
+                                    imageVector = Icons.Rounded.SwapVert,
                                     contentDescription = "Transfer",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp)
@@ -1203,7 +1205,7 @@ private fun EditableExtractedInfoCard(
                             }
 
                             Icon(
-                                imageVector = Icons.Default.KeyboardArrowDown,
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1271,7 +1273,7 @@ private fun EditableExtractedInfoCard(
                 onCheckedChange = { viewModel.updateRecurringStatus(it) },
                 leadingIcon = {
                     Icon(
-                        Icons.Default.EventRepeat,
+                        Iconax.VideoTime,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -1300,7 +1302,7 @@ private fun EditableExtractedInfoCard(
                             label = { Text("Billing Cycle", fontWeight = FontWeight.SemiBold) },
                             leadingIcon = {
                                 Icon(
-                                    Icons.Default.Repeat,
+                                    Iconax.VideoTime,
                                     contentDescription = null,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -1398,11 +1400,11 @@ private fun CategoryDropdown(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Icon(Icons.Default.Category, contentDescription = null)
+                    Icon(Iconax.Box2, contentDescription = null)
                 }
             },
             trailingIcon = {
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null)
             },
             enabled = false, // Disable typing, handle click above
             colors = TextFieldDefaults.colors(
@@ -1516,28 +1518,43 @@ private fun DateTimeField(
             contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier.padding(vertical = 10.dp),
+                modifier = Modifier.padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 val themeColors = MaterialTheme.colorScheme
                 Icon(
-                    imageVector = Icons.Default.CalendarToday,
+                    imageVector = Iconax.Calendar,
                     contentDescription = "Date Picker",
-                    modifier = Modifier.size(16.dp),
                     tint = themeColors.onSurface
                 )
                 Spacer(Modifier.size(8.dp))
 
                 val dateLabel =
-                    dateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
-                Text(
-                    text = dateLabel,
-                    textAlign = TextAlign.Center,
-                    fontSize = 16.sp,
-                    color = themeColors.onSurface,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                    dateTime.format(DateTimeFormatter.ofPattern("dd MMMM"))
+                val yearLabel =
+                    dateTime.format(DateTimeFormatter.ofPattern("yyyy"))
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = yearLabel,
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Start,
+                        color = themeColors.primary,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = dateLabel,
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Start,
+                        color = themeColors.onSurface,
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.basicMarquee()
+                    )
+                }
             }
         }
 
@@ -1918,7 +1935,7 @@ private fun TransactionReceipt(
                             value = CurrencyFormatter.formatCurrency(it, primaryCurrency),
                             icon = {
                                 Icon(
-                                    imageVector = Icons.Default.AccountBalanceWallet,
+                                    imageVector = Iconax.Wallet3,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
                                     tint = MaterialTheme.colorScheme.onSurface
@@ -1935,7 +1952,7 @@ private fun TransactionReceipt(
                             ),
                             icon = {
                                 Icon(
-                                    imageVector = Icons.Default.EventRepeat,
+                                    imageVector = Iconax.VideoTime,
                                     contentDescription = null,
                                     modifier = Modifier.size(16.dp),
                                     tint = MaterialTheme.colorScheme.onSurface
@@ -1973,7 +1990,7 @@ private fun TransactionReceipt(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                             Icon(
-                                imageVector = if (isDescriptionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                imageVector = if (isDescriptionExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -2029,7 +2046,7 @@ private fun TransactionReceipt(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                             Icon(
-                                imageVector = if (isSMSExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                imageVector = if (isSMSExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)

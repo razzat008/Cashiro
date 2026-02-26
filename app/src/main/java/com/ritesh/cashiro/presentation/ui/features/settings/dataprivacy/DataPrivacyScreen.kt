@@ -70,6 +70,11 @@ import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.components.toShape
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.features.settings.applock.AppLockViewModel
+import com.ritesh.cashiro.presentation.ui.icons.DirectboxReceive
+import com.ritesh.cashiro.presentation.ui.icons.DirectboxSend
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Information
+import com.ritesh.cashiro.presentation.ui.icons.Padlock
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.green_dark
@@ -222,7 +227,7 @@ fun DataPrivacyScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.Lock,
+                                    Iconax.Padlock,
                                     contentDescription = null,
                                     tint = green_dark
                                 )
@@ -281,7 +286,7 @@ fun DataPrivacyScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.Upload,
+                                    Iconax.DirectboxSend,
                                     contentDescription = null,
                                     tint = yellow_dark
                                 )
@@ -311,7 +316,7 @@ fun DataPrivacyScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Default.Download,
+                                    Iconax.DirectboxReceive,
                                     contentDescription = null,
                                     tint = green_dark
                                 )
@@ -373,7 +378,7 @@ fun DataPrivacyScreen(
                             horizontalArrangement = Arrangement.spacedBy(Spacing.md)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Info,
+                                imageVector = Iconax.Information,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.size(24.dp)

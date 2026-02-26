@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Danger
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.LocalBlurEffects
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
@@ -54,7 +55,7 @@ fun DeleteTransactionDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                imageVector = Icons.Default.Delete,
+                imageVector = Iconax.Bag,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error
             )
@@ -166,7 +167,7 @@ fun DeleteMultipleTransactionsDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                imageVector = Icons.Default.Delete,
+                imageVector = Iconax.Bag,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error
             )
@@ -278,7 +279,7 @@ fun DeleteAccountDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                Icons.Default.Warning,
+                Iconax.Danger,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error
             )
@@ -448,7 +449,7 @@ fun DeleteCategoryDialog(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close,
+                            imageVector = Icons.Rounded.Close,
                             contentDescription = "Cancel",
                             modifier = Modifier.size(18.dp)
                         )
@@ -604,7 +605,7 @@ fun DeleteBudgetDialog(
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+        icon = { Icon(Iconax.Danger, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
         title = { Text("Delete Budget?") },
         text = { Text("Are you sure you want to delete this budget? This action cannot be undone.") },
         confirmButton = {
@@ -698,7 +699,7 @@ fun DeleteAIModelDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                Icons.Default.Warning,
+                Iconax.Danger,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error
             )
@@ -803,7 +804,7 @@ fun DeleteSubscriptionDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                Icons.Default.Delete,
+                Iconax.Bag,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error
             )
@@ -812,6 +813,111 @@ fun DeleteSubscriptionDialog(
         text = {
             Text(
                 text = "Are you sure you want to delete '$subscriptionName'? This will permanently remove it from your subscriptions list.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalArrangement = Arrangement.spacedBy(1.5.dp),
+                ) {
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(0.5f),
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = Dimensions.Radius.xxl,
+                            topEnd = Dimensions.Radius.xs,
+                            bottomStart = Dimensions.Radius.xxl,
+                            bottomEnd = Dimensions.Radius.xs
+                        ),
+                        modifier = Modifier
+                            .padding(start = Spacing.xl)
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Cancel",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    Button(
+                        onClick = onDelete,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = Dimensions.Radius.xs,
+                            topEnd = Dimensions.Radius.xxl,
+                            bottomStart = Dimensions.Radius.xs,
+                            bottomEnd = Dimensions.Radius.xxl
+                        ),
+                        modifier = Modifier
+                            .padding(end = Spacing.xl)
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Delete",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+            }
+        },
+        containerColor = if (blurEffects) MaterialTheme.colorScheme.surfaceContainerLow.copy(0.5f)
+        else MaterialTheme.colorScheme.surfaceContainerLow,
+        dismissButton = {},
+        modifier = Modifier
+            .clip(RoundedCornerShape(Dimensions.Radius.md))
+            .then(
+                if (blurEffects) Modifier.hazeEffect(
+                    state = hazeState,
+                    block = fun HazeEffectScope.() {
+
+                        style = HazeDefaults.style(
+                            backgroundColor = Color.Transparent,
+                            tint = HazeDefaults.tint(containerColor),
+                            blurRadius = 20.dp,
+                            noiseFactor = -1f,
+                        )
+                        blurredEdgeTreatment = BlurredEdgeTreatment.Unbounded
+                    }
+                ) else Modifier
+            ),
+        shape = MaterialTheme.shapes.large
+    )
+}
+
+@OptIn(ExperimentalHazeApi::class)
+@Composable
+fun DeleteSubcategoryDialog(
+    subcategoryName: String,
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit,
+    blurEffects: Boolean = LocalBlurEffects.current,
+    hazeState: HazeState = remember { HazeState() },
+) {
+    val containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Iconax.Danger,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
+        title = { Text("Delete Subcategory?") },
+        text = {
+            Text(
+                text = "Are you sure you want to delete '$subcategoryName'? This action cannot be undone.",
                 style = MaterialTheme.typography.bodyMedium
             )
         },

@@ -29,6 +29,10 @@ import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 import coil3.compose.AsyncImage
 import com.ritesh.cashiro.R
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Notification
+import com.ritesh.cashiro.presentation.ui.icons.NotificationOutline
 
 @Composable
 fun GreetingCard(
@@ -113,10 +117,11 @@ fun GreetingCard(
                 }
             }
 
-            // Priority Logic:
-            // 1. If unread updates > 0 and (it's not the last day of month OR 50% chance)
-            // 2. If monthStatus is available
-            // 3. Greeting
+            /* Priority Logic:
+             1. If unread updates > 0 and (it's not the last day of month OR 50% chance)
+             2. If monthStatus is available
+             3. Greeting
+             */
             val showUpdates = unreadUpdatesCount > 0 && (monthStatus == null || Math.random() > 0.5)
             
             if (showUpdates) {
@@ -127,7 +132,7 @@ fun GreetingCard(
                     Text(
                         text = "$unreadUpdatesCount+ unread updates",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF4285F4) // Blue color from design
+                        color = Color(0xFF4285F4)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
@@ -152,7 +157,7 @@ fun GreetingCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Icon(
-                imageVector = Icons.Rounded.NotificationsNone,
+                imageVector = Iconax.NotificationOutline,
                 contentDescription = "Notifications",
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier

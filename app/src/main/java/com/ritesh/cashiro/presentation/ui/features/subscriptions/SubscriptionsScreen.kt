@@ -33,6 +33,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Subscriptions
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -85,6 +87,10 @@ import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.DeleteSubscriptionDialog
 import com.ritesh.cashiro.presentation.ui.components.LoadingCircle
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Calendar
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.VideoPlay
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.theme.expense_dark
@@ -312,7 +318,7 @@ private fun TotalSubscriptionsSummary(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Subscriptions,
+                        imageVector = Iconax.VideoPlay,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onTertiaryContainer,
                         modifier = Modifier.size(24.dp)
@@ -437,7 +443,7 @@ private fun SwipeableSubscriptionItem(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = Iconax.Bag,
                     contentDescription = "Hide",
                     tint = MaterialTheme.colorScheme.onError
                 )
@@ -520,7 +526,7 @@ private fun SwipeableSubscriptionItem(
                                     val daysUntilNext = ChronoUnit.DAYS.between(today, subscriptionDate)
                                 
                                     Icon(
-                                        imageVector = Icons.Default.CalendarToday,
+                                        imageVector = Iconax.Calendar,
                                         contentDescription = null,
                                         modifier = Modifier.size(14.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -744,7 +750,7 @@ private fun PaymentStatusBottomSheet(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (showSmsBody) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            imageVector = if (showSmsBody) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -785,7 +791,7 @@ private fun EmptySubscriptionsState() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.Subscriptions,
+                imageVector = Iconax.VideoPlay,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant

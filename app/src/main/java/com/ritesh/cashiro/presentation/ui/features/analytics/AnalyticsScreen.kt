@@ -34,16 +34,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.ShowChart
-import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.GridOn
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.CreditCard
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -91,6 +88,13 @@ import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.components.TransactionItem
 import com.ritesh.cashiro.presentation.ui.components.toShape
+import com.ritesh.cashiro.presentation.ui.icons.Chart2
+import com.ritesh.cashiro.presentation.ui.icons.Diagram
+import com.ritesh.cashiro.presentation.ui.icons.Grid2
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Menu
+import com.ritesh.cashiro.presentation.ui.icons.Status
+import com.ritesh.cashiro.presentation.ui.icons.StatusUp
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.utils.CurrencyFormatter
@@ -100,9 +104,9 @@ import dev.chrisbanes.haze.hazeSource
 import java.math.BigDecimal
 
 enum class ChartType(val icon: ImageVector, val label: String) {
-    LINE(Icons.AutoMirrored.Filled.ShowChart, "Line"),
-    BAR(Icons.Default.BarChart, "Bar"),
-    HEATMAP(Icons.Default.GridOn, "Heatmap")
+    LINE(Iconax.StatusUp, "Line"),
+    BAR(Iconax.Chart2, "Bar"),
+    HEATMAP(Iconax.Grid2, "Heatmap")
 }
 
 enum class BreakdownType {
@@ -512,9 +516,9 @@ fun SharedTransitionScope.AnalyticsScreen(
                                 }) {
                                     Icon(
                                         imageVector = if (selectedBreakdownType == BreakdownType.PIE) {
-                                            Icons.AutoMirrored.Filled.List
+                                            Iconax.Menu
                                         } else {
-                                            Icons.Default.PieChart
+                                            Iconax.Status
                                         },
                                         contentDescription = "Toggle View",
                                         tint = MaterialTheme.colorScheme.primary
@@ -681,27 +685,27 @@ fun SharedTransitionScope.AnalyticsScreen(
 private fun TypeFilterIcon(typeFilter: TransactionTypeFilter) {
     when (typeFilter) {
         TransactionTypeFilter.INCOME -> Icon(
-            Icons.AutoMirrored.Filled.TrendingUp,
+            Icons.AutoMirrored.Rounded.TrendingUp,
             contentDescription = null,
             modifier = Modifier.size(Dimensions.Icon.small)
         )
         TransactionTypeFilter.EXPENSE -> Icon(
-            Icons.AutoMirrored.Filled.TrendingDown,
+            Icons.AutoMirrored.Rounded.TrendingDown,
             contentDescription = null,
             modifier = Modifier.size(Dimensions.Icon.small)
         )
         TransactionTypeFilter.CREDIT -> Icon(
-            Icons.Default.CreditCard,
+            Icons.Rounded.CreditCard,
             contentDescription = null,
             modifier = Modifier.size(Dimensions.Icon.small)
         )
         TransactionTypeFilter.TRANSFER -> Icon(
-            Icons.Default.SwapHoriz,
+            Icons.Rounded.SwapHoriz,
             contentDescription = null,
             modifier = Modifier.size(Dimensions.Icon.small)
         )
         TransactionTypeFilter.INVESTMENT -> Icon(
-            Icons.AutoMirrored.Filled.ShowChart,
+            Icons.AutoMirrored.Rounded.ShowChart,
             contentDescription = null,
             modifier = Modifier.size(Dimensions.Icon.small)
         )
@@ -819,7 +823,7 @@ private fun EmptyAnalyticsState(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.BarChart,
+                    imageVector = Icons.Rounded.BarChart,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant

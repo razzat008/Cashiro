@@ -10,6 +10,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.AccountBalance
+import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +39,11 @@ import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
 import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.toShape
+import com.ritesh.cashiro.presentation.ui.icons.AiCommentary
+import com.ritesh.cashiro.presentation.ui.icons.ExportArrow02
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Messages
+import com.ritesh.cashiro.presentation.ui.icons.SecuritySafe
 
 data class FAQItem(
     val question: String,
@@ -58,7 +68,7 @@ fun FAQScreen(
         listOf(
             FAQCategory(
                 title = "Transaction Types",
-                icon = { Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                icon = { Icon(Icons.Rounded.SwapHoriz, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 items = listOf(
                     FAQItem(
                         question = "Why are wallet transactions marked as Credit?",
@@ -80,7 +90,7 @@ fun FAQScreen(
             ),
             FAQCategory(
                 title = "SMS Parsing",
-                icon = { Icon(Icons.AutoMirrored.Filled.Message, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                icon = { Icon(Iconax.Messages, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 items = listOf(
                     FAQItem(
                         question = "Why aren't my bank SMS being detected?",
@@ -98,7 +108,7 @@ fun FAQScreen(
             ),
             FAQCategory(
                 title = "Privacy & Data",
-                icon = { Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                icon = { Icon(Iconax.SecuritySafe, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 items = listOf(
                     FAQItem(
                         question = "Is my financial data secure?",
@@ -116,7 +126,7 @@ fun FAQScreen(
             ),
             FAQCategory(
                 title = "AI Features",
-                icon = { Icon(Icons.Default.Psychology, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                icon = { Icon(Iconax.AiCommentary, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 items = listOf(
                     FAQItem(
                         question = "Why do I need to download the AI model?",
@@ -130,7 +140,7 @@ fun FAQScreen(
             ),
             FAQCategory(
                 title = "Account Management",
-                icon = { Icon(Icons.Default.AccountBalance, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                icon = { Icon(Icons.Rounded.AccountBalance, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 items = listOf(
                     FAQItem(
                         question = "What are manual accounts?",
@@ -223,7 +233,7 @@ fun FAQScreen(
                                             }
 
                                             Icon(
-                                                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                                imageVector = if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                                 contentDescription = if (isExpanded) "Collapse" else "Expand",
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -296,7 +306,7 @@ fun FAQScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             Icon(
-                                Icons.Default.BugReport,
+                                Icons.Rounded.BugReport,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary
                             )
@@ -314,7 +324,7 @@ fun FAQScreen(
                             }
                         }
                         Icon(
-                            Icons.AutoMirrored.Filled.OpenInNew,
+                            Iconax.ExportArrow02,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant

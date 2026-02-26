@@ -29,6 +29,10 @@ import com.ritesh.cashiro.presentation.effects.BlurredAnimatedVisibility
 import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
 import com.ritesh.cashiro.presentation.ui.components.SearchBarBox
+import com.ritesh.cashiro.presentation.ui.icons.CloseCircle
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Information
+import com.ritesh.cashiro.presentation.ui.icons.Search
 import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import kotlinx.coroutines.launch
 
@@ -88,26 +92,26 @@ fun CurrencyBottomSheet(
                         label = { Text("Search currencies...") },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Default.Search,
+                                imageVector = Iconax.Search,
                                 contentDescription = "Search",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                             )
                         },
                         trailingIcon = {
                             if (searchQuery.text.isNotEmpty()) {
                                 IconButton(onClick = { searchQuery = TextFieldValue("") }) {
                                     Icon(
-                                        imageVector = Icons.Default.Close,
+                                        imageVector = Iconax.CloseCircle,
                                         contentDescription = "Clear",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                                     )
                                 }
                             } else {
                                 IconButton(onClick = { showExchangeRateInfo = true }) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Info,
+                                        imageVector = Iconax.Information,
                                         contentDescription = "Info",
-                                        tint = MaterialTheme.colorScheme.inverseSurface.copy(0.5f),
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
