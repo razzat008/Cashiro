@@ -85,6 +85,7 @@ import com.ritesh.cashiro.presentation.ui.features.profile.ProfileCardPreview
 import com.ritesh.cashiro.presentation.ui.icons.Edit2
 import com.ritesh.cashiro.presentation.ui.icons.HierarchySquare3
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Information
 import com.ritesh.cashiro.presentation.ui.icons.Messages
 import com.ritesh.cashiro.presentation.ui.icons.Wallet3
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -472,17 +473,30 @@ fun SyncStep(
         } else {
             Button(
                 onClick = onStartScan,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(Dimensions.Radius.md)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(
+                    topStart = Dimensions.Radius.md,
+                    topEnd = Dimensions.Radius.md,
+                    bottomStart = Dimensions.Radius.xs,
+                    bottomEnd = Dimensions.Radius.xs,)
             ) {
                 Text("Scan Messages Now")
             }
 
-            Spacer(modifier = Modifier.height(Spacing.md))
+            Spacer(modifier = Modifier.height(2.dp))
 
-            TextButton(
+            Button(
                 onClick = onSkip,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(
+                    bottomStart = Dimensions.Radius.md,
+                    bottomEnd = Dimensions.Radius.md,
+                    topStart = Dimensions.Radius.xs,
+                    topEnd = Dimensions.Radius.xs,),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Text("Skip for Now")
             }
@@ -514,7 +528,11 @@ fun AccountSetupStep(
         Spacer(modifier = Modifier.height(Spacing.sm))
 
         Text(
-            text = "We found multiple accounts. Select your main account and merge any duplicates.",
+            text = if (accounts.size > 1) {
+                "We found ${accounts.size} accounts. Select your main account and merge any duplicates."
+            } else {
+                "We found your account. Ensure it's set as main to start tracking."
+            },
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -523,7 +541,7 @@ fun AccountSetupStep(
         Spacer(modifier = Modifier.height(Spacing.lg))
 
         LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
+            modifier = Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(28.dp)),
             verticalArrangement = Arrangement.spacedBy(Spacing.md),
             contentPadding = PaddingValues(bottom = Spacing.xl)
         ) {
@@ -596,7 +614,7 @@ fun AccountSetupStep(
                             val targetAccount = accounts.find { "${it.bankName}_${it.accountLast4}" == targetKey }
                             targetAccount?.let { onMerge(it) }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -605,6 +623,35 @@ fun AccountSetupStep(
                         Icon(Iconax.HierarchySquare3, contentDescription = null)
                         Spacer(modifier = Modifier.width(Spacing.sm))
                         Text("Merge Selected Accounts")
+                    }
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(Spacing.md))
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(Spacing.md),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Iconax.Information,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(Spacing.sm))
+                        Text(
+                            text = "A Main account is the default account selected for your manual transaction entries.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

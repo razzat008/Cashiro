@@ -56,16 +56,12 @@ fun CashiroApp(
         }
     }
 
-    // Determine initial destination based on app lock and permissions
-    val startDestination = remember {
-        val hasSmsPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.READ_SMS
-        ) == PackageManager.PERMISSION_GRANTED
+    // Only render the app once the theme state is loaded
+    if (!themeUiState.isLoaded) return
 
-        // Note: We can't check app lock or hasSkippedPermission here because they're async from DataStore
-        // App lock will be checked after initial load via LaunchedEffect
-        if (hasSmsPermission) Home else OnBoarding
+    // Determine initial destination based on persisted onboarding status
+    val startDestination = remember {
+        if (themeUiState.isOnboardingFinished) Home else OnBoarding
     }
 
     // Observe lock state changes and navigate to lock screen if needed

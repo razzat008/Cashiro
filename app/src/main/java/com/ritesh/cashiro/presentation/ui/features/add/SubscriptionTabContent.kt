@@ -46,6 +46,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -254,9 +255,13 @@ fun SubscriptionTabContent(
 
                     ExposedDropdownMenu(
                         expanded = showBillingCycleMenu,
-                        onDismissRequest = { showBillingCycleMenu = false }
+                        onDismissRequest = { showBillingCycleMenu = false },
+                        shape = MaterialTheme.shapes.large,
                     ) {
-                        billingCycles.forEach { cycle ->
+                        billingCycles.forEachIndexed { index, cycle ->
+                            val isFirstItem = index == 0
+                            val isLastItem = index == billingCycles.lastIndex
+                            val isMiddleItem = !isFirstItem && !isLastItem
                             DropdownMenuItem(
                                 text = { Text(cycle) },
                                 onClick = {
@@ -264,6 +269,13 @@ fun SubscriptionTabContent(
                                     showBillingCycleMenu = false
                                 }
                             )
+                            // Add a Spacer for middle items
+                            if (isMiddleItem || (isFirstItem && billingCycles.size > 2) ) {
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface
+                                )
+                            }
                         }
                     }
                 }

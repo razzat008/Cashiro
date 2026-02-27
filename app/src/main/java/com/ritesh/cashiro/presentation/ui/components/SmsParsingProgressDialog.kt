@@ -19,8 +19,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +49,9 @@ import dev.chrisbanes.haze.HazeEffectScope
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun SmsParsingProgressDialog(
     modifier: Modifier = Modifier,
@@ -110,12 +114,11 @@ fun SmsParsingProgressDialog(
                         val progress = workInfo.progress.getInt(OptimizedSmsReaderWorker.PROGRESS_PROCESSED, 0).toFloat() /
                                 workInfo.progress.getInt(OptimizedSmsReaderWorker.PROGRESS_TOTAL, 1).toFloat()
 
-                        LinearProgressIndicator(
+                        LinearWavyProgressIndicator(
                             progress = { progress },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(8.dp),
-                            strokeCap = StrokeCap.Round
                         )
                     }
 
@@ -357,6 +360,7 @@ private fun formatDuration(milliseconds: Long): String {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SmsParsingProgressIndicator(
     workInfo: WorkInfo?,
@@ -372,12 +376,11 @@ fun SmsParsingProgressIndicator(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                LinearProgressIndicator(
+                LinearWavyProgressIndicator(
                     progress = { processedMessages.toFloat() / totalMessages.toFloat() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(4.dp),
-                    strokeCap = StrokeCap.Round
                 )
 
                 Text(

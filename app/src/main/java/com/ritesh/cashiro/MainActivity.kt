@@ -53,9 +53,14 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install splash screen before super.onCreate()
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
 
         super.onCreate(savedInstanceState)
+        
+        // Keep the splash screen on-screen until the theme settings are loaded
+        splashScreen.setKeepOnScreenCondition {
+            !themeViewModel.themeUiState.value.isLoaded
+        }
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false

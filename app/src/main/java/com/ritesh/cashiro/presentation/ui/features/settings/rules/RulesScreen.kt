@@ -31,6 +31,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -423,8 +424,7 @@ private fun RuleCard(
                         DropdownMenu(
                             expanded = showActionsMenu,
                             onDismissRequest = { showActionsMenu = false },
-                            containerColor = Color.Transparent,
-                            shadowElevation = 0.dp
+                            shape = MaterialTheme.shapes.large
                         ) {
                              // Edit rule
                             DropdownMenuItem(
@@ -440,17 +440,11 @@ private fun RuleCard(
                                     showActionsMenu = false
                                     onEdit()
                                 },
-                                colors = MenuDefaults.itemColors(
-                                    textColor = MaterialTheme.colorScheme.onSurface
-                                ),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(Dimensions.Radius.xs))
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceContainer,
-                                        RoundedCornerShape(Dimensions.Radius.xs)
-                                    )
                             )
-                            Spacer(Modifier.height(1.5.dp))
+                            HorizontalDivider(
+                                thickness = 1.5.dp,
+                                color = MaterialTheme.colorScheme.surface
+                            )
 
                             // Apply to past transactions
                             DropdownMenuItem(
@@ -465,56 +459,35 @@ private fun RuleCard(
                                     showActionsMenu = false
                                     onApplyToPast()
                                 },
-                                colors = MenuDefaults.itemColors(
-                                    textColor = MaterialTheme.colorScheme.onSurface
-                                ),
-                                modifier = Modifier
-                                    .clip(if (rule.isSystemTemplate) RoundedCornerShape(topStart = Dimensions.Radius.xs, topEnd = Dimensions.Radius.xs, bottomStart = Dimensions.Radius.xl, bottomEnd = Dimensions.Radius.xl) else RoundedCornerShape(Dimensions.Radius.xs))
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceContainer,
-                                        if (rule.isSystemTemplate) RoundedCornerShape(topStart = Dimensions.Radius.xs, topEnd = Dimensions.Radius.xs, bottomStart = Dimensions.Radius.xl, bottomEnd = Dimensions.Radius.xl) else RoundedCornerShape(Dimensions.Radius.xs)
-                                    )
                             )
-                            Spacer(Modifier.height(1.5.dp))
+
 
                             // Only show delete for custom rules
                             if (!rule.isSystemTemplate) {
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface
+                                )
                                 DropdownMenuItem(
                                     text = {
                                         Text(
                                             text = "Delete",
-                                            color = MaterialTheme.colorScheme.onErrorContainer
                                         )
                                     },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Iconax.Bag,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onErrorContainer
                                         )
                                     },
                                     onClick = {
                                         showActionsMenu = false
                                         showDeleteDialog = true
                                     },
-                                    modifier = Modifier
-                                        .clip(
-                                            RoundedCornerShape(
-                                                topStart = Dimensions.Radius.xs,
-                                                topEnd = Dimensions.Radius.xs,
-                                                bottomStart = Dimensions.Radius.md,
-                                                bottomEnd = Dimensions.Radius.md
-                                            )
-                                        )
-                                        .background(
-                                            MaterialTheme.colorScheme.errorContainer,
-                                            RoundedCornerShape(
-                                                topStart = Dimensions.Radius.xs,
-                                                topEnd = Dimensions.Radius.xs,
-                                                bottomStart = Dimensions.Radius.md,
-                                                bottomEnd = Dimensions.Radius.md
-                                            )
-                                        )
+                                    colors = MenuDefaults.itemColors(
+                                        textColor = MaterialTheme.colorScheme.error,
+                                        leadingIconColor = MaterialTheme.colorScheme.error,
+                                    )
                                 )
                             }
                         }

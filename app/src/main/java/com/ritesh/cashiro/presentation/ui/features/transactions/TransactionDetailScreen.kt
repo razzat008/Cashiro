@@ -65,6 +65,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -1329,9 +1330,13 @@ private fun EditableExtractedInfoCard(
 
                         ExposedDropdownMenu(
                             expanded = showBillingCycleMenu,
-                            onDismissRequest = { onBillingCycleMenuChange(false) }
+                            onDismissRequest = { onBillingCycleMenuChange(false) },
+                            shape = MaterialTheme.shapes.large
                         ) {
-                            billingCycles.forEach { cycle ->
+                            billingCycles.forEachIndexed { index, cycle ->
+                                val isFirstItem = index == 0
+                                val isLastItem = index == billingCycles.lastIndex
+                                val isMiddleItem = !isFirstItem && !isLastItem
                                 DropdownMenuItem(
                                     text = { Text(cycle) },
                                     onClick = {
@@ -1339,6 +1344,13 @@ private fun EditableExtractedInfoCard(
                                         onBillingCycleMenuChange(false)
                                     }
                                 )
+                                // Add a Spacer for middle items
+                                if (isMiddleItem || (isFirstItem && billingCycles.size > 2) ) {
+                                    HorizontalDivider(
+                                        thickness = 1.5.dp,
+                                        color = MaterialTheme.colorScheme.surface
+                                    )
+                                }
                             }
                         }
                     }

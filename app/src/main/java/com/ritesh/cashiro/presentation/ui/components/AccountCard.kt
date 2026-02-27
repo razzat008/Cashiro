@@ -23,6 +23,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -136,9 +137,6 @@ fun AccountCard(
                                 expanded = showMenu,
                                 onDismissRequest = { showMenu = false },
                                 shape = MaterialTheme.shapes.large,
-                                containerColor = Color.Transparent,
-                                shadowElevation = 0.dp,
-                                modifier = Modifier.padding(8.dp)
                             ) {
                                 DropdownMenuItem(
                                     text = { Text("Update Balance") },
@@ -153,28 +151,12 @@ fun AccountCard(
                                         showMenu = false
                                         onUpdateBalance()
                                     },
-                                    modifier = Modifier
-                                        .shadow(
-                                            elevation = 2.dp,
-                                            shape = RoundedCornerShape(
-                                                topStart = 16.dp,
-                                                topEnd = 16.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceContainer,
-                                            shape = RoundedCornerShape(
-                                                topStart = 16.dp,
-                                                topEnd = 16.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
                                 )
 
-                                Spacer(modifier = Modifier.height(1.5.dp))
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface
+                                )
                                 DropdownMenuItem(
                                     text = { Text("Edit Details") },
                                     leadingIcon = {
@@ -187,29 +169,13 @@ fun AccountCard(
                                         showMenu = false
                                         onEditAccount()
                                     },
-                                    modifier = Modifier
-                                        .shadow(
-                                            elevation = 2.dp,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceContainer,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
                                 )
 
                                 if (onMergeAccount != null) {
-                                    Spacer(modifier = Modifier.height(1.5.dp))
+                                    HorizontalDivider(
+                                        thickness = 1.5.dp,
+                                        color = MaterialTheme.colorScheme.surface
+                                    )
                                     DropdownMenuItem(
                                         text = { Text("Merge Account") },
                                         leadingIcon = {
@@ -222,29 +188,13 @@ fun AccountCard(
                                             showMenu = false
                                             onMergeAccount()
                                         },
-                                        modifier = Modifier
-                                            .shadow(
-                                                elevation = 2.dp,
-                                                shape = RoundedCornerShape(
-                                                    topStart = 4.dp,
-                                                    topEnd = 4.dp,
-                                                    bottomStart = 4.dp,
-                                                    bottomEnd = 4.dp
-                                                )
-                                            )
-                                            .background(
-                                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                                shape = RoundedCornerShape(
-                                                    topStart = 4.dp,
-                                                    topEnd = 4.dp,
-                                                    bottomStart = 4.dp,
-                                                    bottomEnd = 4.dp
-                                                )
-                                            )
                                     )
                                 }
 
-                                Spacer(modifier = Modifier.height(1.5.dp))
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface
+                                )
                                 DropdownMenuItem(
                                     text = { Text("History") },
                                     leadingIcon = {
@@ -258,28 +208,12 @@ fun AccountCard(
                                         showMenu = false
                                         onViewHistory()
                                     },
-                                    modifier = Modifier
-                                        .shadow(
-                                            elevation = 2.dp,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceContainer,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
                                 )
 
-                                Spacer(modifier = Modifier.height(1.5.dp))
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface
+                                )
                                 DropdownMenuItem(
                                     text = {
                                         Text(
@@ -300,27 +234,11 @@ fun AccountCard(
                                         showMenu = false
                                         onToggleVisibility()
                                     },
-                                    modifier = Modifier
-                                        .shadow(
-                                            elevation = 2.dp,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceContainer,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 4.dp,
-                                                bottomEnd = 4.dp
-                                            )
-                                        )
                                 )
-                                Spacer(modifier = Modifier.height(1.5.dp))
+                                HorizontalDivider(
+                                    thickness = 1.5.dp,
+                                    color = MaterialTheme.colorScheme.surface
+                                )
                                 if (!isMain) {
                                     DropdownMenuItem(
                                         text = { Text("Set as Main") },
@@ -335,65 +253,30 @@ fun AccountCard(
                                             showMenu = false
                                             onSetAsMain()
                                         },
-                                        modifier = Modifier
-                                            .shadow(
-                                                elevation = 2.dp,
-                                                shape = RoundedCornerShape(
-                                                    topStart = 4.dp,
-                                                    topEnd = 4.dp,
-                                                    bottomStart = 4.dp,
-                                                    bottomEnd = 4.dp
-                                                )
-                                            )
-                                            .background(
-                                                color = MaterialTheme.colorScheme.surfaceContainer,
-                                                shape = RoundedCornerShape(
-                                                    topStart = 4.dp,
-                                                    topEnd = 4.dp,
-                                                    bottomStart = 4.dp,
-                                                    bottomEnd = 4.dp
-                                                )
-                                            )
                                     )
-                                    Spacer(modifier = Modifier.height(1.5.dp))
+                                    HorizontalDivider(
+                                        thickness = 1.5.dp,
+                                        color = MaterialTheme.colorScheme.surface
+                                    )
                                 }
                                 DropdownMenuItem(
                                     text = {
                                         Text(
                                             "Delete",
-                                            color = MaterialTheme.colorScheme.onErrorContainer
+                                            color = MaterialTheme.colorScheme.error
                                         )
                                     },
                                     leadingIcon = {
                                         Icon(
                                             Iconax.Bag,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                            tint = MaterialTheme.colorScheme.error
                                         )
                                     },
                                     onClick = {
                                         showMenu = false
                                         onDeleteAccount()
                                     },
-                                    modifier = Modifier
-                                        .shadow(
-                                            elevation = 2.dp,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 16.dp,
-                                                bottomEnd = 16.dp
-                                            )
-                                        )
-                                        .background(
-                                            color = MaterialTheme.colorScheme.errorContainer,
-                                            shape = RoundedCornerShape(
-                                                topStart = 4.dp,
-                                                topEnd = 4.dp,
-                                                bottomStart = 16.dp,
-                                                bottomEnd = 16.dp
-                                            )
-                                        )
                                 )
                             }
                         }

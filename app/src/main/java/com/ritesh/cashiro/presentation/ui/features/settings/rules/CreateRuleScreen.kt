@@ -40,6 +40,7 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -481,8 +482,7 @@ fun CreateRuleScreen(
                                                     this[index] = false
                                                 }
                                             },
-                                            containerColor = Color.Transparent,
-                                            shadowElevation = 0.dp
+                                            shape = MaterialTheme.shapes.large
                                         ) {
                                             val menuItems = listOf(
                                                 TransactionField.AMOUNT to "Amount",
@@ -498,22 +498,6 @@ fun CreateRuleScreen(
                                                 val isLastItem = i == menuItems.lastIndex
                                                 val isMiddleItem = !isFirstItem && !isLastItem
 
-                                                val shape = when {
-                                                    isFirstItem -> RoundedCornerShape(
-                                                        topStart = Dimensions.Radius.md,
-                                                        topEnd = Dimensions.Radius.md,
-                                                        bottomStart = Dimensions.Radius.xs,
-                                                        bottomEnd = Dimensions.Radius.xs
-                                                    )
-                                                    isLastItem -> RoundedCornerShape(
-                                                        topStart = Dimensions.Radius.xs,
-                                                        topEnd = Dimensions.Radius.xs,
-                                                        bottomStart = Dimensions.Radius.md,
-                                                        bottomEnd = Dimensions.Radius.md
-                                                    )
-                                                    else -> RoundedCornerShape(Dimensions.Radius.xs)
-                                                }
-
                                                 DropdownMenuItem(
                                                     text = { Text(label) },
                                                     onClick = {
@@ -524,11 +508,13 @@ fun CreateRuleScreen(
                                                             this[index] = false
                                                         }
                                                     },
-                                                    modifier = Modifier.background(color = MaterialTheme.colorScheme.surfaceContainer, shape = shape)
                                                 )
 
                                                 if (isMiddleItem || (isFirstItem && menuItems.size > 2)) {
-                                                    Spacer(modifier = Modifier.height(1.5.dp))
+                                                    HorizontalDivider(
+                                                        thickness = 1.5.dp,
+                                                        color = MaterialTheme.colorScheme.surface
+                                                    )
                                                 }
                                             }
                                         }
@@ -706,8 +692,7 @@ fun CreateRuleScreen(
                                 ExposedDropdownMenu(
                                     expanded = actionTypeDropdownExpanded,
                                     onDismissRequest = { actionTypeDropdownExpanded = false },
-                                    containerColor = Color.Transparent,
-                                    shadowElevation = 0.dp
+                                    shape = MaterialTheme.shapes.large
                                 ) {
                                     val menuItems = listOf(
                                         ActionType.BLOCK to "Block Transaction",
@@ -719,21 +704,6 @@ fun CreateRuleScreen(
                                         val isLastItem = index == menuItems.lastIndex
                                         val isMiddleItem = !isFirstItem && !isLastItem
 
-                                        val shape = when {
-                                            isFirstItem -> RoundedCornerShape(
-                                                topStart = Dimensions.Radius.md,
-                                                topEnd = Dimensions.Radius.md,
-                                                bottomStart = Dimensions.Radius.xs,
-                                                bottomEnd = Dimensions.Radius.xs
-                                            )
-                                            isLastItem -> RoundedCornerShape(
-                                                topStart = Dimensions.Radius.xs,
-                                                topEnd = Dimensions.Radius.xs,
-                                                bottomStart = Dimensions.Radius.md,
-                                                bottomEnd = Dimensions.Radius.md
-                                            )
-                                            else -> RoundedCornerShape(Dimensions.Radius.xs) // Middle items
-                                        }
                                         DropdownMenuItem(
                                             text = { Text(label) },
                                             onClick = {
@@ -743,12 +713,13 @@ fun CreateRuleScreen(
                                                     actionValue = "" // Clear value for BLOCK action
                                                 }
                                             },
-                                            modifier = Modifier
-                                                .background(color= MaterialTheme.colorScheme.surfaceContainer,shape = shape)
                                         )
                                         // Add a Spacer for middle items
                                         if (isMiddleItem || (isFirstItem && menuItems.size > 2) ) {
-                                            Spacer(modifier = Modifier.height(1.5.dp))
+                                            HorizontalDivider(
+                                                thickness = 1.5.dp,
+                                                color = MaterialTheme.colorScheme.surface
+                                            )
                                         }
                                     }
                                 }
@@ -825,8 +796,7 @@ fun CreateRuleScreen(
                                     ExposedDropdownMenu(
                                         expanded = actionFieldDropdownExpanded,
                                         onDismissRequest = { actionFieldDropdownExpanded = false },
-                                        containerColor = Color.Transparent,
-                                        shadowElevation = 0.dp
+                                        shape = MaterialTheme.shapes.large
                                     ) {
                                         val menuItems = listOf(
                                             TransactionField.CATEGORY to "Set Category",
@@ -840,21 +810,6 @@ fun CreateRuleScreen(
                                             val isLastItem = index == menuItems.lastIndex
                                             val isMiddleItem = !isFirstItem && !isLastItem
 
-                                            val shape = when {
-                                                isFirstItem -> RoundedCornerShape(
-                                                    topStart = Dimensions.Radius.md,
-                                                    topEnd = Dimensions.Radius.md,
-                                                    bottomStart = Dimensions.Radius.xs,
-                                                    bottomEnd = Dimensions.Radius.xs
-                                                )
-                                                isLastItem -> RoundedCornerShape(
-                                                    topStart = Dimensions.Radius.xs,
-                                                    topEnd = Dimensions.Radius.xs,
-                                                    bottomStart = Dimensions.Radius.md,
-                                                    bottomEnd = Dimensions.Radius.md
-                                                )
-                                                else -> RoundedCornerShape(Dimensions.Radius.xs) // Middle items
-                                            }
                                             DropdownMenuItem(
                                                 text = { Text(label) },
                                                 onClick = {
@@ -863,12 +818,13 @@ fun CreateRuleScreen(
                                                     actionValue =
                                                         "" // Reset value when changing field
                                                 },
-                                                modifier = Modifier
-                                                    .background(color= MaterialTheme.colorScheme.surfaceContainer,shape = shape)
                                             )
                                             // Add a Spacer for middle items
                                             if (isMiddleItem || (isFirstItem && menuItems.size > 2) ) {
-                                                Spacer(modifier = Modifier.height(1.5.dp))
+                                                HorizontalDivider(
+                                                    thickness = 1.5.dp,
+                                                    color = MaterialTheme.colorScheme.surface
+                                                )
                                             }
                                         }
                                     }

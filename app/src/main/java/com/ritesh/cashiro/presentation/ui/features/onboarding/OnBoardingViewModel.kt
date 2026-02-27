@@ -91,7 +91,11 @@ constructor(
 
     fun previousStep() {
         if (_uiState.value.currentStep > 1) {
-            _uiState.update { it.copy(currentStep = it.currentStep - 1) }
+            val prev = when (_uiState.value.currentStep) {
+                5, 6 -> 4
+                else -> _uiState.value.currentStep - 1
+            }
+            _uiState.update { it.copy(currentStep = prev) }
         }
     }
 
@@ -176,6 +180,12 @@ constructor(
         accountBalanceRepository.getAllLatestBalances()
             .onEach { accounts ->
                 _uiState.update { it.copy(accounts = accounts) }
+                
+                // If only one account exists and no main account is set, auto-set it
+                if (accounts.size == 1 && _uiState.value.mainAccountKey == null) {
+                    val account = accounts.first()
+                    setAsMainAccount(account.bankName, account.accountLast4)
+                }
             }
             .launchIn(viewModelScope)
     }

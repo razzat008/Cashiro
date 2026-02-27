@@ -34,13 +34,15 @@ class ThemeViewModel @Inject constructor(
                 accentColor = preferences.accentColor,
                 hideNavigationLabels = preferences.hideNavigationLabels,
                 hidePillIndicator = preferences.hidePillIndicator,
-                blurEffects = preferences.blurEffects
+                blurEffects = preferences.blurEffects,
+                isOnboardingFinished = preferences.hasShownScanTutorial,
+                isLoaded = true
             )
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ThemeUiState()
+            initialValue = ThemeUiState(isLoaded = false)
         )
 
     fun updateDarkTheme(enabled: Boolean?) {
@@ -115,5 +117,7 @@ data class ThemeUiState(
     val accentColor: AccentColor = AccentColor.BLUE,
     val hideNavigationLabels: Boolean = false,
     val hidePillIndicator: Boolean = false,
-    val blurEffects: Boolean = true
+    val blurEffects: Boolean = true,
+    val isOnboardingFinished: Boolean = false,
+    val isLoaded: Boolean = false
 )

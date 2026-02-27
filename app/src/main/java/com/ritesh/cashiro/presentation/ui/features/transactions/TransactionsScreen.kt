@@ -42,6 +42,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -465,9 +466,13 @@ fun SharedTransitionScope.TransactionsScreen(
 
                                 DropdownMenu(
                                     expanded = showSortMenu,
-                                    onDismissRequest = { showSortMenu = false }
+                                    onDismissRequest = { showSortMenu = false },
+                                    shape = MaterialTheme.shapes.large
                                 ) {
-                                    SortOption.entries.forEach { option ->
+                                    SortOption.entries.forEachIndexed { index, option ->
+                                        val isFirstItem = index == 0
+                                        val isLastItem = index == SortOption.entries.lastIndex
+                                        val isMiddleItem = !isFirstItem && !isLastItem
                                         DropdownMenuItem(
                                             text = {
                                                 Row(
@@ -488,6 +493,13 @@ fun SharedTransitionScope.TransactionsScreen(
                                                 showSortMenu = false
                                             }
                                         )
+                                        // Add a Spacer for middle items
+                                        if (isMiddleItem || (isFirstItem && SortOption.entries.size > 2) ) {
+                                            HorizontalDivider(
+                                                thickness = 1.5.dp,
+                                                color = MaterialTheme.colorScheme.surface
+                                            )
+                                        }
                                     }
                                 }
                             }
