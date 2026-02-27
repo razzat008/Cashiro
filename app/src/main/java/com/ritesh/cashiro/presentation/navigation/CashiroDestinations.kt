@@ -204,7 +204,7 @@ data class Transactions(
 
 @Serializable object Rules
 
-@Serializable object CreateRule
+@Serializable data class CreateRule(val ruleId: String? = null)
 
 @Serializable object Appearance
 

@@ -19,7 +19,7 @@ class RuleTemplateService @Inject constructor() {
         return TransactionRule(
             id = UUID.randomUUID().toString(),
             name = "Small Payments to Food",
-            description = "Categorize small expense payments (under ₹200) as Food & Dining",
+            description = "Categorize small expense payments (under ₹200) as Food & Drinks",
             priority = 100,
             conditions = listOf(
                 RuleCondition(
@@ -39,7 +39,7 @@ class RuleTemplateService @Inject constructor() {
                 RuleAction(
                     field = TransactionField.CATEGORY,
                     actionType = ActionType.SET,
-                    value = "Food & Dining"
+                    value = "Food & Drinks"
                 )
             ),
             isActive = false, // Users can enable this
@@ -151,7 +151,7 @@ class RuleTemplateService @Inject constructor() {
                 RuleAction(
                     field = TransactionField.CATEGORY,
                     actionType = ActionType.SET,
-                    value = "Housing"
+                    value = "Home"
                 )
             ),
             isActive = false
@@ -182,7 +182,7 @@ class RuleTemplateService @Inject constructor() {
                 RuleAction(
                     field = TransactionField.CATEGORY,
                     actionType = ActionType.SET,
-                    value = "Investments"
+                    value = "Investment"
                 )
             ),
             isActive = false
@@ -255,7 +255,7 @@ class RuleTemplateService @Inject constructor() {
                 RuleAction(
                     field = TransactionField.CATEGORY,
                     actionType = ActionType.SET,
-                    value = "Transfer"
+                    value = "Self Transfer"
                 )
             ),
             isActive = false
@@ -317,7 +317,7 @@ class RuleTemplateService @Inject constructor() {
                 RuleAction(
                     field = TransactionField.CATEGORY,
                     actionType = ActionType.SET,
-                    value = "Transportation"
+                    value = "Transport"
                 )
             ),
             isActive = false
@@ -348,7 +348,7 @@ class RuleTemplateService @Inject constructor() {
                 RuleAction(
                     field = TransactionField.CATEGORY,
                     actionType = ActionType.SET,
-                    value = "Healthcare"
+                    value = "Medical"
                 )
             ),
             isActive = false

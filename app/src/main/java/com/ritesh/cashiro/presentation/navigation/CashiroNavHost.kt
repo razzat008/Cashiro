@@ -426,7 +426,10 @@ fun CashiroNavHost(
                 ) {
                     RulesScreen(
                         onNavigateBack = { navController.safePopBackStack() },
-                        onNavigateToCreateRule = { navController.safeNavigate(CreateRule) },
+                        onNavigateToCreateRule = { navController.safeNavigate(CreateRule()) },
+                        onEditRule = { rule ->
+                            navController.safeNavigate(CreateRule(ruleId = rule.id))
+                        },
                         blurEffects = themeUiState.blurEffects
                     )
                 }
@@ -436,14 +439,25 @@ fun CashiroNavHost(
                     exitTransition = CashiroTransitions.horizontalSlideExit,
                     popEnterTransition = CashiroTransitions.horizontalSlidePopEnter,
                     popExitTransition = CashiroTransitions.horizontalSlidePopExit
-                ) {
+                ) { backStackEntry ->
+                    val createRuleRoute = backStackEntry.toRoute<CreateRule>()
                     val rulesViewModel: RulesViewModel = hiltViewModel()
+                    val rules by rulesViewModel.rules.collectAsState()
+                    val existingRule = remember(createRuleRoute.ruleId, rules) {
+                        rules.find { it.id == createRuleRoute.ruleId }
+                    }
+                    
                     CreateRuleScreen(
                         onNavigateBack = { navController.safePopBackStack() },
                         onSaveRule = { rule ->
-                            rulesViewModel.createRule(rule)
+                            if (createRuleRoute.ruleId != null) {
+                                rulesViewModel.updateRule(rule)
+                            } else {
+                                rulesViewModel.createRule(rule)
+                            }
                             navController.safePopBackStack()
                         },
+                        existingRule = existingRule,
                         rulesViewModel = rulesViewModel
                     )
                 }

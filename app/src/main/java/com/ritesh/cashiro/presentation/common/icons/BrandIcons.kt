@@ -245,7 +245,7 @@ object BrandIcons {
         merchantName.contains("nykaa", ignoreCase = true) -> "#FC2779"
         merchantName.contains("meesho", ignoreCase = true) -> "#F43397"
         
-        // Transportation
+        // Transport
         merchantName.contains("uber", ignoreCase = true) -> "#000000"
         merchantName.contains("ola", ignoreCase = true) -> "#93CE25"
         merchantName.contains("rapido", ignoreCase = true) -> "#FFC800"
@@ -257,7 +257,7 @@ object BrandIcons {
         merchantName.contains("upstox", ignoreCase = true) -> "#5E72E4"
         merchantName.contains("angel", ignoreCase = true) -> "#5B2D90"
         
-        // Healthcare
+        // Medical
         merchantName.contains("1mg", ignoreCase = true) -> "#FC574E"
         merchantName.contains("pharmeasy", ignoreCase = true) -> "#10847E"
         merchantName.contains("netmeds", ignoreCase = true) -> "#24AEB1"

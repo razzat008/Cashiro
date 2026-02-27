@@ -15,11 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.ChevronRight
@@ -39,6 +41,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +52,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +80,7 @@ import com.ritesh.cashiro.presentation.effects.rememberOverscrollFlingBehavior
 import com.ritesh.cashiro.presentation.ui.components.CategorySelectionSheet
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
+import com.ritesh.cashiro.presentation.ui.icons.Bag
 import com.ritesh.cashiro.presentation.ui.icons.Box2
 import com.ritesh.cashiro.presentation.ui.icons.DocumentText2
 import com.ritesh.cashiro.presentation.ui.icons.Edit2
@@ -97,17 +102,14 @@ fun CreateRuleScreen(
     var ruleName by remember { mutableStateOf(existingRule?.name ?: "") }
     var description by remember { mutableStateOf(existingRule?.description ?: "") }
 
-    // Initialize condition state from existing rule or use defaults
-    var selectedField by remember {
-        mutableStateOf(existingRule?.conditions?.firstOrNull()?.field ?: TransactionField.AMOUNT)
+    // Initialize conditions state from existing rule or use a default one
+    var conditions by remember {
+        mutableStateOf(existingRule?.conditions ?: listOf(
+            RuleCondition(TransactionField.AMOUNT, ConditionOperator.LESS_THAN, "")
+        ))
     }
-    var fieldDropdownExpanded by remember { mutableStateOf(false) }
-    var selectedOperator by remember {
-        mutableStateOf(existingRule?.conditions?.firstOrNull()?.operator ?: ConditionOperator.LESS_THAN)
-    }
-    var conditionValue by remember {
-        mutableStateOf(existingRule?.conditions?.firstOrNull()?.value ?: "")
-    }
+    // Track expanded state for each condition's field dropdown
+    var fieldDropdownsExpanded by remember { mutableStateOf(List(conditions.size) { false }) }
 
     // Initialize action state from existing rule or use defaults
     var actionType by remember {
@@ -122,6 +124,21 @@ fun CreateRuleScreen(
         mutableStateOf(existingRule?.actions?.firstOrNull()?.value ?: "")
     }
 
+    // Sync state when existingRule changes (for editing)
+    LaunchedEffect(existingRule) {
+        existingRule?.let { rule ->
+            ruleName = rule.name
+            description = rule.description ?: ""
+            conditions = rule.conditions
+            val action = rule.actions.firstOrNull()
+            if (action != null) {
+                actionType = action.actionType
+                actionField = action.field
+                actionValue = action.value
+            }
+        }
+    }
+
     var showCategorySheet by remember { mutableStateOf(false) }
     val categories by rulesViewModel.categories.collectAsState()
     val allSubcategories by rulesViewModel.allSubcategories.collectAsState(initial = emptyMap())
@@ -130,45 +147,45 @@ fun CreateRuleScreen(
     val commonPresets = listOf(
         "Block OTPs" to {
             ruleName = "Block OTP Messages"
-            selectedField = TransactionField.SMS_TEXT
-            selectedOperator = ConditionOperator.CONTAINS
-            conditionValue = "OTP"
+            conditions = listOf(
+                RuleCondition(TransactionField.SMS_TEXT, ConditionOperator.CONTAINS, "OTP")
+            )
             actionType = ActionType.BLOCK
             actionField = TransactionField.CATEGORY
             actionValue = ""
         },
         "Block Small Amounts" to {
             ruleName = "Block Small Transactions"
-            selectedField = TransactionField.AMOUNT
-            selectedOperator = ConditionOperator.LESS_THAN
-            conditionValue = "10"
+            conditions = listOf(
+                RuleCondition(TransactionField.AMOUNT, ConditionOperator.LESS_THAN, "10")
+            )
             actionType = ActionType.BLOCK
             actionField = TransactionField.CATEGORY
             actionValue = ""
         },
         "Small amounts → Food" to {
             ruleName = "Small Food Payments"
-            selectedField = TransactionField.AMOUNT
-            selectedOperator = ConditionOperator.LESS_THAN
-            conditionValue = "200"
+            conditions = listOf(
+                RuleCondition(TransactionField.AMOUNT, ConditionOperator.LESS_THAN, "200")
+            )
             actionType = ActionType.SET
             actionField = TransactionField.CATEGORY
-            actionValue = "Food & Dining"
+            actionValue = "Food & Drinks"
         },
         "Standardize Merchant" to {
             ruleName = "Standardize Merchant Name"
-            selectedField = TransactionField.MERCHANT
-            selectedOperator = ConditionOperator.CONTAINS
-            conditionValue = "AMZN"
+            conditions = listOf(
+                RuleCondition(TransactionField.MERCHANT, ConditionOperator.CONTAINS, "AMZN")
+            )
             actionType = ActionType.SET
             actionField = TransactionField.MERCHANT
             actionValue = "Amazon"
         },
         "Mark as Income" to {
             ruleName = "Mark Credits as Income"
-            selectedField = TransactionField.SMS_TEXT
-            selectedOperator = ConditionOperator.CONTAINS
-            conditionValue = "credited"
+            conditions = listOf(
+                RuleCondition(TransactionField.SMS_TEXT, ConditionOperator.CONTAINS, "credited")
+            )
             actionType = ActionType.SET
             actionField = TransactionField.TYPE
             actionValue = "income"
@@ -212,22 +229,23 @@ fun CreateRuleScreen(
                 verticalArrangement = Arrangement.spacedBy(Spacing.lg),
                 flingBehavior = rememberOverscrollFlingBehavior { lazyListState }
             ) {
-                // Quick presets
+                // Quick templates
                 item {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(Dimensions.Padding.content),
-                            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                        Text(
+                            text = "Quick Templates",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .overScrollVertical(false),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                         ) {
-                            Text(
-                                text = "Quick Templates",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Medium
-                            )
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
                                 verticalArrangement = Arrangement.spacedBy(Spacing.xs),
@@ -239,15 +257,19 @@ fun CreateRuleScreen(
                                         label = {
                                             Text(
                                                 label,
-                                                style = MaterialTheme.typography.bodySmall
+                                                style = MaterialTheme.typography.labelMedium
                                             )
                                         },
                                         colors = AssistChipDefaults.assistChipColors(
-                                            containerColor = MaterialTheme.colorScheme.background,
-                                            labelColor = MaterialTheme.colorScheme.secondary.copy(
-                                                0.8f
-                                            )
-                                        )
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        ),
+                                        border = AssistChipDefaults.assistChipBorder(
+                                            enabled = true,
+                                            borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                            borderWidth = 1.dp
+                                        ),
+                                        shape = MaterialTheme.shapes.medium
                                     )
                                 }
                             }
@@ -329,229 +351,286 @@ fun CreateRuleScreen(
                     }
                 }
 
-                // Condition section
+                // Conditions section
                 item {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(Spacing.md)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(Dimensions.Padding.content),
-                            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                            modifier = Modifier.padding(horizontal = 4.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-                            ) {
-                                Icon(
-                                    Icons.Rounded.FilterList,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "Conditions",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-
-                            // Field selector
-                            ExposedDropdownMenuBox(
-                                expanded = fieldDropdownExpanded,
-                                onExpandedChange = {
-                                    fieldDropdownExpanded = !fieldDropdownExpanded
-                                }
-                            ) {
-                                TextField(
-                                    value = when (selectedField) {
-                                        TransactionField.AMOUNT -> "Amount"
-                                        TransactionField.MERCHANT -> "Merchant"
-                                        TransactionField.CATEGORY -> "Category"
-                                        TransactionField.SMS_TEXT -> "SMS Text"
-                                        TransactionField.TYPE -> "Transaction Type"
-                                        else -> "Amount"
+                            Icon(
+                                Icons.Rounded.FilterList,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Conditions",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            
+                            // Add condition button
+                            if (conditions.size < 5) {
+                                Button(
+                                    onClick = {
+                                        conditions = conditions + RuleCondition(TransactionField.AMOUNT, ConditionOperator.LESS_THAN, "")
+                                        fieldDropdownsExpanded = fieldDropdownsExpanded + false
                                     },
-                                    onValueChange = { },
-                                    readOnly = true,
-                                    label = { Text("Field") },
-                                    colors = TextFieldDefaults.colors(
-                                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent,
-                                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                            0.7f
-                                        )
-                                    ),
-                                    trailingIcon = {
-                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                            expanded = fieldDropdownExpanded
-                                        )
-                                    },
-                                    shape = MaterialTheme.shapes.largeIncreased,
-                                    modifier = Modifier.fillMaxWidth()
-                                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                                )
-                                ExposedDropdownMenu(
-                                    expanded = fieldDropdownExpanded,
-                                    onDismissRequest = { fieldDropdownExpanded = false },
-                                    containerColor = Color.Transparent,
-                                    shadowElevation = 0.dp
-                                ) {
-
-                                    val menuItems = listOf(
-                                        TransactionField.AMOUNT to "Amount",
-                                        TransactionField.TYPE to "Transaction Type",
-                                        TransactionField.CATEGORY to "Category",
-                                        TransactionField.SUBCATEGORY to "Subcategory",
-                                        TransactionField.MERCHANT to "Merchant",
-                                        TransactionField.NARRATION to "Narration",
-                                        TransactionField.SMS_TEXT to "SMS Text",
-                                        TransactionField.BANK_NAME to "Bank Name"
+                                    contentPadding = PaddingValues(horizontal = 12.dp),
+                                    modifier = Modifier.height(32.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
-                                    menuItems.forEachIndexed { index, (field, label) ->
-                                        val isFirstItem = index == 0
-                                        val isLastItem = index == menuItems.lastIndex
-                                        val isMiddleItem = !isFirstItem && !isLastItem
-
-                                        val shape = when {
-                                            isFirstItem -> RoundedCornerShape(
-                                                topStart = Dimensions.Radius.md,
-                                                topEnd = Dimensions.Radius.md,
-                                                bottomStart = Dimensions.Radius.xs,
-                                                bottomEnd = Dimensions.Radius.xs
-                                            )
-                                            isLastItem -> RoundedCornerShape(
-                                                topStart = Dimensions.Radius.xs,
-                                                topEnd = Dimensions.Radius.xs,
-                                                bottomStart = Dimensions.Radius.md,
-                                                bottomEnd = Dimensions.Radius.md
-                                            )
-                                            else -> RoundedCornerShape(Dimensions.Radius.xs) // Middle items
-                                        }
-
-                                        DropdownMenuItem(
-                                            text = { Text(label) },
-                                            onClick = {
-                                                selectedField = field
-                                                fieldDropdownExpanded = false
-                                            },
-                                            modifier = Modifier
-                                                .background(color= MaterialTheme.colorScheme.surfaceContainer,shape = shape)
-                                        )
-
-                                        // Add a Spacer for middle items
-                                        if (isMiddleItem || (isFirstItem && menuItems.size > 2) ) {
-                                            Spacer(modifier = Modifier.height(1.5.dp))
-                                        }
-                                    }
+                                ) {
+                                    Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.size(4.dp))
+                                    Text("Add", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
+                        }
 
-                            // Operator selector
-                            val operators = when (selectedField) {
-                                TransactionField.AMOUNT -> listOf(
-                                    ConditionOperator.LESS_THAN to "<",
-                                    ConditionOperator.GREATER_THAN to ">",
-                                    ConditionOperator.EQUALS to "="
-                                )
-
-                                else -> listOf(
-                                    ConditionOperator.CONTAINS to "contains",
-                                    ConditionOperator.EQUALS to "equals",
-                                    ConditionOperator.STARTS_WITH to "starts with"
-                                )
-                            }
-
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                        conditions.forEachIndexed { index, condition ->
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                                ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                operators.forEach { (op, label) ->
-                                    FilterChip(
-                                        selected = selectedOperator == op,
-                                        onClick = { selectedOperator = op },
-                                        label = { Text(label) }
-                                    )
-                                }
-                            }
+                                Column(
+                                    modifier = Modifier.padding(Dimensions.Padding.content),
+                                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                                    ) {
+                                        Text(
+                                            text = "Condition ${index + 1}",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        
+                                        if (conditions.size > 1) {
+                                            IconButton(
+                                                onClick = {
+                                                    conditions = conditions.toMutableList().apply { removeAt(index) }
+                                                    fieldDropdownsExpanded = fieldDropdownsExpanded.toMutableList().apply { removeAt(index) }
+                                                },
+                                                modifier = Modifier.size(24.dp)
+                                            ) {
+                                                Icon(
+                                                    Iconax.Bag,
+                                                    contentDescription = "Remove Condition",
+                                                    tint = MaterialTheme.colorScheme.error,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                    }
 
-                            // Value input
-                            when (selectedField) {
-                                TransactionField.TYPE -> {
-                                    // Transaction type chips for TYPE field
-                                    Text(
-                                        text = "Select transaction type:",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
+                                    // Field selector
+                                    ExposedDropdownMenuBox(
+                                        expanded = fieldDropdownsExpanded.getOrElse(index) { false },
+                                        onExpandedChange = { expanded ->
+                                            fieldDropdownsExpanded = fieldDropdownsExpanded.toMutableList().apply {
+                                                this[index] = expanded
+                                            }
+                                        }
+                                    ) {
+                                        TextField(
+                                            value = when (condition.field) {
+                                                TransactionField.AMOUNT -> "Amount"
+                                                TransactionField.MERCHANT -> "Merchant"
+                                                TransactionField.CATEGORY -> "Category"
+                                                TransactionField.SMS_TEXT -> "SMS Text"
+                                                TransactionField.TYPE -> "Transaction Type"
+                                                TransactionField.SUBCATEGORY -> "Subcategory"
+                                                TransactionField.BANK_NAME -> "Bank Name"
+                                                else -> "Field"
+                                            },
+                                            onValueChange = { },
+                                            readOnly = true,
+                                            label = { Text("Field") },
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
+                                            ),
+                                            trailingIcon = {
+                                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                                    expanded = fieldDropdownsExpanded.getOrElse(index) { false }
+                                                )
+                                            },
+                                            shape = MaterialTheme.shapes.largeIncreased,
+                                            modifier = Modifier.fillMaxWidth()
+                                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                        )
+                                        ExposedDropdownMenu(
+                                            expanded = fieldDropdownsExpanded.getOrElse(index) { false },
+                                            onDismissRequest = { 
+                                                fieldDropdownsExpanded = fieldDropdownsExpanded.toMutableList().apply {
+                                                    this[index] = false
+                                                }
+                                            },
+                                            containerColor = Color.Transparent,
+                                            shadowElevation = 0.dp
+                                        ) {
+                                            val menuItems = listOf(
+                                                TransactionField.AMOUNT to "Amount",
+                                                TransactionField.TYPE to "Transaction Type",
+                                                TransactionField.CATEGORY to "Category",
+                                                TransactionField.SUBCATEGORY to "Subcategory",
+                                                TransactionField.MERCHANT to "Merchant",
+                                                TransactionField.SMS_TEXT to "SMS Text",
+                                                TransactionField.BANK_NAME to "Bank Name"
+                                            )
+                                            menuItems.forEachIndexed { i, (field, label) ->
+                                                val isFirstItem = i == 0
+                                                val isLastItem = i == menuItems.lastIndex
+                                                val isMiddleItem = !isFirstItem && !isLastItem
+
+                                                val shape = when {
+                                                    isFirstItem -> RoundedCornerShape(
+                                                        topStart = Dimensions.Radius.md,
+                                                        topEnd = Dimensions.Radius.md,
+                                                        bottomStart = Dimensions.Radius.xs,
+                                                        bottomEnd = Dimensions.Radius.xs
+                                                    )
+                                                    isLastItem -> RoundedCornerShape(
+                                                        topStart = Dimensions.Radius.xs,
+                                                        topEnd = Dimensions.Radius.xs,
+                                                        bottomStart = Dimensions.Radius.md,
+                                                        bottomEnd = Dimensions.Radius.md
+                                                    )
+                                                    else -> RoundedCornerShape(Dimensions.Radius.xs)
+                                                }
+
+                                                DropdownMenuItem(
+                                                    text = { Text(label) },
+                                                    onClick = {
+                                                        conditions = conditions.toMutableList().apply {
+                                                            this[index] = this[index].copy(field = field)
+                                                        }
+                                                        fieldDropdownsExpanded = fieldDropdownsExpanded.toMutableList().apply {
+                                                            this[index] = false
+                                                        }
+                                                    },
+                                                    modifier = Modifier.background(color = MaterialTheme.colorScheme.surfaceContainer, shape = shape)
+                                                )
+
+                                                if (isMiddleItem || (isFirstItem && menuItems.size > 2)) {
+                                                    Spacer(modifier = Modifier.height(1.5.dp))
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Operator selector
+                                    val operators = when (condition.field) {
+                                        TransactionField.AMOUNT -> listOf(
+                                            ConditionOperator.LESS_THAN to "<",
+                                            ConditionOperator.GREATER_THAN to ">",
+                                            ConditionOperator.EQUALS to "="
+                                        )
+                                        else -> listOf(
+                                            ConditionOperator.CONTAINS to "contains",
+                                            ConditionOperator.EQUALS to "equals",
+                                            ConditionOperator.STARTS_WITH to "starts with"
+                                        )
+                                    }
 
                                     FlowRow(
-                                        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        listOf(
-                                            "INCOME",
-                                            "EXPENSE",
-                                            "CREDIT",
-                                            "TRANSFER",
-                                            "INVESTMENT"
-                                        ).forEach { type ->
+                                        operators.forEach { (op, label) ->
                                             FilterChip(
-                                                selected = conditionValue == type,
-                                                onClick = { conditionValue = type },
-                                                label = {
-                                                    Text(
-                                                        type.lowercase()
-                                                            .replaceFirstChar { it.uppercase() },
-                                                        style = MaterialTheme.typography.bodySmall
-                                                    )
-                                                }
+                                                selected = condition.operator == op,
+                                                onClick = { 
+                                                    conditions = conditions.toMutableList().apply {
+                                                        this[index] = this[index].copy(operator = op)
+                                                    }
+                                                },
+                                                label = { Text(label) }
                                             )
                                         }
                                     }
-                                }
 
-                                else -> {
-                                    // Regular text input for other fields
-                                    TextField(
-                                        value = conditionValue,
-                                        onValueChange = { conditionValue = it },
-                                        label = { Text("Value") },
-                                        placeholder = {
-                                            Text(
-                                                when (selectedField) {
-                                                    TransactionField.AMOUNT -> "e.g., 200"
-                                                    TransactionField.MERCHANT -> "e.g., Swiggy"
-                                                    TransactionField.SMS_TEXT -> "e.g., salary"
-                                                    TransactionField.SUBCATEGORY -> "e.g., Rent"
-                                                    TransactionField.CATEGORY -> "e.g., Food"
-                                                    TransactionField.NARRATION -> "e.g., Monthly rent"
-                                                    TransactionField.BANK_NAME -> "e.g., HDFC Bank"
-                                                    else -> "Enter value"
+                                    // Value input
+                                    when (condition.field) {
+                                        TransactionField.TYPE -> {
+                                            FlowRow(
+                                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                listOf("INCOME", "EXPENSE", "CREDIT", "TRANSFER", "INVESTMENT").forEach { type ->
+                                                    FilterChip(
+                                                        selected = condition.value == type,
+                                                        onClick = { 
+                                                            conditions = conditions.toMutableList().apply {
+                                                                this[index] = this[index].copy(value = type)
+                                                            }
+                                                        },
+                                                        label = {
+                                                            Text(
+                                                                type.lowercase().replaceFirstChar { it.uppercase() },
+                                                                style = MaterialTheme.typography.bodySmall
+                                                            )
+                                                        }
+                                                    )
                                                 }
+                                            }
+                                        }
+                                        else -> {
+                                            TextField(
+                                                value = condition.value,
+                                                onValueChange = { newValue ->
+                                                    conditions = conditions.toMutableList().apply {
+                                                        this[index] = this[index].copy(value = newValue)
+                                                    }
+                                                },
+                                                label = { Text("Value") },
+                                                placeholder = {
+                                                    Text(
+                                                        when (condition.field) {
+                                                            TransactionField.AMOUNT -> "e.g., 200"
+                                                            TransactionField.MERCHANT -> "e.g., Swiggy"
+                                                            TransactionField.SMS_TEXT -> "e.g., salary"
+                                                            TransactionField.SUBCATEGORY -> "e.g., Rent"
+                                                            TransactionField.CATEGORY -> "e.g., Food"
+                                                            TransactionField.BANK_NAME -> "e.g., HDFC Bank"
+                                                            else -> "Enter value"
+                                                        }
+                                                    )
+                                                },
+                                                colors = TextFieldDefaults.colors(
+                                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                                    focusedIndicatorColor = Color.Transparent,
+                                                    unfocusedIndicatorColor = Color.Transparent,
+                                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f)
+                                                ),
+                                                keyboardOptions = if (condition.field == TransactionField.AMOUNT) {
+                                                    KeyboardOptions(keyboardType = KeyboardType.Number)
+                                                } else {
+                                                    KeyboardOptions.Default
+                                                },
+                                                shape = MaterialTheme.shapes.largeIncreased,
+                                                modifier = Modifier.fillMaxWidth(),
+                                                singleLine = true
                                             )
-                                        },
-                                        colors = TextFieldDefaults.colors(
-                                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                            focusedIndicatorColor = Color.Transparent,
-                                            unfocusedIndicatorColor = Color.Transparent,
-                                            focusedLabelColor = MaterialTheme.colorScheme.primary,
-                                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                                0.7f
-                                            )
-                                        ),
-                                        keyboardOptions = if (selectedField == TransactionField.AMOUNT) {
-                                            KeyboardOptions(keyboardType = KeyboardType.Number)
-                                        } else {
-                                            KeyboardOptions.Default
-                                        },
-                                        shape = MaterialTheme.shapes.largeIncreased,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        singleLine = true
-                                    )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -754,7 +833,7 @@ fun CreateRuleScreen(
                                             TransactionField.SUBCATEGORY to "Set Subcategory",
                                             TransactionField.MERCHANT to "Set Merchant Name",
                                             TransactionField.TYPE to "Set Transaction Type",
-                                            TransactionField.NARRATION to "Set Description"
+                                            // NARRATION removed as requested
                                         )
                                         menuItems.forEachIndexed { index, (field, label) ->
                                             val isFirstItem = index == 0
@@ -1013,7 +1092,8 @@ fun CreateRuleScreen(
 
                 // Preview
                 item {
-                    val showPreview = ruleName.isNotBlank() && conditionValue.isNotBlank() &&
+                    val allConditionsValid = conditions.all { it.value.isNotBlank() }
+                    val showPreview = ruleName.isNotBlank() && allConditionsValid &&
                             (actionType == ActionType.BLOCK || actionValue.isNotBlank())
 
                     if (showPreview) {
@@ -1034,39 +1114,40 @@ fun CreateRuleScreen(
                                 Text(
                                     text = buildString {
                                         append("When ")
-                                        append(
-                                            when (selectedField) {
-                                                TransactionField.AMOUNT -> "amount"
-                                                TransactionField.TYPE -> "type"
-                                                TransactionField.CATEGORY -> "category"
-                                                TransactionField.SUBCATEGORY -> "subcategory"
-                                                TransactionField.MERCHANT -> "merchant"
-                                                TransactionField.NARRATION -> "narration"
-                                                TransactionField.SMS_TEXT -> "SMS text"
-                                                TransactionField.BANK_NAME -> "bank"
-                                                else -> "field"
-                                            }
-                                        )
-                                        append(" ")
-                                        append(
-                                            when (selectedOperator) {
-                                                ConditionOperator.LESS_THAN -> "is less than"
-                                                ConditionOperator.GREATER_THAN -> "is greater than"
-                                                ConditionOperator.EQUALS -> "equals"
-                                                ConditionOperator.CONTAINS -> "contains"
-                                                ConditionOperator.STARTS_WITH -> "starts with"
-                                                else -> "matches"
-                                            }
-                                        )
-                                        append(" ")
-                                        append(conditionValue)
+                                        conditions.forEachIndexed { index, condition ->
+                                            if (index > 0) append(" AND ")
+                                            append(
+                                                when (condition.field) {
+                                                    TransactionField.AMOUNT -> "amount"
+                                                    TransactionField.TYPE -> "type"
+                                                    TransactionField.CATEGORY -> "category"
+                                                    TransactionField.SUBCATEGORY -> "subcategory"
+                                                    TransactionField.MERCHANT -> "merchant"
+                                                    TransactionField.SMS_TEXT -> "SMS text"
+                                                    TransactionField.BANK_NAME -> "bank"
+                                                    else -> "field"
+                                                }
+                                            )
+                                            append(" ")
+                                            append(
+                                                when (condition.operator) {
+                                                    ConditionOperator.LESS_THAN -> "is less than"
+                                                    ConditionOperator.GREATER_THAN -> "is greater than"
+                                                    ConditionOperator.EQUALS -> "equals"
+                                                    ConditionOperator.CONTAINS -> "contains"
+                                                    ConditionOperator.STARTS_WITH -> "starts with"
+                                                    else -> "matches"
+                                                }
+                                            )
+                                            append(" ")
+                                            append(condition.value)
+                                        }
                                         append(", ")
                                         append(
                                             when (actionField) {
                                                 TransactionField.CATEGORY -> "set category to "
                                                 TransactionField.MERCHANT -> "set merchant to "
                                                 TransactionField.TYPE -> "set type to "
-                                                TransactionField.NARRATION -> "set description to "
                                                 else -> "set field to "
                                             }
                                         )
@@ -1102,7 +1183,8 @@ fun CreateRuleScreen(
             ) {
                 Button(
                     onClick = { // For BLOCK action, we don't need an action value
-                        val isValid = ruleName.isNotBlank() && conditionValue.isNotBlank() &&
+                        val allConditionsValid = conditions.all { it.value.isNotBlank() }
+                        val isValid = ruleName.isNotBlank() && allConditionsValid &&
                                 (actionType == ActionType.BLOCK || actionValue.isNotBlank())
 
                         if (isValid) {
@@ -1111,13 +1193,7 @@ fun CreateRuleScreen(
                                 name = ruleName,
                                 description = description.takeIf { it.isNotBlank() },
                                 priority = existingRule?.priority ?: 100,
-                                conditions = listOf(
-                                    RuleCondition(
-                                        field = selectedField,
-                                        operator = selectedOperator,
-                                        value = conditionValue
-                                    )
-                                ),
+                                conditions = conditions,
                                 actions = listOf(
                                     RuleAction(
                                         field = actionField,
@@ -1135,7 +1211,7 @@ fun CreateRuleScreen(
                         } },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shapes = ButtonDefaults.shapes(),
-                    enabled = ruleName.isNotBlank() && conditionValue.isNotBlank() &&
+                    enabled = ruleName.isNotBlank() && conditions.all { it.value.isNotBlank() } &&
                             (actionType == ActionType.BLOCK || actionValue.isNotBlank())
                 ) {
                     Text(

@@ -207,7 +207,7 @@ class SmsBroadcastReceiver : BroadcastReceiver() {
                 } catch (e: Exception) {
                     Log.e(TAG, "Error fetching top categories", e)
                     // Fallback to common categories
-                    listOf("Food & Dining", "Shopping", "Transportation")
+                    listOf("Food & Drinks", "Shopping", "Transport")
                 }
 
                 // Build notification with category quick actions

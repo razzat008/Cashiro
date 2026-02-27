@@ -66,7 +66,7 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
             BudgetEntity::class,
             BudgetCategoryLimitEntity::class
         ],
-    version = 40,
+    version = 41,
     exportSchema = true,
     autoMigrations =
         [
@@ -82,7 +82,8 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
             AutoMigration(from = 36, to = 37),
             AutoMigration(from = 37, to = 38),
             AutoMigration(from = 38, to = 39),
-            AutoMigration(from = 39, to = 40)
+            AutoMigration(from = 39, to = 40),
+            AutoMigration(from = 40, to = 41, spec = Migration40To41::class)
         ]
 )
 @TypeConverters(Converters::class)
@@ -602,5 +603,48 @@ class Migration34To35 : AutoMigrationSpec {
     override fun onPostMigrate(db: SupportSQLiteDatabase) {
         super.onPostMigrate(db)
         // No post-migration needed as default value is handled
+    }
+}
+/** Migration from version 40 to 41. Unifies old category names with new ones. */
+class Migration40To41 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        super.onPostMigrate(db)
+
+        val oldToNewMap = mapOf(
+            "Food & Dining" to "Food & Drinks",
+            "Transportation" to "Transport",
+            "Bills & Utilities" to "Bill",
+            "Healthcare" to "Medical",
+            "Personal Care" to "Personal",
+            "Investments" to "Investment",
+            "Mobile" to "Bill",
+            "Banking" to "Miscellaneous",
+            "Education" to "Miscellaneous"
+        )
+
+        oldToNewMap.forEach { (old, new) ->
+            // Update transactions
+            db.execSQL("UPDATE transactions SET category = ? WHERE category = ?", arrayOf(new, old))
+            
+            // Update subscriptions
+            db.execSQL("UPDATE subscriptions SET category = ? WHERE category = ?", arrayOf(new, old))
+            
+            // Update merchant mappings
+            db.execSQL("UPDATE merchant_mappings SET category = ? WHERE category = ?", arrayOf(new, old))
+            
+            // Update rules (actions) - this is stored as JSON in the database, 
+            // but we can do a simple string replace for the value if it's stored as plain text in the JSON
+            // TransactionRule actions are serialized. We might need a more careful approach here 
+            // if we want to be 100% sure, but simple string replacement in the 'actions' column 
+            // usually works for SQLite JSON if the structure is simple.
+            // However, to be safe, let's just do it for categories.
+            db.execSQL("UPDATE transaction_rules SET actions = REPLACE(actions, ?, ?) WHERE actions LIKE ?", 
+                arrayOf("\"value\":\"$old\"", "\"value\":\"$new\"", "%\"value\":\"$old\"%"))
+        }
+
+        // Delete old system categories from categories table
+        oldToNewMap.keys.forEach { oldCategory ->
+            db.execSQL("DELETE FROM categories WHERE name = ?", arrayOf(oldCategory))
+        }
     }
 }

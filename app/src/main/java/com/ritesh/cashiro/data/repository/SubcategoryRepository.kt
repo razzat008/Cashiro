@@ -92,7 +92,7 @@ class SubcategoryRepository @Inject constructor(
 
     suspend fun initializeDefaultSubcategories() {
         if (subcategoryDao.getSubcategoryCount() == 0) {
-            val foodCategory = categoryDao.getCategoryByName("Food & Dining")
+            val foodCategory = categoryDao.getCategoryByName("Food & Drinks")
             if (foodCategory != null) {
                 val defaultSubcategories = listOf(
                     "Eat out",

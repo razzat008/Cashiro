@@ -1,6 +1,7 @@
 package com.ritesh.cashiro.presentation.ui.features.settings.rules
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
@@ -49,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,6 +67,7 @@ import com.ritesh.cashiro.presentation.ui.components.RulesResetDialog
 import com.ritesh.cashiro.presentation.ui.components.SectionHeader
 import com.ritesh.cashiro.presentation.ui.features.categories.NavigationContent
 import com.ritesh.cashiro.presentation.ui.icons.Bag
+import com.ritesh.cashiro.presentation.ui.icons.Edit2
 import com.ritesh.cashiro.presentation.ui.icons.History
 import com.ritesh.cashiro.presentation.ui.icons.Iconax
 import com.ritesh.cashiro.presentation.ui.theme.Dimensions
@@ -76,6 +80,7 @@ import dev.chrisbanes.haze.hazeSource
 fun RulesScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCreateRule: () -> Unit,
+    onEditRule: (TransactionRule) -> Unit,
     rulesViewModel: RulesViewModel = hiltViewModel(),
     blurEffects: Boolean
 ) {
@@ -264,6 +269,7 @@ fun RulesScreen(
                                         selectedRuleForBatch = rule
                                         showBatchApplyDialog = true
                                     },
+                                    onEdit = { onEditRule(rule) },
                                     blurEffects = blurEffects,
                                     hazeState = hazeState
                                 )
@@ -315,6 +321,7 @@ private fun RuleCard(
     onToggle: (Boolean) -> Unit,
     onDelete: () -> Unit,
     onApplyToPast: () -> Unit,
+    onEdit: () -> Unit,
     blurEffects: Boolean,
     hazeState: HazeState = remember { HazeState() }
 ) {
@@ -336,7 +343,10 @@ private fun RuleCard(
                 Text(
                     text = rule.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
                 )
 
                 rule.description?.let { description ->
@@ -416,16 +426,32 @@ private fun RuleCard(
                             containerColor = Color.Transparent,
                             shadowElevation = 0.dp
                         ) {
-                            val shape = if(rule.isSystemTemplate) {
-                                RoundedCornerShape(Dimensions.Radius.xl)
-                            } else {
-                                RoundedCornerShape(
-                                    topStart = Dimensions.Radius.md,
-                                    topEnd = Dimensions.Radius.md,
-                                    bottomStart = Dimensions.Radius.xs,
-                                    bottomEnd = Dimensions.Radius.xs
-                                )
-                            }
+                             // Edit rule
+                            DropdownMenuItem(
+                                text = { Text("Edit Rule") },
+                                leadingIcon = {
+                                    Icon(
+                                        Iconax.Edit2,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                onClick = {
+                                    showActionsMenu = false
+                                    onEdit()
+                                },
+                                colors = MenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.onSurface
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(Dimensions.Radius.xs))
+                                    .background(
+                                        MaterialTheme.colorScheme.surfaceContainer,
+                                        RoundedCornerShape(Dimensions.Radius.xs)
+                                    )
+                            )
+                            Spacer(Modifier.height(1.5.dp))
+
                             // Apply to past transactions
                             DropdownMenuItem(
                                 text = { Text("Apply to Past Transactions") },
@@ -443,10 +469,10 @@ private fun RuleCard(
                                     textColor = MaterialTheme.colorScheme.onSurface
                                 ),
                                 modifier = Modifier
-                                    .clip(shape)
+                                    .clip(if (rule.isSystemTemplate) RoundedCornerShape(topStart = Dimensions.Radius.xs, topEnd = Dimensions.Radius.xs, bottomStart = Dimensions.Radius.xl, bottomEnd = Dimensions.Radius.xl) else RoundedCornerShape(Dimensions.Radius.xs))
                                     .background(
                                         MaterialTheme.colorScheme.surfaceContainer,
-                                        shape
+                                        if (rule.isSystemTemplate) RoundedCornerShape(topStart = Dimensions.Radius.xs, topEnd = Dimensions.Radius.xs, bottomStart = Dimensions.Radius.xl, bottomEnd = Dimensions.Radius.xl) else RoundedCornerShape(Dimensions.Radius.xs)
                                     )
                             )
                             Spacer(Modifier.height(1.5.dp))
