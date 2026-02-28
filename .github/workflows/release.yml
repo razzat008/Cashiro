@@ -269,7 +269,10 @@ jobs:
           done
           
           # Rename F-Droid APK
-          if [ -f "$FDROID_PATH/app-fdroid-release-unsigned.apk" ]; then
+          if [ -f "$FDROID_PATH/app-fdroid-release.apk" ]; then
+            mv "$FDROID_PATH/app-fdroid-release.apk" \
+               "$FDROID_PATH/Cashiro-fdroid-v${VERSION}.apk"
+          elif [ -f "$FDROID_PATH/app-fdroid-release-unsigned.apk" ]; then
             mv "$FDROID_PATH/app-fdroid-release-unsigned.apk" \
                "$FDROID_PATH/Cashiro-fdroid-v${VERSION}.apk"
           fi
@@ -333,10 +336,7 @@ jobs:
           name: Release v${{ steps.next_version.outputs.version }}
           body_path: RELEASE_NOTES.md
           files: |
-            app/build/outputs/apk/standard/release/Cashiro-v${{ steps.next_version.outputs.version }}-universal.apk
-            app/build/outputs/apk/standard/release/Cashiro-v${{ steps.next_version.outputs.version }}-arm64-v8a.apk
-            app/build/outputs/apk/standard/release/Cashiro-v${{ steps.next_version.outputs.version }}-armeabi-v7a.apk
-            app/build/outputs/apk/fdroid/release/Cashiro-fdroid-v${{ steps.next_version.outputs.version }}.apk
+            app/build/outputs/apk/**/*.apk
           draft: false
           prerelease: false
       
