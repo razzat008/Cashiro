@@ -278,13 +278,23 @@ jobs:
           done
           
           # Rename F-Droid APKs
-          if [ -f "$FDROID_PATH/app-fdroid-release.apk" ]; then
-            mv "$FDROID_PATH/app-fdroid-release.apk" \
-               "$FDROID_PATH/Cashiro-fdroid-v${VERSION}.apk"
-          elif [ -f "$FDROID_PATH/app-fdroid-release-unsigned.apk" ]; then
-            mv "$FDROID_PATH/app-fdroid-release-unsigned.apk" \
-               "$FDROID_PATH/Cashiro-fdroid-v${VERSION}.apk"
+          if [ -f "$FDROID_PATH/app-fdroid-universal-release.apk" ]; then
+            mv "$FDROID_PATH/app-fdroid-universal-release.apk" \
+               "$FDROID_PATH/Cashiro-fdroid-v${VERSION}-universal.apk"
+          elif [ -f "$FDROID_PATH/app-fdroid-universal-release-unsigned.apk" ]; then
+            mv "$FDROID_PATH/app-fdroid-universal-release-unsigned.apk" \
+               "$FDROID_PATH/Cashiro-fdroid-v${VERSION}-universal.apk"
           fi
+          
+          for arch in armeabi-v7a arm64-v8a; do
+            if [ -f "$FDROID_PATH/app-fdroid-${arch}-release.apk" ]; then
+              mv "$FDROID_PATH/app-fdroid-${arch}-release.apk" \
+                 "$FDROID_PATH/Cashiro-fdroid-v${VERSION}-${arch}.apk"
+            elif [ -f "$FDROID_PATH/app-fdroid-${arch}-release-unsigned.apk" ]; then
+              mv "$FDROID_PATH/app-fdroid-${arch}-release-unsigned.apk" \
+                 "$FDROID_PATH/Cashiro-fdroid-v${VERSION}-${arch}.apk"
+            fi
+          done
           
           echo "Standard APKs:"
           ls -la "$STANDARD_PATH/"
@@ -350,7 +360,9 @@ jobs:
             app/build/outputs/apk/standard/release/Cashiro-v${{ steps.next_version.outputs.version }}-universal.apk
             app/build/outputs/apk/standard/release/Cashiro-v${{ steps.next_version.outputs.version }}-arm64-v8a.apk
             app/build/outputs/apk/standard/release/Cashiro-v${{ steps.next_version.outputs.version }}-armeabi-v7a.apk
-            app/build/outputs/apk/fdroid/release/Cashiro-fdroid-v${{ steps.next_version.outputs.version }}.apk
+            app/build/outputs/apk/fdroid/release/Cashiro-fdroid-v${{ steps.next_version.outputs.version }}-universal.apk
+            app/build/outputs/apk/fdroid/release/Cashiro-fdroid-v${{ steps.next_version.outputs.version }}-arm64-v8a.apk
+            app/build/outputs/apk/fdroid/release/Cashiro-fdroid-v${{ steps.next_version.outputs.version }}-armeabi-v7a.apk
           draft: false
           prerelease: false
       
