@@ -81,15 +81,13 @@ android {
 
     splits {
         abi {
-            // Disable splits for F-Droid builds and bundle builds
+            // Disable splits for bundle builds (AABs)
             //noinspection WrongGradleMethod
             val runTasks = gradle.startParameter.taskNames.map { it.lowercase() }
             //noinspection WrongGradleMethod
             val isBundleBuild = runTasks.any { it.contains("bundle") }   // e.g., :app:bundleRelease
-            //noinspection WrongGradleMethod
-            val isFdroidBuild = runTasks.any { it.contains("fdroid") }
 
-            isEnable = !(isBundleBuild || isFdroidBuild)
+            isEnable = !isBundleBuild
 
             reset()
             include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
