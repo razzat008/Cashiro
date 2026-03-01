@@ -267,6 +267,7 @@ Special thanks to the following projects and resources:
 - **[Compose Charts](https://github.com/ehsannarmani/ComposeCharts)** - Used for creating animated charts and graphs.
 - **[Reorderable](https://github.com/Calvin-LL/Reorderable)** - Used for re-ordering widgets.
 - **[Peeps Ui8](https://peeps.ui8.net/)** - Used for Built-in User Avatars.
+- **[Iconax](https://iconsax.io/)** - Used for icons
 
 ## License
 
