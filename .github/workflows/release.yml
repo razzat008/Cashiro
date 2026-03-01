@@ -284,6 +284,9 @@ jobs:
       - name: Create and push tag
         if: ${{ !inputs.dry_run && github.event_name != 'push' }}
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
           # Create new tag at current commit
           git tag -a "v${{ steps.next_version.outputs.version }}" -m "Release v${{ steps.next_version.outputs.version }}"
           
