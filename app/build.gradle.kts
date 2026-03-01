@@ -22,8 +22,8 @@ android {
         applicationId = "com.ritesh.cashiro"
         minSdk = 26
         targetSdk = 36
-        versionCode = 85
-        versionName = "2.1.2"
+        versionCode = 86
+        versionName = "2.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -79,13 +79,16 @@ android {
 
     splits {
         abi {
-            // Disable splits for bundle builds (AABs)
+            // Disable splits for bundle builds (AABs) and fdroid flavor builds.
+            // F-Droid expects exactly one APK output — splits cause the build to fail.
             //noinspection WrongGradleMethod
             val runTasks = gradle.startParameter.taskNames.map { it.lowercase() }
             //noinspection WrongGradleMethod
-            val isBundleBuild = runTasks.any { it.contains("bundle") }   // e.g., :app:bundleRelease
+            val isBundleBuild = runTasks.any { it.contains("bundle") }
+            //noinspection WrongGradleMethod
+            val isFdroidBuild = runTasks.any { it.contains("fdroid") }
 
-            isEnable = !isBundleBuild
+            isEnable = !isBundleBuild && !isFdroidBuild
 
             reset()
             include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
