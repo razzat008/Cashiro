@@ -117,6 +117,9 @@ class BackupExporter @Inject constructor(
         val chatMessages = if (config.includeTransactionalData) database.chatDao().getAllMessages().first() else emptyList()
         val budgets = if (config.includeBudgets) database.budgetDao().getAllBudgets().first() else emptyList()
         val budgetCategoryLimits = if (config.includeBudgets) database.budgetDao().getAllCategoryLimits().first() else emptyList()
+        val subcategories = if (config.includeProfileData) database.subcategoryDao().getAllSubcategories().first() else emptyList()
+        val rules = if (config.includeAppPreferences) database.ruleDao().getAllRules().first() else emptyList()
+        val ruleApplications = if (config.includeTransactionalData) database.ruleApplicationDao().getRecentApplications(1000).first() else emptyList() // Limit to recent apps for backup size
         
         // Get preferences from repository
         val prefs = userPreferencesRepository.userPreferences.first()
@@ -163,6 +166,8 @@ class BackupExporter @Inject constructor(
                     totalCategories = categories.size,
                     totalCards = cards.size,
                     totalSubscriptions = subscriptions.size,
+                    totalSubcategories = subcategories.size,
+                    totalRules = rules.size,
                     dateRange = dateRange
                 )
             ),
@@ -176,7 +181,10 @@ class BackupExporter @Inject constructor(
                 unrecognizedSms = if (config.privacy == ExportPrivacy.FULL) unrecognizedSms else emptyList(),
                 chatMessages = if (config.privacy == ExportPrivacy.FULL) chatMessages else emptyList(),
                 budgets = budgets,
-                budgetCategoryLimits = budgetCategoryLimits
+                budgetCategoryLimits = budgetCategoryLimits,
+                subcategories = subcategories,
+                rules = rules,
+                ruleApplications = ruleApplications
             ),
             preferences = PreferencesSnapshot(
                 theme = ThemePreferences(

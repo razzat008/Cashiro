@@ -164,6 +164,11 @@ class BackupImporter @Inject constructor(
                 database.unrecognizedSmsDao().deleteAll()
                 database.chatDao().deleteAllMessages()
                 database.budgetDao().deleteAllBudgets()
+                database.subcategoryDao().getAllSubcategories().first().forEach { 
+                    database.subcategoryDao().deleteSubcategory(it)
+                }
+                database.ruleDao().deleteAllRules()
+                database.ruleApplicationDao().deleteAllApplications()
                 
                 // Import all data
                 backup.database.categories.forEach { category ->
@@ -208,6 +213,18 @@ class BackupImporter @Inject constructor(
                     database.budgetDao().insertCategoryLimit(limit)
                 }
                 
+                backup.database.subcategories.forEach { subcategory ->
+                    database.subcategoryDao().insertSubcategory(subcategory)
+                }
+
+                backup.database.rules.forEach { rule ->
+                    database.ruleDao().insertRule(rule)
+                }
+
+                backup.database.ruleApplications.forEach { app ->
+                    database.ruleApplicationDao().insertApplication(app)
+                }
+                
                 // Import preferences
                 importPreferences(backup.preferences)
                 
@@ -242,25 +259,49 @@ class BackupImporter @Inject constructor(
                     .map { it.name }
                     .toSet()
                 
+                // Mapping to track OldCategoryID -> NewCategoryID for subcategories
+                val categoryIdMap = mutableMapOf<Long, Long>()
+                
                 // Import categories (merge by name)
                 backup.database.categories.forEach { category ->
-                    if (!existingCategories.contains(category.name)) {
+                    val existingCategory = database.categoryDao().getCategoryByName(category.name)
+                    if (existingCategory == null) {
                         // Generate new ID for imported category
                         val newCategory = category.copy(id = 0)
-                        database.categoryDao().insertCategory(newCategory)
+                        val newId = database.categoryDao().insertCategory(newCategory)
+                        categoryIdMap[category.id] = newId
                         importedCategories++
+                    } else {
+                        categoryIdMap[category.id] = existingCategory.id
+                    }
+                }
+
+                // Import subcategories (merge by name within category)
+                backup.database.subcategories.forEach { subcategory ->
+                    val newCategoryId = categoryIdMap[subcategory.categoryId] ?: return@forEach
+                    val existingSubcategories = database.subcategoryDao().getSubcategoriesByCategoryId(newCategoryId).first()
+                    val alreadyExists = existingSubcategories.any { it.name == subcategory.name }
+                    
+                    if (!alreadyExists) {
+                        val newSubcategory = subcategory.copy(id = 0, categoryId = newCategoryId)
+                        database.subcategoryDao().insertSubcategory(newSubcategory)
                     }
                 }
                 
+                // Mapping to track OldTransactionID -> NewTransactionID for rule applications
+                val transactionIdMap = mutableMapOf<Long, Long>()
+
                 // Import transactions (merge by hash)
                 backup.database.transactions.forEach { backupTxn ->
                     val existingTxn = existingTransactionsMap[backupTxn.transactionHash]
                     if (existingTxn == null) {
                         // New transaction, insert it
                         val newTransaction = backupTxn.copy(id = 0)
-                        database.transactionDao().insertTransaction(newTransaction)
+                        val newId = database.transactionDao().insertTransaction(newTransaction)
+                        transactionIdMap[backupTxn.id] = newId
                         importedTransactions++
                     } else {
+                        transactionIdMap[backupTxn.id] = existingTxn.id
                         // Transaction exists locally. Should we update it with backup data?
                         // If backupTxn has a newer updatedAt or different fields, update local
                         
@@ -288,6 +329,20 @@ class BackupImporter @Inject constructor(
                         } else {
                             skippedDuplicates++
                         }
+                    }
+                }
+                
+                // Import rules (merge by name/ID)
+                backup.database.rules.forEach { rule ->
+                    database.ruleDao().insertRule(rule)
+                }
+
+                // Import rule applications
+                backup.database.ruleApplications.forEach { app ->
+                    val newTxId = transactionIdMap[app.transactionId.toLongOrNull() ?: -1L]
+                    if (newTxId != null) {
+                        val newApp = app.copy(transactionId = newTxId.toString())
+                        database.ruleApplicationDao().insertApplication(newApp)
                     }
                 }
                 

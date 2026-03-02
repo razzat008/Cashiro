@@ -66,6 +66,12 @@ data class BackupStatistics(
     @SerializedName("total_subscriptions")
     val totalSubscriptions: Int,
     
+    @SerializedName("total_subcategories")
+    val totalSubcategories: Int = 0,
+
+    @SerializedName("total_rules")
+    val totalRules: Int = 0,
+
     @SerializedName("date_range")
     val dateRange: DateRange?
 )
@@ -112,6 +118,15 @@ data class DatabaseSnapshot(
     @SerializedName("budget_category_limits")
     val budgetCategoryLimits: List<BudgetCategoryLimitEntity> = emptyList(),
     
+    @SerializedName("subcategories")
+    val subcategories: List<SubcategoryEntity> = emptyList(),
+
+    @SerializedName("rules")
+    val rules: List<RuleEntity> = emptyList(),
+
+    @SerializedName("rule_applications")
+    val ruleApplications: List<RuleApplicationEntity> = emptyList(),
+
     @SerializedName("chat_messages")
     val chatMessages: List<ChatMessage>
 )
