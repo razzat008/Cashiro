@@ -24,6 +24,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import com.ritesh.cashiro.data.repository.ModelRepository
 import com.ritesh.cashiro.data.repository.ModelState
+import com.ritesh.cashiro.data.repository.SubscriptionRepository
 import com.ritesh.cashiro.data.repository.UnrecognizedSmsRepository
 import com.ritesh.cashiro.data.preferences.UserPreferencesRepository
 import com.ritesh.cashiro.data.backup.BackupExporter
@@ -54,8 +55,11 @@ import com.ritesh.cashiro.data.database.entity.BudgetTrackType
 import com.ritesh.cashiro.data.database.entity.BudgetType
 import com.ritesh.cashiro.data.database.entity.TransactionEntity
 import com.ritesh.cashiro.data.database.entity.TransactionType
+import com.ritesh.cashiro.data.database.entity.SubscriptionEntity
+import com.ritesh.cashiro.data.database.entity.SubscriptionState
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -69,6 +73,7 @@ class SettingsViewModel @Inject constructor(
     private val accountBalanceRepository: AccountBalanceRepository,
     private val cardRepository: CardRepository,
     private val budgetRepository: BudgetRepository,
+    private val subscriptionRepository: SubscriptionRepository,
     private val backupExporter: BackupExporter,
     private val backupImporter: BackupImporter
 ) : ViewModel() {
@@ -893,17 +898,124 @@ class SettingsViewModel @Inject constructor(
                     )
                  )
 
-                 // Add some savings (Income transactions)
+                 // --- SEED SUBSCRIPTIONS & THEIR TRANSACTIONS ---
+                 val today = LocalDate.now()
+                 
+                 // 1. Weekly Subscription: Fruits & Vegetables
+                 val weeklyFruits = SubscriptionEntity(
+                     merchantName = "Daily Fresh Vegetables",
+                     amount = BigDecimal(500),
+                     nextPaymentDate = today.plusDays(3),
+                     billingCycle = "WEEKLY",
+                     category = "Groceries",
+                     bankName = "HDFC Bank",
+                     isSample = true
+                 )
+                 val weeklyFruitsId = subscriptionRepository.insertSubscription(weeklyFruits)
+                 
+                 // Transactions for weekly fruits (Last 4 weeks)
+                 for (i in 0..3) {
+                     transactionRepository.insertTransaction(
+                         TransactionEntity(
+                             amount = BigDecimal(500),
+                             merchantName = "Daily Fresh Vegetables",
+                             category = "Groceries",
+                             transactionType = TransactionType.EXPENSE,
+                             dateTime = now.minusWeeks(i.toLong()).withHour(10),
+                             transactionHash = UUID.randomUUID().toString(),
+                             bankName = "HDFC Bank",
+                             accountNumber = hdfcLast4,
+                             isSample = true,
+                             billingCycle = "WEEKLY"
+                         )
+                     )
+                 }
+
+                 // 2. Monthly Subscription: Netflix
+                 val netflix = SubscriptionEntity(
+                     merchantName = "Netflix",
+                     amount = BigDecimal(499),
+                     nextPaymentDate = today.withDayOfMonth(15),
+                     billingCycle = "MONTHLY",
+                     category = "Entertainment",
+                     bankName = "ICICI Bank",
+                     isSample = true
+                 )
+                 val netflixId = subscriptionRepository.insertSubscription(netflix)
+                 
+                 // Transactions for Netflix (Last 3 months)
+                 for (i in 1..3) {
+                     transactionRepository.insertTransaction(
+                         TransactionEntity(
+                             amount = BigDecimal(499),
+                             merchantName = "Netflix",
+                             category = "Entertainment",
+                             transactionType = TransactionType.EXPENSE,
+                             dateTime = now.minusMonths(i.toLong()).withDayOfMonth(15).withHour(0),
+                             transactionHash = UUID.randomUUID().toString(),
+                             bankName = "ICICI Bank",
+                             accountNumber = "5678",
+                             isSample = true,
+                             billingCycle = "MONTHLY"
+                         )
+                     )
+                 }
+
+                 // 3. Monthly Subscription: Rent
+                 val rent = SubscriptionEntity(
+                     merchantName = "House Rent",
+                     amount = BigDecimal(25000),
+                     nextPaymentDate = today.plusMonths(1).withDayOfMonth(1),
+                     billingCycle = "MONTHLY",
+                     category = "Bill",
+                     bankName = "HDFC Bank",
+                     isSample = true
+                 )
+                 val rentId = subscriptionRepository.insertSubscription(rent)
+                 
+                 // Transactions for Rent (Last 6 months)
+                 for (i in 0..5) {
+                     transactionRepository.insertTransaction(
+                         TransactionEntity(
+                             amount = BigDecimal(25000),
+                             merchantName = "House Rent",
+                             category = "Bill",
+                             transactionType = TransactionType.EXPENSE,
+                             dateTime = now.minusMonths(i.toLong()).withDayOfMonth(1).withHour(9),
+                             transactionHash = UUID.randomUUID().toString(),
+                             bankName = "HDFC Bank",
+                             accountNumber = hdfcLast4,
+                             isSample = true,
+                             billingCycle = "MONTHLY"
+                         )
+                     )
+                 }
+
+                 // 4. Yearly Subscription: Amazon Prime
+                 val prime = SubscriptionEntity(
+                     merchantName = "Amazon Prime",
+                     amount = BigDecimal(1499),
+                     nextPaymentDate = today.minusMonths(2).plusYears(1),
+                     billingCycle = "YEARLY",
+                     category = "Shopping",
+                     bankName = "SBI Bank",
+                     isSample = true
+                 )
+                 val primeId = subscriptionRepository.insertSubscription(prime)
+                 
+                 // Transaction for Prime (10 months ago)
                  transactionRepository.insertTransaction(
                      TransactionEntity(
-                         amount = BigDecimal(50000),
-                         merchantName = "Monthly Savings",
-                         category = "Investment",
-                         transactionType = TransactionType.INCOME,
-                         dateTime = now,
+                         amount = BigDecimal(1499),
+                         merchantName = "Amazon Prime",
+                         category = "Shopping",
+                         transactionType = TransactionType.EXPENSE,
+                         dateTime = now.minusMonths(10),
                          transactionHash = UUID.randomUUID().toString(),
-                         currency = "INR",
-                         isSample = true
+                         bankName = "SBI Bank",
+                         accountNumber = "9012",
+                         isSample = true,
+                         billingCycle = "YEARLY"
                      )
                  )
 
@@ -935,6 +1047,7 @@ class SettingsViewModel @Inject constructor(
                 accountBalanceRepository.deleteSampleBalances()
                 cardRepository.deleteSampleCards()
                 budgetRepository.deleteSampleBudgets()
+                subscriptionRepository.deleteSampleSubscriptions()
                 
                 userPreferencesRepository.setSampleDataSeeded(false)
 

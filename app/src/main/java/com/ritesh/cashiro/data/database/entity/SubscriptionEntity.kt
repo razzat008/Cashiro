@@ -23,7 +23,8 @@ data class SubscriptionEntity(
         @ColumnInfo(name = "updated_at") val updatedAt: LocalDateTime = LocalDateTime.now(),
         @ColumnInfo(name = "currency", defaultValue = "INR") val currency: String = "INR",
         @ColumnInfo(name = "billing_cycle") val billingCycle: String? = null,
-        @ColumnInfo(name = "last_paid_date") val lastPaidDate: LocalDate? = null
+        @ColumnInfo(name = "last_paid_date") val lastPaidDate: LocalDate? = null,
+        @ColumnInfo(name = "is_sample", defaultValue = "0") val isSample: Boolean = false
 )
 
 enum class SubscriptionState {

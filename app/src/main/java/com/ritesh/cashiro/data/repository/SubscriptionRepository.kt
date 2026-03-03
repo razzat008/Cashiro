@@ -59,6 +59,9 @@ class SubscriptionRepository @Inject constructor(
     
     suspend fun deleteSubscription(id: Long) = 
         subscriptionDao.deleteSubscriptionById(id)
+
+    suspend fun deleteSampleSubscriptions() =
+        subscriptionDao.deleteSampleSubscriptions()
     
     /**
      * Creates or updates a subscription from HDFC E-Mandate info
