@@ -90,6 +90,14 @@ fun SharedTransitionScope.BudgetDetailScreen(
     val editBudgetState by budgetViewModel.editBudgetState.collectAsStateWithLifecycle()
     val categories by categoriesViewModel.categories.collectAsStateWithLifecycle()
     val subcategories by categoriesViewModel.subcategories.collectAsStateWithLifecycle()
+    
+    val categoriesMap = remember(categories) { categories.associateBy { it.name } }
+    val subcategoriesMap = remember(subcategories) { 
+        subcategories.values.flatten().associateBy { it.name } 
+    }
+    val accountsMap = remember(uiState.allAccounts) {
+        uiState.allAccounts.associateBy { "${it.bankName}_${it.accountLast4}" }
+    }
 
     var showEditSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -360,8 +368,15 @@ fun SharedTransitionScope.BudgetDetailScreen(
                             key = { _, it -> it.id }
                         ) { index, transaction ->
                             val position = ListItemPosition.from(index, transactions.size)
+                            val accountKey = "${transaction.bankName}_${transaction.accountNumber}"
+                            val account = accountsMap[accountKey]
+                            
                             TransactionItem(
                                 transaction = transaction,
+                                categoryEntity = categoriesMap[transaction.category],
+                                subcategoryEntity = transaction.subcategory?.let { subcategoriesMap[it] },
+                                accountIconResId = account?.iconResId ?: 0,
+                                accountColorHex = account?.color,
                                 onClick = { onTransactionClick(transaction.id, "budget_txn_${transaction.id}") },
                                 modifier = Modifier.padding(horizontal = Spacing.md),
                                 animatedContentScope = animatedContentScope,
