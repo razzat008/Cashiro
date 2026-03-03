@@ -24,13 +24,12 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.rounded.Deselect
-import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.SelectAll
 import androidx.compose.material.icons.rounded.SwapHoriz
@@ -572,52 +571,6 @@ fun SharedTransitionScope.TransactionsScreen(
                 }
             }
 
-            // Data scope info banner
-            if (transactionsViewModel.isShowingLimitedData()) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Dimensions.Padding.content, vertical = Spacing.xs),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(Spacing.md)
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Iconax.Information,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.size(Dimensions.Icon.small)
-                        )
-                        Spacer(modifier = Modifier.width(Spacing.sm))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Showing last $smsScanMonths months of SMS data",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                text = "Adjust in Settings to scan more history",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                            )
-                        }
-                        TextButton(
-                            onClick = onNavigateToSettings,
-                            contentPadding = PaddingValues(horizontal = Spacing.sm)
-                        ) {
-                            Text("Settings", style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                }
-            }
-
             // Collapsible Advanced Filters
             CollapsibleFilterRow(
                 isExpanded = showAdvancedFilters,
@@ -709,12 +662,12 @@ fun SharedTransitionScope.TransactionsScreen(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(horizontal = Dimensions.Padding.content)
+                            .padding(top = Spacing.sm)
+                            .clip(RoundedCornerShape(20.dp))
                             .overScrollVertical(),
                         flingBehavior = rememberOverscrollFlingBehavior { listState },
-                        contentPadding = PaddingValues(
-                            horizontal = Dimensions.Padding.content,
-                            vertical = Spacing.md
-                        ),
+
                     ) {
                         item {
                             // Totals Card - Moved after filters

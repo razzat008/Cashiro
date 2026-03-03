@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.rounded.Upcoming
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -29,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
@@ -146,7 +149,7 @@ fun NotificationScreen(
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
                     PreferenceSwitch(
-                        title = "Scan/Add New Transactions",
+                        title = "Remind Transactions",
                         subtitle = "Get reminders to scan new messages",
                         checked = scanEnabled,
                         onCheckedChange = notificationViewModel::setScanNewTransactionsEnabled,
@@ -164,7 +167,8 @@ fun NotificationScreen(
                                 )
                             }
                         },
-                        isFirst = true,
+                        isSingle = !scanEnabled,
+                        isFirst = scanEnabled,
                         isLast = !scanEnabled,
                         padding = PaddingValues(0.dp)
                     )
@@ -276,6 +280,8 @@ fun NotificationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
+
+                    val itemsCount = subscriptions.size
                     PreferenceSwitch(
                         title = "Upcoming Transactions",
                         subtitle = "Get reminders for upcoming payments",
@@ -295,8 +301,9 @@ fun NotificationScreen(
                                 )
                             }
                         },
+                        isSingle = !upcomingEnabled || itemsCount == 0,
                         isFirst = true,
-                        isLast = !upcomingEnabled || subscriptions.isEmpty(),
+                        isLast = !upcomingEnabled || itemsCount == 0,
                         padding = PaddingValues(0.dp)
                     )
 
@@ -316,6 +323,19 @@ fun NotificationScreen(
                                         ) 
                                     },
                                     trailing = {
+                                        Switch(
+                                            checked = item.isNotificationEnabled,
+                                            onCheckedChange = {
+                                                notificationViewModel.toggleSubscriptionNotification(item.subscription.id, it)
+                                            },
+                                            thumbContent = {
+                                                Icon(
+                                                    if (item.isNotificationEnabled) Icons.Outlined.Check else Icons.Outlined.Close,
+                                                    "Thumb",
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            },
+                                        )
                                         Switch(
                                             checked = item.isNotificationEnabled,
                                             onCheckedChange = { 

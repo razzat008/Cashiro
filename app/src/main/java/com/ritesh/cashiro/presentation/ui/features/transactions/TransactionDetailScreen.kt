@@ -55,7 +55,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
+import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -615,6 +615,7 @@ private fun TransactionSaveContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TransactionDetailContent(
     modifier: Modifier = Modifier,
@@ -671,7 +672,12 @@ private fun TransactionDetailContent(
                 subcategoriesMap[categoryEntity.id]?.find { it.name == transaction.subcategory }
             } else null
 
-            Column {
+            Column(
+                modifier =  Modifier
+                    .animateContentSize(
+                        MaterialTheme.motionScheme.fastSpatialSpec()
+                    )
+            ) {
                 EditableTransactionHeader(
                     transaction = transaction,
                     viewModel = viewModel,
@@ -767,6 +773,7 @@ private fun SmsBodyCard(smsBody: String) {
                     text = "Original SMS",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -950,7 +957,7 @@ private fun EditableTransactionHeader(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EditableExtractedInfoCard(
     transaction: TransactionEntity,
@@ -988,16 +995,23 @@ private fun EditableExtractedInfoCard(
         contentPadding = 0.dp
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             // Account Selection
             val transactionType = transaction.transactionType
             
-            BlurredAnimatedVisibility(transactionType == TransactionType.TRANSFER) {
+            BlurredAnimatedVisibility(
+                visible = transactionType == TransactionType.TRANSFER,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+            ) {
                 // Transfer Type UI
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize(
+                            MaterialTheme.motionScheme.fastSpatialSpec()
+                        ),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Box(
@@ -1155,10 +1169,18 @@ private fun EditableExtractedInfoCard(
                 }
             }
             
-            BlurredAnimatedVisibility(transactionType != TransactionType.TRANSFER){
+            BlurredAnimatedVisibility(
+                visible = transactionType != TransactionType.TRANSFER,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+            ){
                 // Non-Transfer Type UI
                 Column(
-                    modifier = Modifier.animateContentSize().fillMaxWidth(),
+                    modifier = Modifier
+                        .animateContentSize(
+                            MaterialTheme.motionScheme.fastSpatialSpec()
+                        )
+                        .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(1.5.dp)
                 ) {
                     Card(
@@ -1228,10 +1250,10 @@ private fun EditableExtractedInfoCard(
 
                 // Apply to all from merchant checkbox
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Checkbox(
+                    CashiroCheckbox(
                         checked = applyToAllFromMerchant,
                         onCheckedChange = { viewModel.toggleApplyToAllFromMerchant() }
                     )
@@ -1247,10 +1269,10 @@ private fun EditableExtractedInfoCard(
                 if (existingTransactionCount > 0) {
                     Spacer(modifier = Modifier.height(Spacing.xs))
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.sm),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Checkbox(
+                        CashiroCheckbox(
                             checked = updateExistingTransactions,
                             onCheckedChange = { viewModel.toggleUpdateExistingTransactions() }
                         )
@@ -1512,7 +1534,8 @@ private fun DateTimeField(
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Box(
             modifier = Modifier
@@ -1689,6 +1712,7 @@ private fun DateTimeField(
 
 
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TransactionReceipt(
     transaction: TransactionEntity,
@@ -1704,7 +1728,7 @@ private fun TransactionReceipt(
     var cutoutOffsetPx by remember { mutableFloatStateOf(with(density) { 420.dp.toPx() }) }
     val cutoutRadius = 10.dp
     val cutoutRadiusPx = with(density) { cutoutRadius.toPx() }
-    val scallopRadiusPx = with(density) { 4.dp.toPx() }
+    val scallopRadiusPx = with(density) { 8.dp.toPx() }
 
     Box(
         modifier = Modifier 
@@ -1983,7 +2007,9 @@ private fun TransactionReceipt(
                             .fillMaxWidth()
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.md)
-                            .animateContentSize()
+                            .animateContentSize(
+                                MaterialTheme.motionScheme.fastSpatialSpec()
+                            )
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
@@ -1996,11 +2022,22 @@ private fun TransactionReceipt(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(
-                                text = "Description",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                            ){
+                                Icon(
+                                    imageVector = Iconax.DocumentText2,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.tertiary
+                                )
+                                Text(
+                                    text = "Description",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
                             Icon(
                                 imageVector = if (isDescriptionExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                 contentDescription = null,
@@ -2038,6 +2075,9 @@ private fun TransactionReceipt(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .animateContentSize(
+                                MaterialTheme.motionScheme.fastSpatialSpec()
+                            )
                             .padding(horizontal = Dimensions.Padding.content)
                             .padding(top = Spacing.md)
                             .clickable(
@@ -2052,11 +2092,22 @@ private fun TransactionReceipt(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(
-                                text = "Original SMS",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+                            ){
+                                Icon(
+                                    imageVector = Iconax.Messages,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Original SMS",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
                             Icon(
                                 imageVector = if (isSMSExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                 contentDescription = null,

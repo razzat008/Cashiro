@@ -16,7 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.rounded.SwapHoriz
-import androidx.compose.material3.Checkbox
+import com.ritesh.cashiro.presentation.ui.components.CashiroCheckbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -126,7 +126,7 @@ fun SharedTransitionScope.TransactionItem(
 
     val leadingContent: @Composable () -> Unit = {
         BlurredAnimatedVisibility(isSelectionMode) {
-            Checkbox(
+            CashiroCheckbox(
                 checked = isSelected,
                 onCheckedChange = { onSelectionToggle() },
                 modifier = Modifier.size(40.dp)

@@ -52,11 +52,12 @@ fun PreferenceSwitch(
                     },
                 )
             },
-            shape =
-                if (isFirst) ListItemPosition.Top.toShape()
-                else if (isLast) ListItemPosition.Bottom.toShape()
-                else if (isSingle) ListItemPosition.Single.toShape()
-                else ListItemPosition.Middle.toShape(),
+            shape = when {
+                isSingle -> ListItemPosition.Single.toShape()
+                isFirst -> ListItemPosition.Top.toShape()
+                isLast -> ListItemPosition.Bottom.toShape()
+                else -> ListItemPosition.Middle.toShape()
+            },
             padding = padding
         )
     }

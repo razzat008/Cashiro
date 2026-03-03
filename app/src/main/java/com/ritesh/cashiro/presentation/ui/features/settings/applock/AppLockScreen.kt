@@ -19,6 +19,8 @@ import com.ritesh.cashiro.presentation.ui.theme.Spacing
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.ritesh.cashiro.presentation.ui.icons.Iconax
+import com.ritesh.cashiro.presentation.ui.icons.Padlock
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
@@ -63,7 +65,7 @@ fun AppLockScreen(
             CustomTitleTopAppBar(
                 title = "App Lock",
                 scrollBehaviorSmall = scrollBehaviorSmall,
-                scrollBehaviorLarge = scrollBehavior,
+                scrollBehaviorLarge = scrollBehaviorSmall,
                 hazeState = hazeState,
                 hasBackButton = false
             )
@@ -84,7 +86,7 @@ fun AppLockScreen(
             ) {
                 // Lock icon
                 Icon(
-                    imageVector = Icons.Filled.Lock,
+                    imageVector = Iconax.Padlock,
                     contentDescription = "App Locked",
                     modifier = Modifier.size(120.dp),
                     tint = MaterialTheme.colorScheme.primary
