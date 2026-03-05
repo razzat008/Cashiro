@@ -232,24 +232,38 @@ Please review our [Security Policy](SECURITY.md) for how to report vulnerabiliti
 
 ## Contributors ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+[//]: # (Thanks goes to these wonderful people &#40;[emoji key]&#40;https://allcontributors.org/docs/en/emoji-key&#41;&#41;:)
 
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Lucifer1590"><img src="https://avatars.githubusercontent.com/Lucifer1590?v=4&s=100" width="100px;" alt="Lucifer1590"/><br /><sub><b>Lucifer1590</b></sub></a><br /><a href="#community-Lucifer1590" title="Community Management">👥</a> <a href="https://github.com/sarim2000/pennywiseai-tracker/issues?q=author%3ALucifer1590" title="Bug reports">🐛</a> <a href="#userTesting-Lucifer1590" title="User Testing">📓</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/akshaynexus"><img src="https://avatars.githubusercontent.com/akshaynexus?v=4&s=100" width="100px;" alt="akshaynexus"/><br /><sub><b>akshaynexus</b></sub></a><br /><a href="https://github.com/sarim2000/pennywiseai-tracker/commits?author=akshaynexus" title="Code">💻</a></td>
-    </tr>
-  </tbody>
-</table>
+[//]: # ()
+[//]: # (<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->)
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+[//]: # (<!-- prettier-ignore-start -->)
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+[//]: # (<!-- markdownlint-disable -->)
+
+[//]: # (<table>)
+
+[//]: # (  <tbody>)
+
+[//]: # (    <tr>)
+
+[//]: # (      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Lucifer1590"><img src="https://avatars.githubusercontent.com/Lucifer1590?v=4&s=100" width="100px;" alt="Lucifer1590"/><br /><sub><b>Lucifer1590</b></sub></a><br /><a href="#community-Lucifer1590" title="Community Management">👥</a> <a href="https://github.com/sarim2000/pennywiseai-tracker/issues?q=author%3ALucifer1590" title="Bug reports">🐛</a> <a href="#userTesting-Lucifer1590" title="User Testing">📓</a></td>)
+
+[//]: # (      <td align="center" valign="top" width="14.28%"><a href="https://github.com/akshaynexus"><img src="https://avatars.githubusercontent.com/akshaynexus?v=4&s=100" width="100px;" alt="akshaynexus"/><br /><sub><b>akshaynexus</b></sub></a><br /><a href="https://github.com/sarim2000/pennywiseai-tracker/commits?author=akshaynexus" title="Code">💻</a></td>)
+
+[//]: # (    </tr>)
+
+[//]: # (  </tbody>)
+
+[//]: # (</table>)
+
+[//]: # ()
+[//]: # (<!-- markdownlint-restore -->)
+
+[//]: # (<!-- prettier-ignore-end -->)
+
+[//]: # ()
+[//]: # (<!-- ALL-CONTRIBUTORS-LIST:END -->)
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
@@ -261,7 +275,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 Special thanks to the following projects and resources:
 
-- **[PennyWise AI](https://github.com/sarim2000/pennywiseai-tracker)** - The foundation of this project.
+- **[PennyWise AI](https://github.com/sarim2000/pennywiseai-tracker)** - The base and inspiration of this project.
 - **[Microsoft Fluent Emojis](https://github.com/microsoft/fluentui-emoji)** - Beautiful emojis used for category icons.
 - **[Haze](https://chrisbanes.github.io/haze/latest/)** - Applied for stunning blur effects.
 - **[Compose Charts](https://github.com/ehsannarmani/ComposeCharts)** - Used for creating animated charts and graphs.

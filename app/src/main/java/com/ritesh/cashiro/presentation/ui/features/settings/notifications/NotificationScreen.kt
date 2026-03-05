@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ritesh.cashiro.presentation.effects.overScrollVertical
+import com.ritesh.cashiro.presentation.ui.components.BrandIcon
 import com.ritesh.cashiro.presentation.ui.components.CustomTitleTopAppBar
 import com.ritesh.cashiro.presentation.ui.components.ListItem
 import com.ritesh.cashiro.presentation.ui.components.ListItemPosition
@@ -315,38 +316,22 @@ fun NotificationScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(1.5.dp)) {
                             subscriptions.forEachIndexed { index, item ->
                                 val isLastItem = index == subscriptions.lastIndex
-                                ListItem(
-                                    headline = { Text(item.subscription.merchantName) },
-                                    supporting = { 
-                                        Text(
-                                            text = item.subscription.nextPaymentDate?.format(DateTimeFormatter.ofPattern("MMM dd")) ?: "No date"
-                                        ) 
+                                PreferenceSwitch(
+                                    title = item.subscription.merchantName,
+                                    subtitle = item.subscription.nextPaymentDate?.format(DateTimeFormatter.ofPattern("MMM dd")) ?: "No date",
+                                    checked = item.isNotificationEnabled,
+                                    onCheckedChange = { 
+                                        notificationViewModel.toggleSubscriptionNotification(item.subscription.id, it)
                                     },
-                                    trailing = {
-                                        Switch(
-                                            checked = item.isNotificationEnabled,
-                                            onCheckedChange = {
-                                                notificationViewModel.toggleSubscriptionNotification(item.subscription.id, it)
-                                            },
-                                            thumbContent = {
-                                                Icon(
-                                                    if (item.isNotificationEnabled) Icons.Outlined.Check else Icons.Outlined.Close,
-                                                    "Thumb",
-                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
-                                                )
-                                            },
-                                        )
-                                        Switch(
-                                            checked = item.isNotificationEnabled,
-                                            onCheckedChange = { 
-                                                notificationViewModel.toggleSubscriptionNotification(item.subscription.id, it)
-                                            }
+                                    leadingIcon = {
+                                        BrandIcon(
+                                            merchantName = item.subscription.merchantName,
+                                            size = 48.dp
                                         )
                                     },
-                                    onClick = { 
-                                        notificationViewModel.toggleSubscriptionNotification(item.subscription.id, !item.isNotificationEnabled)
-                                    },
-                                    shape = if (isLastItem) ListItemPosition.Bottom.toShape() else ListItemPosition.Middle.toShape(),
+                                    isFirst = false,
+                                    isLast = isLastItem,
+                                    isSingle = false,
                                     padding = PaddingValues(0.dp)
                                 )
                             }
