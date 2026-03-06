@@ -139,6 +139,8 @@ fun SharedTransitionScope.TransactionItem(
                 showBackground = true,
                 categoryEntity = categoryEntity,
                 subcategoryEntity = subcategoryEntity,
+                category = transaction?.category,
+                subcategory = transaction?.subcategory,
                 accountIconResId = accountIconResId,
                 accountColorHex = accountColorHex
             )

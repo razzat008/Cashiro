@@ -35,22 +35,28 @@ fun BrandIcon(
     showBackground: Boolean = true,
     categoryEntity: CategoryEntity? = null,
     subcategoryEntity: SubcategoryEntity? = null,
+    category: String? = null,
+    subcategory: String? = null,
     accountIconResId: Int = 0,
     accountColorHex: String? = null
 ) {
-    val iconResource = remember(merchantName, categoryEntity, subcategoryEntity, accountIconResId) {
+    val iconResource = remember(merchantName, categoryEntity, subcategoryEntity, category, subcategory, accountIconResId) {
         IconProvider.getIconForTransaction(
             merchantName = merchantName,
             categoryEntity = categoryEntity,
             subcategoryEntity = subcategoryEntity,
+            category = category,
+            subcategory = subcategory,
             accountIconResId = accountIconResId
         )
     }
-    val brandColor = remember(merchantName, categoryEntity, subcategoryEntity, accountColorHex) {
+    val brandColor = remember(merchantName, categoryEntity, subcategoryEntity, category, subcategory, accountColorHex) {
         IconProvider.getColorForTransaction(
             merchantName = merchantName,
             categoryEntity = categoryEntity,
             subcategoryEntity = subcategoryEntity,
+            category = category,
+            subcategory = subcategory,
             accountColorHex = accountColorHex
         )
     }

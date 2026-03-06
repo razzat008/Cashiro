@@ -3,6 +3,7 @@ package com.ritesh.cashiro.presentation.common.icons
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.ritesh.cashiro.R
 import com.ritesh.cashiro.data.database.entity.CategoryEntity
@@ -1149,6 +1150,8 @@ object IconProvider {
         merchantName: String,
         categoryEntity: CategoryEntity? = null,
         subcategoryEntity: SubcategoryEntity? = null,
+        category: String? = null,
+        subcategory: String? = null,
         accountIconResId: Int = 0
     ): IconResource {
         // brand icon first
@@ -1166,12 +1169,32 @@ object IconProvider {
             }
         }
 
+        // subcategory string fallback
+        subcategory?.let { subcatName ->
+            CategoryMapping.categories[subcatName]?.let { categoryInfo ->
+                return IconResource.TintedResIcon(
+                    resId = categoryInfo.iconResId,
+                    tint = categoryInfo.color
+                )
+            }
+        }
+
         // category icon from entity
         categoryEntity?.let { cat ->
             if (cat.iconResId != 0) {
                 return IconResource.TintedResIcon(
                     resId = cat.iconResId,
                     tint = Color(android.graphics.Color.parseColor(cat.color))
+                )
+            }
+        }
+
+        // category string fallback
+        category?.let { catName ->
+            CategoryMapping.categories[catName]?.let { categoryInfo ->
+                return IconResource.TintedResIcon(
+                    resId = categoryInfo.iconResId,
+                    tint = categoryInfo.color
                 )
             }
         }
@@ -1213,6 +1236,8 @@ object IconProvider {
         merchantName: String,
         categoryEntity: CategoryEntity? = null,
         subcategoryEntity: SubcategoryEntity? = null,
+        category: String? = null,
+        subcategory: String? = null,
         accountColorHex: String? = null
     ): Pair<String, Float>? {
         // brand color first - full opacity
@@ -1221,8 +1246,22 @@ object IconProvider {
         // subcategory color - reduced opacity
         subcategoryEntity?.color?.let { return Pair(it, 0.2f) }
 
+        // subcategory string fallback
+        subcategory?.let { subcatName ->
+            CategoryMapping.categories[subcatName]?.let { categoryInfo ->
+                return Pair(String.format("#%06X", (0xFFFFFF and categoryInfo.color.toArgb())), 0.2f)
+            }
+        }
+
         // category color - reduced opacity
         categoryEntity?.color?.let { return Pair(it, 0.2f) }
+
+        // category string fallback
+        category?.let { catName ->
+            CategoryMapping.categories[catName]?.let { categoryInfo ->
+                return Pair(String.format("#%06X", (0xFFFFFF and categoryInfo.color.toArgb())), 0.2f)
+            }
+        }
 
         // account color fallback - reduced opacity
         accountColorHex?.let { return Pair(it, 0.2f) }

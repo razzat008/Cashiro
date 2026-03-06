@@ -326,6 +326,8 @@ fun NotificationScreen(
                                     leadingIcon = {
                                         BrandIcon(
                                             merchantName = item.subscription.merchantName,
+                                            category = item.subscription.category,
+                                            subcategory = item.subscription.subcategory,
                                             size = 48.dp
                                         )
                                     },
