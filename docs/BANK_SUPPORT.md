@@ -53,8 +53,12 @@
 |------|-----------------|---------|
 | **Credit** | `Rs.XXX credited to A/c` | Rs.5000 credited to A/c XX1234 |
 | **Credit** | `A/c XXXX-credited by Rs.XXX` | A/c X9338-credited by Rs.500 |
+| **Credit** | `has credit for MERCHANT of Rs XXX` | has credit for SHOP of Rs 10,714.00 |
+| **Credit** | `has a credit by Cheque of Rs XXX` | has a credit by Cheque of Rs 12,07,000.00 |
+| **Credit** | `Credited INR XXX` | Credited INR 9,000.00 |
 | **Debit** | `Rs.XXX debited from A/c` | Rs.2000 debited from A/c XX1234 |
 | **Debit** | `A/C XXXX debited by XXX` | A/C X9474 debited by 370.0 |
+| **Debit** | `has a debit by transfer of Rs XXX` | has a debit by transfer of Rs 230.00 |
 | **UPI Send** | `trf to MERCHANT` | debited by 100 trf to SHOPKEEPER |
 | **UPI Receive** | `transfer from SENDER` | credited by Rs.500 transfer from PERSON |
 | **ATM** | `ATM withdrawal of Rs.XXX` | ATM withdrawal of Rs.2000 |

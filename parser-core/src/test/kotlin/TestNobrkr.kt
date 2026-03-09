@@ -1,4 +1,5 @@
-package com.ritesh.parser.core.bank
+import com.ritesh.parser.core.bank.BankParserFactory
+
 
 fun main() {
     val sender = "JK-NOBRKR-S"

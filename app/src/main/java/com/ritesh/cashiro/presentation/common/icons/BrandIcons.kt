@@ -121,11 +121,13 @@ object BrandIcons {
         "policybazaar" to R.drawable.ic_brand_policybazaar,
         "practo" to R.drawable.ic_brand_practo,
         "punjab national bank" to R.drawable.ic_brand_punjab_national_bank,
+        "pnb" to R.drawable.ic_brand_punjab_national_bank,
         "pvr" to R.drawable.ic_brand_pvr,
         "rapido" to R.drawable.ic_brand_rapido,
         "rbl bank" to R.drawable.ic_brand_rbl_bank,
         "redbus" to R.drawable.ic_brand_redbus,
         "sbi" to R.drawable.ic_brand_sbi,
+        "state bank of india" to R.drawable.ic_brand_sbi,
         "sbi life" to R.drawable.ic_brand_sbi_life,
         "shopclues" to R.drawable.ic_brand_shopclues,
         "simpl" to R.drawable.ic_brand_simpl,
@@ -216,7 +218,8 @@ object BrandIcons {
         merchantName.contains("hdfc", ignoreCase = true) -> "#004C8F"
         merchantName.contains("icici", ignoreCase = true) -> "#F37021"
         merchantName.contains("axis", ignoreCase = true) -> "#97144D"
-        merchantName.contains("sbi", ignoreCase = true) -> "#22409A"
+        merchantName.contains("sbi", ignoreCase = true) || 
+        merchantName.contains("state bank of india", ignoreCase = true) -> "#22409A"
         merchantName.contains("kotak", ignoreCase = true) -> "#EF3829"
         merchantName.contains("yes bank", ignoreCase = true) -> "#0066CC"
         merchantName.contains("idfc", ignoreCase = true) -> "#8B0000"
