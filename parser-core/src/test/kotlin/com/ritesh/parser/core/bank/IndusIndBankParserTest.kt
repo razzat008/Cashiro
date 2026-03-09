@@ -1,3 +1,5 @@
+package com.ritesh.parser.core.bank
+
 import com.ritesh.parser.core.TransactionType
 import com.ritesh.parser.core.bank.IndusIndBankParser
 import com.ritesh.parser.core.test.ExpectedTransaction
