@@ -22,8 +22,8 @@ android {
         applicationId = "com.ritesh.cashiro"
         minSdk = 26
         targetSdk = 36
-        versionCode = 92
-        versionName = "2.1.57"
+        versionCode = 93
+        versionName = "2.1.60"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
