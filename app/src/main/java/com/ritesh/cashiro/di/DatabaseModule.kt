@@ -485,20 +485,12 @@ class DatabaseCallback : RoomDatabase.Callback() {
                 displayOrder = 31
             ),
             CategoryData(
-                name = "Return",
-                description = "Borrowed money is returned",
-                iconResId = R.drawable.type_finance_currency_exchange,
-                color = "#33B5E5",
-                isIncome = false,
-                displayOrder = 32
-            ),
-            CategoryData(
-                name = "Salary",
-                description = "Job salary",
-                iconResId = R.drawable.type_finance_coin,
-                color = "#8BC34A",
+                name = "Income",
+                description = "Generic income",
+                iconResId = R.drawable.type_finance_money_bag,
+                color = "#4CAF50",
                 isIncome = true,
-                displayOrder = 33
+                displayOrder = 0
             )
         )
         categories.forEach { cat ->
@@ -554,7 +546,9 @@ class DatabaseCallback : RoomDatabase.Callback() {
         val hiddenChargesCategoryId = getCategoryId(db, "Hidden Charges")
         val cashWithdrawalCategoryId = getCategoryId(db, "Cash Withdrawal")
         val returnCategoryId = getCategoryId(db, "Return")
-        val salaryCategoryId = getCategoryId(db, "Salary")
+        val incomeCategoryId = getCategoryId(db, "Income")
+
+        
 
         // Food & Drinks subcategories with specific icons and colors
         val foodSubcategories = listOf(
@@ -1033,6 +1027,25 @@ class DatabaseCallback : RoomDatabase.Callback() {
         miscellaneousSubcategories.forEach { subcategory ->
             insertSubcategory(
                 db, miscellaneousCategoryId, subcategory.name,
+                subcategory.iconResId,
+                subcategory.color
+            )
+        }
+
+        // Income subcategories
+        val incomeSubcategories = listOf(
+            SubcategoryData("Salary", R.drawable.type_finance_coin, "#8BC34A"),
+            SubcategoryData("Freelance", R.drawable.type_stationary_clipboard, "#4CAF50"),
+            SubcategoryData("Business", R.drawable.type_finance_classical_building, "#8BC34A"),
+            SubcategoryData("Bonus", R.drawable.type_stationary_wrapped_gift, "#FFEB3B"),
+            SubcategoryData("Gift", R.drawable.type_stationary_wrapped_gift, "#FF9800"),
+            SubcategoryData("Interest", R.drawable.type_finance_chart_decreasing, "#8BC34A"),
+            SubcategoryData("Refund", R.drawable.type_finance_currency_exchange, "#03A9F4"),
+            SubcategoryData("Other", R.drawable.type_stationary_clipboard, "#9E9E9E"),
+        )
+        incomeSubcategories.forEach { subcategory ->
+            insertSubcategory(
+                db, incomeCategoryId, subcategory.name,
                 subcategory.iconResId,
                 subcategory.color
             )

@@ -66,7 +66,7 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
             BudgetEntity::class,
             BudgetCategoryLimitEntity::class
         ],
-    version = 43,
+    version = 45,
     exportSchema = true,
     autoMigrations =
         [
@@ -85,7 +85,9 @@ import com.ritesh.cashiro.data.database.entity.UnrecognizedSmsEntity
             AutoMigration(from = 39, to = 40),
             AutoMigration(from = 40, to = 41, spec = Migration40To41::class),
             AutoMigration(from = 41, to = 42),
-            AutoMigration(from = 42, to = 43)
+            AutoMigration(from = 42, to = 43),
+            AutoMigration(from = 43, to = 44, spec = Migration43To44::class),
+            AutoMigration(from = 44, to = 45, spec = Migration44To45::class)
         ]
 )
 @TypeConverters(Converters::class)
@@ -648,5 +650,129 @@ class Migration40To41 : AutoMigrationSpec {
         oldToNewMap.keys.forEach { oldCategory ->
             db.execSQL("DELETE FROM categories WHERE name = ?", arrayOf(oldCategory))
         }
+    }
+}
+
+/** Migration from version 43 to 44. Adds 'Income' default category and its subcategories. */
+class Migration43To44 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        super.onPostMigrate(db)
+        
+        // Insert Income category
+        db.execSQL(
+            """
+            INSERT OR IGNORE INTO categories (
+                name, color, icon_res_id, description, is_system, is_income, display_order,
+                default_name, default_color, default_icon_res_id, default_description,
+                created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, 1, 1, 0, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            """.trimIndent(),
+            arrayOf<Any>(
+                "Income", "#4CAF50", com.ritesh.cashiro.R.drawable.type_finance_money_bag, "Generic income",
+                "Income", "#4CAF50", com.ritesh.cashiro.R.drawable.type_finance_money_bag, "Generic income"
+            )
+        )
+        
+        // Find the inserted or existing Income category ID
+        val cursor = db.query("SELECT id FROM categories WHERE name = 'Income'")
+        var incomeCategoryId: Long = -1
+        if (cursor.moveToFirst()) {
+            incomeCategoryId = cursor.getLong(0)
+        }
+        cursor.close()
+        
+        if (incomeCategoryId != -1L) {
+            val incomeSubcategories = listOf(
+                Triple("Freelance", com.ritesh.cashiro.R.drawable.type_stationary_clipboard, "#4CAF50"),
+                Triple("Business", com.ritesh.cashiro.R.drawable.type_finance_classical_building, "#8BC34A"),
+                Triple("Bonus", com.ritesh.cashiro.R.drawable.type_stationary_wrapped_gift, "#FFEB3B"),
+                Triple("Gift", com.ritesh.cashiro.R.drawable.type_stationary_wrapped_gift, "#FF9800"),
+                Triple("Interest", com.ritesh.cashiro.R.drawable.type_finance_chart_decreasing, "#8BC34A"),
+                Triple("Refund", com.ritesh.cashiro.R.drawable.type_finance_currency_exchange, "#03A9F4"),
+                Triple("Other", com.ritesh.cashiro.R.drawable.type_stationary_clipboard, "#9E9E9E"),
+            )
+            
+            incomeSubcategories.forEach { (name, iconResId, color) ->
+                db.execSQL(
+                    """
+                    INSERT OR IGNORE INTO subcategories (
+                        category_id, name, icon_res_id, color, is_system,
+                        default_name, default_color, default_icon_res_id
+                    )
+                    VALUES (?, ?, ?, ?, 1, ?, ?, ?)
+                    """.trimIndent(),
+                    arrayOf<Any>(
+                        incomeCategoryId, name, iconResId, color,
+                        name, color, iconResId
+                    )
+                )
+            }
+        }
+    }
+}
+
+/** 
+ * Migration from version 44 to 45. 
+ * Migrates 'Salary' category to 'Income' category with 'Salary' subcategory.
+ */
+class Migration44To45 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        super.onPostMigrate(db)
+        
+        // Find Income Category ID
+        val cursorIncome = db.query("SELECT id FROM categories WHERE name = 'Income'")
+        var incomeCategoryId: Long = -1
+        if (cursorIncome.moveToFirst()) {
+            incomeCategoryId = cursorIncome.getLong(0)
+        }
+        cursorIncome.close()
+
+        if (incomeCategoryId != -1L) {
+            // Ensure Salary subcategory exists under Income
+            db.execSQL(
+                """
+                INSERT OR IGNORE INTO subcategories (
+                    category_id, name, icon_res_id, color, is_system,
+                    default_name, default_color, default_icon_res_id
+                )
+                VALUES (?, 'Salary', ?, '#8BC34A', 1, 'Salary', '#8BC34A', ?)
+                """.trimIndent(),
+                arrayOf<Any>(
+                    incomeCategoryId, 
+                    com.ritesh.cashiro.R.drawable.type_finance_coin,
+                    com.ritesh.cashiro.R.drawable.type_finance_coin
+                )
+            )
+
+            // Update transactions categorized as 'Salary' to 'Income' and subcategory 'Salary'
+            val cursorHasSubcategory = db.query("PRAGMA table_info(transactions)")
+            var hasSubcat = false
+            while(cursorHasSubcategory.moveToNext()){
+                if(cursorHasSubcategory.getString(1) == "subcategory") {
+                    hasSubcat = true
+                    break
+                }
+            }
+            cursorHasSubcategory.close()
+            
+            if(hasSubcat) {
+                db.execSQL("UPDATE transactions SET category = 'Income', subcategory = 'Salary' WHERE category = 'Salary'")
+            } else {
+                db.execSQL("UPDATE transactions SET category = 'Income' WHERE category = 'Salary'")
+            }
+
+            // Update subscriptions categorized as 'Salary' to 'Income'
+            db.execSQL("UPDATE subscriptions SET category = 'Income' WHERE category = 'Salary'")
+
+            // Update merchant mappings from 'Salary' to 'Income'
+            db.execSQL("UPDATE merchant_mappings SET category = 'Income' WHERE category = 'Salary'")
+
+            // Update rules
+            db.execSQL("UPDATE transaction_rules SET actions = REPLACE(actions, '\"value\":\"Salary\"', '\"value\":\"Income\"') WHERE actions LIKE '%\"value\":\"Salary\"%'")
+        }
+
+        // Delete the old 'Salary' category from categories table
+        db.execSQL("DELETE FROM categories WHERE name = 'Salary'")
     }
 }
