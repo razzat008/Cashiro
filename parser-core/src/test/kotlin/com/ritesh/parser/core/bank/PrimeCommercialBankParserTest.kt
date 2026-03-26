@@ -41,10 +41,11 @@ class PrimeCommercialBankParserTest {
             )
         ),
         handleCases = listOf(
-            "PCBLNPKA" to true,
             "PRIME_ALERT" to true,
-            "PRIME" to true,
-            "AD-PRIME-ALERT" to true,
+            "Prime_Alert" to true,
+            "PCBLNPKA" to true,
+            "PRIME" to false,
+            "AD-PRIME-ALERT" to false,
             "UNKNOWN" to false
         ),
         suiteName = "Prime Commercial Bank Parser"

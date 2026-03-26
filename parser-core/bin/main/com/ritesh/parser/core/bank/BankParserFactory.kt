@@ -66,6 +66,7 @@ object BankParserFactory {
         DhanlaxmiBankParser(),  // Dhanlaxmi Bank (India)
         HuntingtonBankParser(),  // Huntington Bank (USA)
         StandardCharteredBankParser()  // Standard Chartered Bank (India)
+        PrimeCommercialBankParser()  // Prime Commercial Bank (Nepal)
         // Add more bank parsers here as we implement them
     )
 

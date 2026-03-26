@@ -16,7 +16,7 @@ class PrimeCommercialBankParser : BankParser() {
         val normalizedSender = sender.uppercase().replace("-", "_")
         return normalizedSender.contains("PCBLNPKA") ||
                 normalizedSender == "PRIME_ALERT" ||
-                normalizedSender.contains("PRIME")
+                normalizedSender == "PRIME_COMMERCIAL"
     }
 
     override fun extractAmount(message: String): BigDecimal? {
