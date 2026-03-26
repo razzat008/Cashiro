@@ -101,7 +101,7 @@ Supporting **47+ banks** across **10 countries** with **multi-currency** capabil
 ### 🇧🇾 Belarus (1 bank) - BYN Br
 - **Priorbank** - Russian/Belarusian SMS support
 
-### 🇳🇵 Nepal (3 banks) - NPR ₨
+### 🇳🇵 Nepal (4 banks) - NPR ₨
 - **Laxmi Sunrise Bank**, **Everest Bank**, **NMB Bank (Nabil Bank)**, **Prime Commercial Bank**
 
 ### 🇪🇹 Ethiopia (1 bank) - ETB ብር
